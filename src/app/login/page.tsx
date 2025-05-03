@@ -2,7 +2,7 @@
 
 import { useLogin, useAuth } from '@saas-ui/auth';
 import { useRouter } from 'next/navigation';
-import { Card, CardBody, Button, FormControl, FormLabel, Input, VStack, Heading, Text, useColorModeValue, Container, Box } from '@chakra-ui/react';
+import { Card, CardBody, Button, FormControl, FormLabel, Input, VStack, Heading, useColorModeValue, Container, Box } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import { LayoutContainer } from '@/components/LayoutContainer';
 
