@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useDocumentsContext } from '@/hooks/documents';
-import { Document, DocumentStatus, DocumentType } from '@/hooks/documents/types';
+import { Document, DocumentStatus } from '@/hooks/documents/types';
 import {
   Box,
   Container,
@@ -11,16 +11,13 @@ import {
   HStack,
   VStack,
   Grid,
-  GridItem,
   Text,
   Heading,
   Input,
   Textarea,
   Select,
   Button,
-  IconButton,
   Badge,
-  Divider,
   useToast,
   Spinner,
   Center,
@@ -291,7 +288,7 @@ export default function DocumentDetail() {
         <Center p={10} flexDirection="column">
           <Icon as={FiInfo} boxSize={16} color="red.400" mb={4} />
           <Heading size="lg" mb={2} color="white">Document Not Found</Heading>
-          <Text color="gray.400" mb={6}>The document you're looking for doesn't exist or couldn't be loaded.</Text>
+          <Text color="gray.400" mb={6}>The document you&apos;re looking for doesn&apos;t exist or couldn&apos;t be loaded.</Text>
           <Button 
             leftIcon={<FiArrowLeft />} 
             colorScheme="blue"

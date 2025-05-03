@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { useDocuments } from './useDocuments';
 import { useDocumentStats } from './useDocumentStats';
 import { useDocumentOperations } from './useDocumentOperations';

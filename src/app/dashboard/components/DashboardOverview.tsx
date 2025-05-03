@@ -6,17 +6,22 @@ import { FiFileText, FiCalendar, FiAlertCircle, FiCheck } from 'react-icons/fi';
 import { useDocumentsContext } from '@/hooks/documents';
 import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { useRouter } from 'next/navigation';
 
 interface DailyCount {
   date: string;
   count: number;
 }
 
+// Define a proper type for the tooltip props
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{value: number; name: string}>;
+  label?: string;
+}
+
 export function DashboardOverview() {
   const { user } = useAuth();
   const { statsLoading, documents } = useDocumentsContext();
-  const router = useRouter();
   
   const [createdLastWeek, setCreatedLastWeek] = useState<DailyCount[]>([]);
   const [publishedLastWeek, setPublishedLastWeek] = useState<DailyCount[]>([]);
@@ -89,7 +94,7 @@ export function DashboardOverview() {
   };
   
   // Custom tooltip for charts
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <Box bg="gray.800" p={2} borderRadius="md" borderColor="gray.700" borderWidth="1px">

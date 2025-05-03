@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export type DocumentStatus = 'draft' | 'approved' | 'rejected' | 'published' | 'word-limit';
 export type DocumentType = 'test' | 'aiwah-content-test' | string;
 

@@ -1,20 +1,21 @@
 'use client';
 
-import { Box, Card, CardBody, CardHeader, Heading, Text, Flex, Icon, VStack, Badge, ButtonGroup, Button, Divider, useToast, Spinner, Center } from '@chakra-ui/react';
+import { Box, Card, CardBody, CardHeader, Heading, Text, Flex, Icon, VStack, Badge, ButtonGroup, Button, useToast, Spinner, Center } from '@chakra-ui/react';
 import { FiClock, FiCheck, FiX, FiTrash2, FiMessageSquare, FiEdit } from 'react-icons/fi';
 import { useDocumentsContext } from '@/hooks/documents';
+import { Document } from '@/hooks/documents/types';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 export function RecentDraftsTab() {
   const router = useRouter();
   const { statsLoading, documents, updateDocumentStatus, deleteDocument, refreshDocuments } = useDocumentsContext();
-  const [recentDrafts, setRecentDrafts] = useState<any[]>([]);
+  const [recentDrafts, setRecentDrafts] = useState<Document[]>([]);
   const [loadingActions, setLoadingActions] = useState<{[key: number]: string}>({});
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [allDrafts, setAllDrafts] = useState<any[]>([]);
+  const [allDrafts, setAllDrafts] = useState<Document[]>([]);
   const ITEMS_PER_PAGE = 5;
   const observer = useRef<IntersectionObserver | null>(null);
   const toast = useToast();
@@ -33,7 +34,7 @@ export function RecentDraftsTab() {
   }, [statsLoading, documents]);
   
   // Load initial batch of drafts
-  const loadInitialDrafts = (drafts: any[]) => {
+  const loadInitialDrafts = (drafts: Document[]) => {
     const initialDrafts = drafts.slice(0, ITEMS_PER_PAGE);
     setRecentDrafts(initialDrafts);
     setHasMore(drafts.length > ITEMS_PER_PAGE);
@@ -74,12 +75,6 @@ export function RecentDraftsTab() {
     if (node) observer.current.observe(node);
   }, [loading, hasMore, loadMoreDrafts]);
   
-  // Helper function to truncate text
-  const truncateText = (text: string, maxLength: number = 300) => {
-    if (!text) return '';
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-  };
-  
   // Handle document approval
   const handleApprove = async (id: number) => {
     setLoadingActions(prev => ({ ...prev, [id]: 'approve' }));
@@ -95,6 +90,7 @@ export function RecentDraftsTab() {
         refreshDocuments();
       }
     } catch (error) {
+      console.error("Error approving document:", error);
       toast({
         title: "Failed to approve document",
         status: "error",
@@ -125,6 +121,7 @@ export function RecentDraftsTab() {
         refreshDocuments();
       }
     } catch (error) {
+      console.error("Error rejecting document:", error);
       toast({
         title: "Failed to reject document",
         status: "error",
@@ -159,6 +156,7 @@ export function RecentDraftsTab() {
         refreshDocuments();
       }
     } catch (error) {
+      console.error("Error deleting document:", error);
       toast({
         title: "Failed to delete document",
         status: "error",

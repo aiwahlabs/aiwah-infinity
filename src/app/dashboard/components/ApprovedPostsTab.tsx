@@ -3,17 +3,18 @@
 import { Box, Card, CardBody, CardHeader, Heading, Text, Flex, Icon, VStack, Badge, Spinner, Center, Button } from '@chakra-ui/react';
 import { FiCheck, FiMessageSquare, FiExternalLink } from 'react-icons/fi';
 import { useDocumentsContext } from '@/hooks/documents';
+import { Document } from '@/hooks/documents/types';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 export function ApprovedPostsTab() {
   const router = useRouter();
   const { statsLoading, documents } = useDocumentsContext();
-  const [approvedPosts, setApprovedPosts] = useState<any[]>([]);
+  const [approvedPosts, setApprovedPosts] = useState<Document[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [allApprovedPosts, setAllApprovedPosts] = useState<any[]>([]);
+  const [allApprovedPosts, setAllApprovedPosts] = useState<Document[]>([]);
   const ITEMS_PER_PAGE = 5;
   const observer = useRef<IntersectionObserver | null>(null);
   
@@ -31,7 +32,7 @@ export function ApprovedPostsTab() {
   }, [statsLoading, documents]);
   
   // Load initial batch of approved posts
-  const loadInitialPosts = (posts: any[]) => {
+  const loadInitialPosts = (posts: Document[]) => {
     const initialPosts = posts.slice(0, ITEMS_PER_PAGE);
     setApprovedPosts(initialPosts);
     setHasMore(posts.length > ITEMS_PER_PAGE);

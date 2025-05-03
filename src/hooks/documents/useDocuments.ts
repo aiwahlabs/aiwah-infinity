@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browser';
-import { Document, DocumentFilter, DocumentStats } from './types';
+import { Document, DocumentFilter } from './types';
 
 export function useDocuments(initialFilter?: DocumentFilter) {
   const [documents, setDocuments] = useState<Document[]>([]);

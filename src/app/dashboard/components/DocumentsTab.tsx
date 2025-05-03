@@ -18,8 +18,7 @@ export function DocumentsTab() {
     updateFilter,
     refreshDocuments,
     updateDocumentStatus,
-    deleteDocument,
-    createDocument
+    deleteDocument
   } = useDocumentsContext();
   
   // Local state for search input

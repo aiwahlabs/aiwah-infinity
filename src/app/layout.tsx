@@ -5,7 +5,6 @@ import "./responsive.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ClientOnly } from "@/components/ClientOnlyProvider";
-import { LayoutContainer } from "@/components/LayoutContainer";
 import { ResponsiveWarning } from "@/components/ResponsiveWarning";
 
 const geistSans = Geist({
