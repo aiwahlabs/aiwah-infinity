@@ -29,12 +29,16 @@ export function AppHeader({
         <Flex justifyContent="space-between" alignItems="center">
           <Flex alignItems="center" cursor="pointer">
             {AppIcon && (
-              <Box bg="blue.600" p={2} borderRadius="md" mr={3}>
-                <AppIcon size={20} color="white" />
-              </Box>
+              <Flex
+                alignItems="center"
+                color="blue.400"
+                mr={2}
+              >
+                <AppIcon size={24} />
+              </Flex>
             )}
             {appIconSrc && (
-              <Image src={appIconSrc} alt={`${appName} Icon`} h="32px" mr={3} />
+              <Image src={appIconSrc} alt={`${appName} Icon`} h="24px" mr={2} />
             )}
             <Heading size="md" color="white">{appName}</Heading>
           </Flex>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { FiGrid } from 'react-icons/fi';
+import { FiFileText } from 'react-icons/fi';
 import { DocumentsProvider } from '@/hooks/documents';
 import { useAuth } from '@saas-ui/auth';
 import { redirect } from 'next/navigation';
@@ -20,7 +20,7 @@ export default function DashboardLayout({
   }
   
   return (
-    <AppLayout appName="Ghostwriter" appIcon={FiGrid}>
+    <AppLayout appName="Ghostwriter" appIcon={FiFileText}>
       <DocumentsProvider>
         {children}
       </DocumentsProvider>

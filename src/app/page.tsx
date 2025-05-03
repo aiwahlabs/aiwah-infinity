@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { Box, Heading, Text, Card, CardBody, CardHeader, Icon, Flex } from '@chakra-ui/react';
+import { Box, Heading, Text, Card, CardBody, CardHeader, Icon, Flex, Container, SimpleGrid } from '@chakra-ui/react';
 import { useAuth } from '@saas-ui/auth';
 import { FiFileText } from 'react-icons/fi';
 import Link from 'next/link';
@@ -24,45 +24,47 @@ export default function Home() {
 
   return (
     <LayoutContainer>
-      <Box width="100%" maxW="400px" mt={4} ml={4}>
-        <Link href="/dashboard" passHref>
-          <Card 
-            bg="gray.800" 
-            borderColor="gray.700" 
-            borderWidth="1px" 
-            borderRadius="lg" 
-            overflow="hidden" 
-            _hover={{ 
-              transform: 'translateY(-4px)', 
-              boxShadow: 'xl',
-              borderColor: "blue.400"
-            }}
-            transition="all 0.2s ease-in-out"
-            cursor="pointer"
-            height="100%"
-          >
-            <CardHeader pb={2}>
-              <Flex align="center" mb={2}>
-                <Flex
-                  bg="blue.600"
-                  w="48px"
-                  h="48px"
-                  borderRadius="md"
-                  justify="center"
-                  align="center"
-                  mr={4}
-                >
-                  <Icon as={FiFileText} boxSize={6} color="white" />
+      <Container maxW="container.xl" py={12}>
+        {/* <Heading size="lg" mb={8} color="white">Your Applications</Heading> */}
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
+          <Link href="/dashboard" passHref style={{ display: 'contents' }}>
+            <Card 
+              bg="gray.800" 
+              borderColor="gray.700" 
+              borderWidth="1px" 
+              borderRadius="lg" 
+              overflow="hidden" 
+              _hover={{ 
+                transform: 'translateY(-4px)', 
+                boxShadow: 'xl',
+                borderColor: "blue.400"
+              }}
+              transition="all 0.2s ease-in-out"
+              cursor="pointer"
+              height="100%"
+              maxW="100%"
+            >
+              <CardHeader pb={4}>
+                <Flex align="center">
+                  <Box
+                    bg="blue.500"
+                    color="white"
+                    p={3}
+                    borderRadius="md"
+                    mr={4}
+                  >
+                    <Icon as={FiFileText} boxSize={6} />
+                  </Box>
+                  <Heading size="md" color="white">Ghostwriter</Heading>
                 </Flex>
-                <Heading size="md" color="white">Ghostwriter</Heading>
-              </Flex>
-            </CardHeader>
-            <CardBody pt={0}>
-              <Text color="gray.300">Create and manage your content</Text>
-            </CardBody>
-          </Card>
-        </Link>
-      </Box>
+              </CardHeader>
+              <CardBody pt={0} pb={6}>
+                <Text color="gray.300" fontSize="md">Create and manage your content</Text>
+              </CardBody>
+            </Card>
+          </Link>
+        </SimpleGrid>
+      </Container>
     </LayoutContainer>
   );
 }
