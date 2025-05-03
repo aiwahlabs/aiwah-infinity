@@ -9,40 +9,76 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
-      // Add your database tables here
-      // Example:
-      // profiles: {
-      //   Row: {
-      //     id: string
-      //     user_id: string
-      //     full_name: string | null
-      //     avatar_url: string | null
-      //     created_at: string
-      //   }
-      //   Insert: {
-      //     id?: string
-      //     user_id: string
-      //     full_name?: string | null
-      //     avatar_url?: string | null
-      //     created_at?: string
-      //   }
-      //   Update: {
-      //     id?: string
-      //     user_id?: string
-      //     full_name?: string | null
-      //     avatar_url?: string | null
-      //     created_at?: string
-      //   }
-      // }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
+      documents: {
+        Row: {
+          id: number
+          content: string
+          tags: Json | null
+          created_at: string
+          updated_at: string
+          type: string | null
+          status: string | null
+          user_comments: string | null
+          notes: string | null
+          title: string | null
+          posted_on: string | null
+        }
+        Insert: {
+          id?: number
+          content: string
+          tags?: Json | null
+          created_at?: string
+          updated_at?: string
+          type?: string | null
+          status?: string | null
+          user_comments?: string | null
+          notes?: string | null
+          title?: string | null
+          posted_on?: string | null
+        }
+        Update: {
+          id?: number
+          content?: string
+          tags?: Json | null
+          created_at?: string
+          updated_at?: string
+          type?: string | null
+          status?: string | null
+          user_comments?: string | null
+          notes?: string | null
+          title?: string | null
+          posted_on?: string | null
+        }
+      }
+      profiles: {
+        Row: {
+          id: string
+          username: string | null
+          full_name: string | null
+          user_tier: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id: string
+          username?: string | null
+          full_name?: string | null
+          user_tier?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          username?: string | null
+          full_name?: string | null
+          user_tier?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+    } & Record<string, never>
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
   }
 } 

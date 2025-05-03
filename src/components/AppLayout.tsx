@@ -2,14 +2,22 @@
 
 import { Box, Flex } from '@chakra-ui/react';
 import { ReactNode } from 'react';
-import { NavBar } from './NavBar';
+import { AppHeader } from './AppHeader';
 import { Footer } from './Footer';
 
-interface LayoutContainerProps {
+interface AppLayoutProps {
   children: ReactNode;
+  appName: string;
+  appIcon?: React.ElementType;
+  appIconSrc?: string;
 }
 
-export function LayoutContainer({ children }: LayoutContainerProps) {
+export function AppLayout({ 
+  children, 
+  appName, 
+  appIcon, 
+  appIconSrc
+}: AppLayoutProps) {
   return (
     <Flex 
       direction="column" 
@@ -17,7 +25,11 @@ export function LayoutContainer({ children }: LayoutContainerProps) {
       bg="gray.900"
       overflow="hidden"
     >
-      <NavBar />
+      <AppHeader 
+        appName={appName} 
+        appIcon={appIcon} 
+        appIconSrc={appIconSrc}
+      />
       <Box 
         as="main" 
         flex="1" 

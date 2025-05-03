@@ -14,10 +14,19 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Force dark mode */

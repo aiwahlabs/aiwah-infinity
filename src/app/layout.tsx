@@ -41,9 +41,7 @@ export default function RootLayout({
         <ClientOnly>
           <ThemeProvider>
             <AuthProvider>
-              <LayoutContainer>
-                {children}
-              </LayoutContainer>
+              {children}
               <ResponsiveWarning />
             </AuthProvider>
           </ThemeProvider>

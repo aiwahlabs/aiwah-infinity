@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export function NavBar() {
-  const { isAuthenticated, user, logOut } = useAuth();
+  const { isAuthenticated, logOut } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -15,7 +15,15 @@ export function NavBar() {
   };
 
   return (
-    <Box as="header" py={4} borderBottom="1px" borderColor="gray.700" bg="gray.900">
+    <Box 
+      as="header" 
+      py={4} 
+      borderBottom="1px" 
+      borderColor="gray.700" 
+      bg="gray.900"
+      width="100%"
+      zIndex={10}
+    >
       <Container maxW="container.xl">
         <Flex justifyContent="space-between" alignItems="center">
           <Link href="/" passHref>
