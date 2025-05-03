@@ -28,30 +28,20 @@ export function NavBar() {
         <Flex justifyContent="space-between" alignItems="center">
           <Link href="/" passHref>
             <Flex alignItems="center" cursor="pointer">
-              <Image src="/aiwah-logo.svg" alt="Aiwah Logo" h="32px" mr={3} />
-              <Heading size="md" color="white">Aiwah Infinity</Heading>
+              <Image src="/aiwah-logo.svg" alt="Logo" h="32px" mr={3} />
+              <Heading size="md" color="white">Infinity</Heading>
             </Flex>
           </Link>
           
           <HStack spacing={4}>
             {isAuthenticated ? (
-              <>
-                <Link href="/dashboard" passHref>
-                  <Button variant="ghost" colorScheme="gray">Dashboard</Button>
-                </Link>
-                <Button onClick={handleLogout} colorScheme="red" variant="outline">
-                  Logout
-                </Button>
-              </>
+              <Button onClick={handleLogout} colorScheme="red" variant="outline">
+                Logout
+              </Button>
             ) : (
-              <>
-                <Link href="/login" passHref>
-                  <Button variant="ghost" colorScheme="gray">Login</Button>
-                </Link>
-                <Link href="/signup" passHref>
-                  <Button colorScheme="blue">Sign Up</Button>
-                </Link>
-              </>
+              <Link href="/login" passHref>
+                <Button variant="ghost" colorScheme="gray">Login</Button>
+              </Link>
             )}
           </HStack>
         </Flex>

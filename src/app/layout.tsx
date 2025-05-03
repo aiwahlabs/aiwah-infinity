@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Aiwah Infinity",
+  title: "Infinity",
   description: "Built with Next.js and Supabase",
   viewport: {
     width: "device-width",
