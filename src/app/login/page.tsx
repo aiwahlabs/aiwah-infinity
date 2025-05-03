@@ -1,17 +1,25 @@
 'use client';
 
-import { useLogin } from '@saas-ui/auth';
+import { useLogin, useAuth } from '@saas-ui/auth';
 import { useRouter } from 'next/navigation';
 import { Card, CardBody, Button, FormControl, FormLabel, Input, VStack, Heading, Text, useColorModeValue, Container, Box } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LayoutContainer } from '@/components/LayoutContainer';
 
 export default function Login() {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [{ isLoading, error }, login] = useLogin();
   const cardBg = useColorModeValue('white', 'gray.800');
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +30,11 @@ export default function Login() {
       console.error('Login error:', error);
     }
   };
+  
+  // Return null while checking auth state to prevent flash of login form
+  if (isAuthenticated) {
+    return null;
+  }
   
   return (
     <LayoutContainer>
@@ -39,8 +52,8 @@ export default function Login() {
           bg={cardBg} 
           borderColor="gray.700" 
           borderWidth="1px" 
-          borderRadius="lg"
-          boxShadow="lg"
+          borderRadius="lg" 
+          boxShadow="lg" 
           overflow="hidden"
         >
           <CardBody p={8}>
@@ -53,7 +66,7 @@ export default function Login() {
                   color="white" 
                   p={3} 
                   borderRadius="md" 
-                  fontSize="sm"
+                  fontSize="sm" 
                   textAlign="center"
                 >
                   {error.message || 'An error occurred during login'}

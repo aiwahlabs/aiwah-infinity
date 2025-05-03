@@ -122,24 +122,22 @@ export function ApprovedPostsTab() {
                       transition="all 0.2s"
                     >
                       <CardBody>
-                        <Flex justify="space-between" mb={3}>
+                        <Flex justify="space-between" mb={2}>
                           <Badge colorScheme="green">Approved</Badge>
                           <Text color="gray.400" fontSize="sm">{formatDate(post.created_at)}</Text>
                         </Flex>
                         
-                        <Heading size="sm" color="white" mb={2}>
-                          {post.title || 'Untitled Document'}
-                        </Heading>
-                        
                         <Text 
-                          color="gray.300" 
+                          color="gray.100" 
                           mb={4} 
-                          fontSize="md" 
-                          noOfLines={4}
+                          fontSize="lg"
+                          fontWeight="medium"
+                          noOfLines={6}
                           whiteSpace="pre-line"
                           sx={{
                             overflowWrap: 'break-word',
-                            lineHeight: '1.6'
+                            lineHeight: '1.6',
+                            fontSize: '1.1rem'
                           }}
                         >
                           {post.content}

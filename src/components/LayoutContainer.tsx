@@ -4,12 +4,16 @@ import { Box, Flex } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { NavBar } from './NavBar';
 import { Footer } from './Footer';
+import { usePathname } from 'next/navigation';
 
 interface LayoutContainerProps {
   children: ReactNode;
 }
 
 export function LayoutContainer({ children }: LayoutContainerProps) {
+  const pathname = usePathname();
+  const isAuthPage = pathname === '/login' || pathname === '/signup';
+  
   return (
     <Flex 
       direction="column" 
@@ -17,7 +21,7 @@ export function LayoutContainer({ children }: LayoutContainerProps) {
       bg="gray.900"
       overflow="hidden"
     >
-      <NavBar />
+      {!isAuthPage && <NavBar />}
       <Box 
         as="main" 
         flex="1" 

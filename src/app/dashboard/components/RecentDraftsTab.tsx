@@ -211,24 +211,22 @@ export function RecentDraftsTab() {
                       onClick={() => handleViewDocument(draft.id)}
                     >
                       <CardBody>
-                        <Flex justify="space-between" mb={3}>
+                        <Flex justify="space-between" mb={2}>
                           <Badge colorScheme="yellow">Draft</Badge>
                           <Text color="gray.400" fontSize="sm">{new Date(draft.created_at).toLocaleDateString()}</Text>
                         </Flex>
                         
-                        <Heading size="sm" color="white" mb={2}>
-                          {draft.title || 'Untitled Document'}
-                        </Heading>
-                        
                         <Text 
-                          color="gray.300" 
+                          color="gray.100" 
                           mb={4} 
-                          fontSize="md"
-                          noOfLines={4}
+                          fontSize="lg"
+                          fontWeight="medium"
+                          noOfLines={6}
                           whiteSpace="pre-line"
                           sx={{
                             overflowWrap: 'break-word',
-                            lineHeight: '1.6'
+                            lineHeight: '1.6',
+                            fontSize: '1.1rem'
                           }}
                         >
                           {draft.content}
