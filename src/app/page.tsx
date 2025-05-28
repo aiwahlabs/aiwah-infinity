@@ -1,25 +1,35 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { Box, Heading, Text, Card, CardBody, CardHeader, Icon, Flex, Container, SimpleGrid } from '@chakra-ui/react';
+import { Container, SimpleGrid } from '@chakra-ui/react'; // Removed Box, Heading, Text, Card, CardBody, CardHeader, Icon, Flex
 import { useAuth } from '@saas-ui/auth';
 import { FiFileText, FiMessageCircle } from 'react-icons/fi';
-import Link from 'next/link';
+// Link is no longer directly used, it's encapsulated in AppFeatureCard
 import { LayoutContainer } from '@/components/LayoutContainer';
 import { useRouter } from 'next/navigation';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { AppFeatureCard } from '@/components/AppFeatureCard'; // Corrected path
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Only redirect if not loading and not authenticated
+    if (!isLoading && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, router]);
 
+  // Show loading screen while checking authentication status
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // If not loading and not authenticated, router.push in useEffect will handle it.
+  // Return null or a minimal component to prevent rendering the main content.
   if (!isAuthenticated) {
-    return null; // Don't render anything while redirecting
+    return null; 
   }
 
   return (
@@ -27,79 +37,18 @@ export default function Home() {
       <Container maxW="container.xl" py={12}>
         {/* <Heading size="lg" mb={8} color="white">Your Applications</Heading> */}
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
-          <Link href="/ghostwriter" passHref style={{ display: 'contents' }}>
-            <Card 
-              bg="gray.800" 
-              borderColor="gray.700" 
-              borderWidth="1px" 
-              borderRadius="lg" 
-              overflow="hidden" 
-              _hover={{ 
-                transform: 'translateY(-4px)', 
-                boxShadow: 'xl',
-                borderColor: "blue.400"
-              }}
-              transition="all 0.2s ease-in-out"
-              cursor="pointer"
-              height="100%"
-              maxW="100%"
-            >
-              <CardHeader pb={4}>
-                <Flex align="center">
-                  <Box
-                    bg="blue.500"
-                    color="white"
-                    p={3}
-                    borderRadius="md"
-                    mr={4}
-                  >
-                    <Icon as={FiFileText} boxSize={6} />
-                  </Box>
-                  <Heading size="md" color="white">Ghostwriter</Heading>
-                </Flex>
-              </CardHeader>
-              <CardBody pt={0} pb={6}>
-                <Text color="gray.300" fontSize="md">Create and manage your content</Text>
-              </CardBody>
-            </Card>
-          </Link>
-          
-          <Link href="/chat" passHref style={{ display: 'contents' }}>
-            <Card 
-              bg="gray.800" 
-              borderColor="gray.700" 
-              borderWidth="1px" 
-              borderRadius="lg" 
-              overflow="hidden" 
-              _hover={{ 
-                transform: 'translateY(-4px)', 
-                boxShadow: 'xl',
-                borderColor: "blue.400"
-              }}
-              transition="all 0.2s ease-in-out"
-              cursor="pointer"
-              height="100%"
-              maxW="100%"
-            >
-              <CardHeader pb={4}>
-                <Flex align="center">
-                  <Box
-                    bg="blue.500"
-                    color="white"
-                    p={3}
-                    borderRadius="md"
-                    mr={4}
-                  >
-                    <Icon as={FiMessageCircle} boxSize={6} />
-                  </Box>
-                  <Heading size="md" color="white">Chat</Heading>
-                </Flex>
-              </CardHeader>
-              <CardBody pt={0} pb={6}>
-                <Text color="gray.300" fontSize="md">Chat with AI assistant</Text>
-              </CardBody>
-            </Card>
-          </Link>
+          <AppFeatureCard
+            href="/ghostwriter"
+            icon={FiFileText}
+            title="Ghostwriter"
+            description="Create and manage your content"
+          />
+          <AppFeatureCard
+            href="/chat"
+            icon={FiMessageCircle}
+            title="Chat"
+            description="Chat with AI assistant"
+          />
         </SimpleGrid>
       </Container>
     </LayoutContainer>

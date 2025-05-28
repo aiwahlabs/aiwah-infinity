@@ -1,5 +1,15 @@
 'use client';
 
+/**
+ * LoadingScreen is a full-page component displayed while the application is in a loading state,
+ * typically during initial data fetching or authentication checks.
+ *
+ * It uses inline styles and embedded JSX CSS for the spinner animation. This approach ensures
+ * that the loading screen can be rendered immediately without dependencies on external CSS files
+ * or UI libraries like Chakra UI (ThemeProvider), which might not be available or fully initialized
+ * at the very start of the application lifecycle (e.g., during the first paint or when auth
+ * status is being determined). This prevents a flash of unstyled content or errors.
+ */
 export function LoadingScreen() {
   // Using plain HTML/CSS for the loading screen
   // This ensures it works even before ThemeProvider/ChakraProvider mounts

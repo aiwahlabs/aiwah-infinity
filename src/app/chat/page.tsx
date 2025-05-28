@@ -8,26 +8,35 @@ import { useChatContext } from '@/hooks/chat';
 import { ChatConversation } from './types';
 import { ConversationSidebar } from './components/ConversationSidebar';
 import { ChatInterface } from './components/ChatInterface';
+import { LoadingScreen } from '@/components/LoadingScreen';
 
 export default function ChatPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const { setCurrentConversation, currentConversation } = useChatContext();
   const [selectedConversation, setSelectedConversation] = useState<ChatConversation | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    // Only redirect if not loading and not authenticated
+    if (!isLoading && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, router]);
 
   const handleSelectConversation = (conversation: ChatConversation) => {
     setSelectedConversation(conversation);
     setCurrentConversation(conversation);
   };
 
+  // Show loading screen while checking authentication status
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
+  // If not loading and not authenticated, router.push in useEffect will handle it.
+  // Return null or a minimal component to prevent rendering the main content.
   if (!isAuthenticated) {
-    return null; // Don't render anything while redirecting
+    return null; 
   }
 
   return (
