@@ -22,7 +22,7 @@ export function AppHeader({
       px={4}
       borderBottom="1px" 
       borderColor="gray.600" 
-      bg="gray.700"
+      bg="gray.800"
       width="100%"
       zIndex={10}
     >

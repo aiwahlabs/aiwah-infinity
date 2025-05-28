@@ -6,14 +6,15 @@ import {
   Flex,
   Text,
   Spinner,
-  VStack,
-  Badge,
   HStack,
+  Divider,
+  Collapse,
 } from '@chakra-ui/react';
-import { ThinkingBubble } from './ThinkingBubble';
+import {
+  FiChevronDown,
+  FiChevronUp,
+} from 'react-icons/fi';
 import { MarkdownRenderer } from './MarkdownRenderer';
-import { Avatar, Card } from './ui';
-import { designTokens } from '../design/tokens';
 
 interface StreamingMessageProps {
   streamingContent: string;
@@ -21,7 +22,7 @@ interface StreamingMessageProps {
   botTyping: boolean;
 }
 
-// Optimized streaming content component with enhanced styling
+// Optimized streaming content component with clean styling
 const StreamingContent = React.memo(function StreamingContent({ 
   content 
 }: { 
@@ -34,47 +35,82 @@ const StreamingContent = React.memo(function StreamingContent({
   }, [content]);
 
   return (
-    <Card variant="elevated" padding="md" bg="gray.850" borderColor="gray.700">
-      <VStack spacing={3} align="stretch">
-        {renderedContent}
-        <HStack justify="space-between" align="center">
-          <HStack spacing={2}>
-            <Spinner size="xs" color="brand.400" />
-            <Text color="gray.400" fontSize="xs">
-              AI is typing...
-            </Text>
-          </HStack>
-          <Badge colorScheme="teal" variant="subtle" fontSize="xs">
-            Streaming
-          </Badge>
-        </HStack>
-      </VStack>
-    </Card>
+    <Box color="white">
+      {renderedContent}
+      {/* Typing indicator */}
+      <HStack spacing={2} mt={2}>
+        <Spinner size="xs" color="teal.400" />
+        <Text color="gray.400" fontSize="xs">
+          AI is typing...
+        </Text>
+      </HStack>
+    </Box>
   );
 });
 
-// Optimized thinking bubble for streaming with enhanced styling
+// Clean thinking bubble for streaming
 const StreamingThinking = React.memo(function StreamingThinking({ 
   thinking 
 }: { 
   thinking: string 
 }) {
   return (
-    <Box mb={3}>
-      <HStack spacing={2} mb={2}>
-        <Spinner size="xs" color="purple.400" />
-        <Text fontSize="xs" color="gray.400">
-          AI Reasoning
+    <Box mb={4}>
+      <Flex 
+        align="center" 
+        justify="space-between"
+        py={2}
+        px={3}
+        borderRadius="md"
+        bg="gray.700"
+        border="1px solid"
+        borderColor="gray.600"
+      >
+        <HStack spacing={2}>
+          <Text color="purple.300" fontSize="xs" fontWeight="medium">
+            Thoughts
+          </Text>
+          <Spinner size="xs" color="purple.300" />
+        </HStack>
+        <Box
+          as={FiChevronDown}
+          color="purple.300"
+          fontSize="12px"
+        />
+      </Flex>
+      
+      <Box
+        bg="gray.800"
+        borderRadius="md"
+        p={3}
+        border="1px solid"
+        borderColor="gray.600"
+        mt={2}
+      >
+        <Text 
+          color="gray.300" 
+          fontSize="sm" 
+          whiteSpace="pre-wrap"
+          lineHeight="1.5"
+        >
+          {thinking}
+          <Box
+            as="span"
+            display="inline-block"
+            w="1px"
+            h="1em"
+            bg="purple.300"
+            ml={1}
+            animation="blink 1s infinite"
+            css={{
+              '@keyframes blink': {
+                '0%, 50%': { opacity: 1 },
+                '51%, 100%': { opacity: 0 },
+              },
+            }}
+          />
         </Text>
-        <Badge colorScheme="purple" variant="subtle" fontSize="xs">
-          Thinking
-        </Badge>
-      </HStack>
-      <ThinkingBubble 
-        thinking={thinking} 
-        timestamp="Processing..."
-        isStreaming={true}
-      />
+      </Box>
     </Box>
   );
 });
@@ -90,57 +126,63 @@ export const StreamingMessage = React.memo(function StreamingMessage({
   // Show typing indicator when no content yet
   if (!streamingContent && !streamingThinking) {
     return (
-      <Flex justify="flex-start" align="flex-start" gap={3}>
-        <Avatar
-          size="sm"
-          name="AI Assistant"
-          isBot={true}
-          variant="glow"
-          showStatus={true}
-          status="online"
-        />
-        <Card 
-          variant="glass" 
-          padding="md" 
-          bg="rgba(14, 165, 233, 0.05)"
-          borderColor="brand.500"
-          boxShadow={designTokens.shadows.glow}
-        >
+      <Box>
+        {/* Message row */}
+        <Box py={4}>
+          {/* Message header */}
+          <Flex justify="space-between" align="center" mb={3}>
+            <Text
+              fontSize="sm"
+              fontWeight="medium"
+              color="gray.300"
+            >
+              AI Assistant
+            </Text>
+            
+            <HStack spacing={2}>
+              <Text fontSize="xs" color="gray.500">
+                Just now
+              </Text>
+            </HStack>
+          </Flex>
+
+          {/* Typing indicator */}
           <HStack spacing={3}>
-            <Spinner size="sm" color="brand.400" thickness="2px" />
-            <VStack spacing={1} align="flex-start">
-              <Text color="gray.200" fontSize="sm" fontWeight="medium">
-                AI is thinking...
-              </Text>
-              <Text color="gray.400" fontSize="xs">
-                Analyzing your request
-              </Text>
-            </VStack>
+            <Spinner size="sm" color="teal.400" thickness="2px" />
+            <Text color="gray.400" fontSize="sm">
+              AI is thinking...
+            </Text>
           </HStack>
-        </Card>
-      </Flex>
+        </Box>
+
+        {/* Separator */}
+        <Divider borderColor="gray.700" />
+      </Box>
     );
   }
 
   // Show streaming content and thinking
   return (
-    <Flex 
-      justify="flex-start" 
-      align="flex-start"
-      gap={3}
-      opacity={0.95}
-      transition="opacity 0.2s"
-    >
-      <Avatar
-        size="sm"
-        name="AI Assistant"
-        isBot={true}
-        variant="glow"
-        showStatus={true}
-        status="online"
-      />
-      
-      <VStack spacing={3} align="stretch" flex="1" minW={0} maxW="85%">
+    <Box>
+      {/* Message row */}
+      <Box py={4}>
+        {/* Message header */}
+        <Flex justify="space-between" align="center" mb={3}>
+          <Text
+            fontSize="sm"
+            fontWeight="medium"
+            color="gray.300"
+          >
+            AI Assistant
+          </Text>
+          
+          <HStack spacing={2}>
+            <Text fontSize="xs" color="gray.500">
+              Just now
+            </Text>
+          </HStack>
+        </Flex>
+
         {/* Show streaming thinking bubble if available */}
         {streamingThinking && (
           <StreamingThinking thinking={streamingThinking} />
@@ -150,7 +192,10 @@ export const StreamingMessage = React.memo(function StreamingMessage({
         {streamingContent && (
           <StreamingContent content={streamingContent} />
         )}
-      </VStack>
-    </Flex>
+      </Box>
+
+      {/* Separator */}
+      <Divider borderColor="gray.700" />
+    </Box>
   );
 }); 

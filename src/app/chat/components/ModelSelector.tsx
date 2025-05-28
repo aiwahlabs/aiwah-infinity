@@ -8,7 +8,6 @@ import {
   VStack,
   HStack,
   Badge,
-  Tooltip,
   Icon,
   Flex,
   Popover,
@@ -71,7 +70,6 @@ export function ModelSelector({
         bg="gray.800"
         borderColor="gray.600"
         color="white"
-        _focus={{ borderColor: 'teal.400' }}
       >
         {Object.values(OPENROUTER_MODELS).map((model) => (
           <option key={model} value={model} style={{ backgroundColor: '#374151', color: 'white' }}>
@@ -92,8 +90,6 @@ export function ModelSelector({
           bg="gray.800"
           borderColor="gray.600"
           color="white"
-          _hover={{ bg: "gray.600", borderColor: "gray.600" }}
-          _focus={{ borderColor: 'teal.400' }}
           fontWeight="normal"
           fontSize="sm"
         >
@@ -104,7 +100,6 @@ export function ModelSelector({
       <PopoverContent
         bg="gray.800"
         borderColor="gray.600"
-        boxShadow="xl"
         w="320px"
       >
         <PopoverBody p={4}>
@@ -179,7 +174,6 @@ export function ModelSelector({
                       size="sm"
                       justifyContent="flex-start"
                       onClick={() => handleModelChange(model)}
-                      _hover={{ bg: isSelected ? "teal.600" : "gray.600" }}
                     >
                       <Flex justify="space-between" align="center" w="full">
                         <Text fontSize="xs">{info.name}</Text>

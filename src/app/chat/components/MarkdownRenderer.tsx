@@ -192,7 +192,7 @@ const CodeBlock: React.FC<{
       <Box my={4} borderRadius="md" overflow="hidden">
         <Box bg="gray.800" p={3} borderRadius="md" border="1px solid" borderColor="gray.600">
           <Text color="gray.300" fontSize="sm" mb={2}>📊 Diagram Content</Text>
-          <Box bg="gray.900" p={3} borderRadius="sm" overflow="auto">
+          <Box bg="gray.800" p={3} borderRadius="sm" overflow="auto">
             <Text as="pre" color="gray.200" fontSize="sm" fontFamily="mono" whiteSpace="pre-wrap">
               {children}
             </Text>
@@ -212,7 +212,7 @@ const CodeBlock: React.FC<{
   if (inline) {
     return (
       <Code
-        bg="gray.700"
+        bg="gray.800"
         color="teal.200"
         px={1}
         py={0.5}

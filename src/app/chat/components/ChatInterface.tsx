@@ -12,6 +12,7 @@ import {
   HStack,
   IconButton,
   Tooltip,
+  Divider,
 } from '@chakra-ui/react';
 import { FiRefreshCw } from 'react-icons/fi';
 import { ChatConversation, ChatMessage } from '../types';
@@ -212,7 +213,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
               <Spinner size="lg" color="teal.400" />
             </Center>
           ) : (
-            <VStack spacing={4} align="stretch">
+            <VStack spacing={0} align="stretch">
               {/* Messages */}
               {messages.length === 0 ? (
                 <Center py={20}>
@@ -244,10 +245,15 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
               
               {/* Error state */}
               {streamState.error && (
-                <Box p={3} bg="red.900" borderRadius="md" border="1px solid" borderColor="red.700">
-                  <Text color="red.200" fontSize="sm">
-                    {streamState.error}
-                  </Text>
+                <Box>
+                  <Box py={4}>
+                    <Box p={3} bg="red.900" borderRadius="md" border="1px solid" borderColor="red.700">
+                      <Text color="red.200" fontSize="sm">
+                        {streamState.error}
+                      </Text>
+                    </Box>
+                  </Box>
+                  <Divider borderColor="gray.700" />
                 </Box>
               )}
               
@@ -261,8 +267,6 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
       <Box 
         p={4} 
         bg="gray.800"
-        borderTop="1px"
-        borderColor="gray.600"
         flexShrink={0}
       >
         <Box maxW="4xl" mx="auto">

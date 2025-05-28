@@ -14,14 +14,10 @@ import {
   Center,
   useToast,
   HStack,
-  Badge,
-  Tooltip,
   InputGroup,
   InputLeftElement,
-  Fade,
-  ScaleFade,
 } from '@chakra-ui/react';
-import { FiPlus, FiSearch, FiTrash2, FiMessageCircle, FiEdit3 } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
 import { useState, useCallback } from 'react';
 import { useChatContext } from '@/hooks/chat';
 import { ChatConversation } from '../types';
@@ -154,12 +150,9 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={handleKeyPress}
-            bg="gray.700"
-            border="none"
-            _focus={{ 
-              borderColor: 'teal.400',
-              boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
-            }}
+            bg="gray.800"
+            border="1px solid"
+            borderColor="gray.600"
             color="white"
             _placeholder={{ color: 'gray.400' }}
           />
@@ -228,11 +221,12 @@ const ConversationCard = React.memo(function ConversationCard({
 
   return (
     <Box
-      bg={isSelected ? "gray.700" : "transparent"}
+      bg={isSelected ? "gray.700" : "gray.800"}
       borderRadius="md"
+      border="1px solid"
+      borderColor="gray.600"
       cursor="pointer"
       p={3}
-      _hover={{ bg: isSelected ? "gray.700" : "gray.700" }}
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -240,7 +234,7 @@ const ConversationCard = React.memo(function ConversationCard({
       <Flex justify="space-between" align="flex-start">
         <Box flex="1" mr={2} minW={0}>
           <Text
-            color={isSelected ? "white" : "white"}
+            color="white"
             fontWeight={isSelected ? "medium" : "normal"}
             fontSize="sm"
             noOfLines={1}
@@ -261,7 +255,6 @@ const ConversationCard = React.memo(function ConversationCard({
             size="xs"
             variant="ghost"
             color="gray.400"
-            _hover={{ color: 'red.400' }}
             onClick={handleDelete}
           />
         )}

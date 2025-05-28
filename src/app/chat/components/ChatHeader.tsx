@@ -77,7 +77,7 @@ function EditableTitle({
           fontSize="md"
           fontWeight="medium"
           color="white"
-          bg="gray.700"
+          bg="gray.800"
           border="1px solid"
           borderColor="gray.600"
           _focus={{ 

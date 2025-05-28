@@ -58,7 +58,7 @@ export const designTokens = {
     
     // Special accent colors
     accent: {
-      purple: '#8b5cf6',
+      purple: '#a78bfa',
       pink: '#ec4899',
       emerald: '#10b981',
       orange: '#f97316',
@@ -112,8 +112,7 @@ export const designTokens = {
     xl: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
     '2xl': '0 25px 50px -12px rgb(0 0 0 / 0.25)',
     inner: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
-    glow: '0 0 20px rgb(14 165 233 / 0.15)',
-    'glow-lg': '0 0 40px rgb(14 165 233 / 0.2)',
+    none: 'none',
   },
   
   typography: {
@@ -175,7 +174,6 @@ export const chatTheme = {
       baseStyle: {
         fontWeight: 'medium',
         borderRadius: 'lg',
-        transition: 'all 0.2s',
         _focus: {
           boxShadow: 'none',
         },
@@ -186,12 +184,9 @@ export const chatTheme = {
           color: 'white',
           _hover: {
             bg: 'brand.600',
-            transform: 'translateY(-1px)',
-            boxShadow: 'lg',
           },
           _active: {
             bg: 'brand.700',
-            transform: 'translateY(0)',
           },
         },
         ghost: {
@@ -214,7 +209,6 @@ export const chatTheme = {
             },
             _focus: {
               borderColor: 'brand.500',
-              boxShadow: '0 0 0 1px var(--chakra-colors-brand-500)',
             },
           },
         },
@@ -228,23 +222,17 @@ export const chatTheme = {
           border: '1px solid',
           borderColor: 'gray.800',
           bg: 'gray.900',
-          transition: 'all 0.2s',
         },
       },
       variants: {
         elevated: {
           container: {
-            boxShadow: 'lg',
-            _hover: {
-              boxShadow: 'xl',
-              transform: 'translateY(-1px)',
-            },
+            boxShadow: 'none',
           },
         },
         glass: {
           container: {
             bg: 'rgba(255, 255, 255, 0.05)',
-            backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
           },
         },

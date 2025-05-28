@@ -8,7 +8,7 @@ export function Footer() {
       as="footer" 
       py={2} 
       px={4}
-      bg="gray.700" 
+      bg="gray.800" 
       borderTop="1px" 
       borderColor="gray.600" 
       width="100%"
