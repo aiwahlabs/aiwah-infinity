@@ -6,11 +6,11 @@ export function Footer() {
   return (
     <Box 
       as="footer" 
-      py={4} 
+      py={2} 
       px={4}
-      bg="gray.800" 
+      bg="gray.700" 
       borderTop="1px" 
-      borderColor="gray.700" 
+      borderColor="gray.600" 
       width="100%"
       zIndex={10}
     >

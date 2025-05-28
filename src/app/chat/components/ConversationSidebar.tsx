@@ -8,15 +8,20 @@ import {
   Button,
   Input,
   IconButton,
-  Card,
-  CardBody,
   Flex,
   Icon,
   Spinner,
   Center,
-  useToast
+  useToast,
+  HStack,
+  Badge,
+  Tooltip,
+  InputGroup,
+  InputLeftElement,
+  Fade,
+  ScaleFade,
 } from '@chakra-ui/react';
-import { FiPlus, FiSearch, FiTrash2, FiMessageCircle } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiTrash2, FiMessageCircle, FiEdit3 } from 'react-icons/fi';
 import { useState, useCallback } from 'react';
 import { useChatContext } from '@/hooks/chat';
 import { ChatConversation } from '../types';
@@ -51,7 +56,7 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
         toast({
           title: 'Conversation created',
           status: 'success',
-          duration: 3000,
+          duration: 2000,
           isClosable: true,
         });
       }
@@ -75,7 +80,7 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
         toast({
           title: 'Conversation deleted',
           status: 'info',
-          duration: 3000,
+          duration: 2000,
           isClosable: true,
         });
       }
@@ -95,15 +100,18 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
   const formatDate = useCallback((dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    const diffInMinutes = (now.getTime() - date.getTime()) / (1000 * 60);
+    const diffInHours = diffInMinutes / 60;
+    const diffInDays = diffInHours / 24;
     
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-    } else if (diffInHours < 168) { // 7 days
-      return date.toLocaleDateString('en-US', { weekday: 'short' });
+    if (diffInMinutes < 1) {
+      return 'Just now';
+    } else if (diffInMinutes < 60) {
+      return `${Math.floor(diffInMinutes)}m ago`;
+    } else if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)}h ago`;
+    } else if (diffInDays < 7) {
+      return `${Math.floor(diffInDays)}d ago`;
     } else {
       return date.toLocaleDateString('en-US', { 
         month: 'short', 
@@ -114,24 +122,21 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
 
   return (
     <Box
-      w="320px"
       h="100%"
       bg="gray.800"
-      borderRight="1px"
-      borderColor="gray.700"
       display="flex"
       flexDirection="column"
     >
       {/* Header */}
-      <Box p={4} borderBottom="1px" borderColor="gray.700">
+      <Box p={4}>
         <Flex justify="space-between" align="center" mb={4}>
-          <Text fontSize="lg" fontWeight="bold" color="white">
+          <Text fontSize="lg" fontWeight="semibold" color="white">
             Conversations
           </Text>
           <Button
             leftIcon={<FiPlus />}
             size="sm"
-            colorScheme="blue"
+            colorScheme="teal"
             onClick={handleCreateConversation}
             isLoading={creating}
           >
@@ -140,7 +145,10 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
         </Flex>
         
         {/* Search */}
-        <Flex>
+        <InputGroup size="sm">
+          <InputLeftElement pointerEvents="none">
+            <Icon as={FiSearch} color="gray.400" />
+          </InputLeftElement>
           <Input
             placeholder="Search conversations..."
             value={searchQuery}
@@ -148,37 +156,35 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
             onKeyPress={handleKeyPress}
             bg="gray.700"
             border="none"
-            size="sm"
+            _focus={{ 
+              borderColor: 'teal.400',
+              boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
+            }}
+            color="white"
+            _placeholder={{ color: 'gray.400' }}
           />
-          <IconButton
-            aria-label="Search"
-            icon={<FiSearch />}
-            onClick={handleSearch}
-            ml={2}
-            size="sm"
-            colorScheme="blue"
-          />
-        </Flex>
+        </InputGroup>
       </Box>
 
       {/* Conversations List */}
-      <Box flex="1" overflowY="auto">
+      <Box flex="1" overflowY="auto" px={4}>
         {loading ? (
-          <Center p={4}>
-            <Spinner color="blue.400" />
+          <Center py={8}>
+            <Spinner color="teal.400" size="md" />
           </Center>
         ) : conversations.length === 0 ? (
-          <Center p={6} flexDirection="column">
-            <Icon as={FiMessageCircle} boxSize={12} color="gray.500" mb={4} />
-            <Text color="gray.400" textAlign="center">
-              No conversations yet
-            </Text>
-            <Text color="gray.500" fontSize="sm" textAlign="center">
-              Start a new conversation to get started
-            </Text>
+          <Center py={8}>
+            <VStack spacing={3} textAlign="center">
+              <Text color="gray.400" fontSize="sm">
+                No conversations yet
+              </Text>
+              <Text color="gray.400" fontSize="xs">
+                Start a new conversation to begin
+              </Text>
+            </VStack>
           </Center>
         ) : (
-          <VStack spacing={2} p={2} align="stretch">
+          <VStack spacing={1} align="stretch">
             {conversations.map((conversation: ChatConversation) => (
               <ConversationCard
                 key={conversation.id}
@@ -210,6 +216,8 @@ const ConversationCard = React.memo(function ConversationCard({
   onDelete: (id: number, e: React.MouseEvent) => void;
   formatDate: (dateStr: string) => string;
 }) {
+  const [isHovered, setIsHovered] = useState(false);
+
   const handleClick = useCallback(() => {
     onSelect(conversation);
   }, [conversation, onSelect]);
@@ -219,44 +227,45 @@ const ConversationCard = React.memo(function ConversationCard({
   }, [conversation.id, onDelete]);
 
   return (
-    <Card
-      bg={isSelected ? "gray.700" : "gray.750"}
-      borderColor={isSelected ? "blue.400" : "gray.600"}
-      variant="outline"
+    <Box
+      bg={isSelected ? "gray.700" : "transparent"}
+      borderRadius="md"
       cursor="pointer"
-      _hover={{ 
-        borderColor: "blue.400", 
-        transform: "translateY(-1px)" 
-      }}
-      transition="all 0.2s"
+      p={3}
+      _hover={{ bg: isSelected ? "gray.700" : "gray.700" }}
       onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <CardBody p={3}>
-        <Flex justify="space-between" align="flex-start">
-          <Box flex="1" mr={2}>
-            <Text
-              color="white"
-              fontWeight="medium"
-              fontSize="sm"
-              noOfLines={1}
-              mb={1}
-            >
-              {conversation.title || 'Untitled Conversation'}
-            </Text>
-            <Text color="gray.400" fontSize="xs">
-              {formatDate(conversation.updated_at)}
-            </Text>
-          </Box>
+      <Flex justify="space-between" align="flex-start">
+        <Box flex="1" mr={2} minW={0}>
+          <Text
+            color={isSelected ? "white" : "white"}
+            fontWeight={isSelected ? "medium" : "normal"}
+            fontSize="sm"
+            noOfLines={1}
+            mb={1}
+          >
+            {conversation.title || 'Untitled Conversation'}
+          </Text>
+          <Text color="gray.400" fontSize="xs">
+            {formatDate(conversation.updated_at)}
+          </Text>
+        </Box>
+        
+        {/* Action buttons */}
+        {isHovered && (
           <IconButton
             aria-label="Delete conversation"
             icon={<FiTrash2 />}
             size="xs"
             variant="ghost"
-            colorScheme="red"
+            color="gray.400"
+            _hover={{ color: 'red.400' }}
             onClick={handleDelete}
           />
-        </Flex>
-      </CardBody>
-    </Card>
+        )}
+      </Flex>
+    </Box>
   );
 }); 

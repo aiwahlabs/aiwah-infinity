@@ -6,7 +6,7 @@ import { DashboardOverview, TabNavigation, RecentDraftsTab, ApprovedPostsTab } f
 export default function Dashboard() {
   return (
     <Box h="100%">
-      <Tabs variant="line" colorScheme="blue" size="md" isLazy h="100%" display="flex" flexDirection="column">
+      <Tabs variant="line" colorScheme="teal" size="md" isLazy h="100%" display="flex" flexDirection="column">
         <TabNavigation />
         
         <Box flex="1" py={6} px={4} overflow="auto">

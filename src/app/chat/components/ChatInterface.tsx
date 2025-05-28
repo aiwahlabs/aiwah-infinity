@@ -1,338 +1,282 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   VStack,
-  Text,
-  Flex,
-  Input,
-  IconButton,
-  Card,
-  CardBody,
-  Avatar,
-  Spinner,
   Center,
-  useToast
+  Spinner,
+  useToast,
+  Flex,
+  Text,
+  HStack,
+  IconButton,
+  Tooltip,
 } from '@chakra-ui/react';
-import { FiSend, FiMessageCircle } from 'react-icons/fi';
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useChatContext } from '@/hooks/chat';
+import { FiRefreshCw } from 'react-icons/fi';
 import { ChatConversation, ChatMessage } from '../types';
+import { useChatContext } from '@/hooks/chat/useChatContext';
+import { useChatStream } from '../hooks/useChatStream';
+import { ChatHeader } from './ChatHeader';
+import { MessageBubble } from './MessageBubble';
+import { StreamingMessage } from './StreamingMessage';
+import { ChatInput } from './ChatInput';
+import { Card } from './ui';
+import { designTokens } from '../design/tokens';
 
 interface ChatInterfaceProps {
   conversation: ChatConversation | null;
 }
 
 export const ChatInterface = React.memo(function ChatInterface({ conversation }: ChatInterfaceProps) {
-  const {
-    messages,
-    loading,
+  const { 
+    currentConversation, 
+    messages, 
+    loading, 
+    updateConversation,
     createMessage,
-    loadMessages
+    loadMessages 
   } = useChatContext();
+  
+  const {
+    streamState,
+    sendMessage,
+    cancelStream,
+    resetStream,
+  } = useChatStream();
+  
+  // Use currentConversation from context with fallback to prop
+  const activeConversation = currentConversation || conversation;
   
   const [inputValue, setInputValue] = useState('');
   const [sending, setSending] = useState(false);
-  const [botTyping, setBotTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
 
   // Load messages when conversation changes
   useEffect(() => {
-    if (conversation?.id) {
-      loadMessages(conversation.id);
+    if (activeConversation?.id) {
+      loadMessages(activeConversation.id);
+      resetStream();
     }
-  }, [conversation?.id, loadMessages]);
+  }, [activeConversation?.id, loadMessages, resetStream]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length, botTyping]);
+  }, [messages, streamState.streamingContent, streamState.streamingThinking]);
 
-  const simulateBotResponse = useCallback(async (conversationId: number, userMessage: string) => {
-    setBotTyping(true);
+  // Format message timestamp with relative time
+  const formatMessageTime = useCallback((dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffInMinutes = (now.getTime() - date.getTime()) / (1000 * 60);
+    const diffInHours = diffInMinutes / 60;
+    const diffInDays = diffInHours / 24;
     
-    try {
-      console.log('Starting bot response for conversation:', conversationId);
-      
-      // Simulate thinking time
-      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-      
-      // Simple bot response - always the same for now
-      const botResponse = "Thanks for your message! I'm a simple bot that always responds with this message. In the future, I'll be much smarter and provide helpful responses based on your input.";
-      
-      console.log('Creating bot message for conversation:', conversationId);
-      
-      const botMessage = await createMessage({
-        conversation_id: conversationId,
-        role: 'assistant',
-        content: botResponse,
-        metadata: {
-          response_time: Date.now(),
-          user_message: userMessage
-        }
+    if (diffInMinutes < 1) {
+      return 'Just now';
+    } else if (diffInMinutes < 60) {
+      return `${Math.floor(diffInMinutes)}m ago`;
+    } else if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)}h ago`;
+    } else if (diffInDays < 7) {
+      return `${Math.floor(diffInDays)}d ago`;
+    } else {
+      return date.toLocaleDateString([], { 
+        month: 'short', 
+        day: 'numeric',
+        year: diffInDays > 365 ? 'numeric' : undefined 
       });
-      
-      if (botMessage) {
-        console.log('Bot message created successfully:', botMessage.id);
-      } else {
-        console.error('Failed to create bot message - no message returned');
-      }
-    } catch (error) {
-      console.error('Error creating bot response:', error);
-      toast({
-        title: 'Bot response failed',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
-        status: 'warning',
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setBotTyping(false);
     }
-  }, [createMessage, toast]);
+  }, []);
 
+  // Handle sending messages
   const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim() || !conversation || sending) return;
+    if (!inputValue.trim() || sending || streamState.isStreaming || !activeConversation) return;
 
-    const messageContent = inputValue.trim();
+    const userMessage = inputValue.trim();
     setInputValue('');
     setSending(true);
 
     try {
-      console.log('Sending message to conversation:', conversation.id, 'Content:', messageContent);
-      
-      // Send user message
-      const userMessage = await createMessage({
-        conversation_id: conversation.id,
+      // Add user message to database
+      const userMessageData = await createMessage({
+        conversation_id: activeConversation.id,
         role: 'user',
-        content: messageContent,
-        metadata: {
-          timestamp: Date.now()
-        }
+        content: userMessage,
       });
 
-      if (userMessage) {
-        console.log('User message created successfully:', userMessage.id);
-        // Simulate bot response
-        simulateBotResponse(conversation.id, messageContent);
-      } else {
-        console.error('Failed to create user message - no message returned');
+      if (!userMessageData) {
         throw new Error('Failed to create user message');
       }
+
+      // Get all messages for context (including the new user message)
+      const allMessages = [...messages, userMessageData];
+      
+      // Send message with streaming
+      await sendMessage(allMessages, {
+        onComplete: async (finalContent: string, finalThinking?: string) => {
+          // Save the complete AI response to database
+          if (finalContent.trim()) {
+            await createMessage({
+              conversation_id: activeConversation.id,
+              role: 'assistant',
+              content: finalContent,
+              thinking: finalThinking || undefined,
+            });
+          }
+        },
+        onError: (error: string) => {
+          toast({
+            title: 'Error sending message',
+            description: error,
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+      });
     } catch (error) {
-      console.error('Error in handleSendMessage:', error);
+      console.error('Error sending message:', error);
       toast({
-        title: 'Failed to send message',
-        description: error instanceof Error ? error.message : 'Unknown error occurred',
+        title: 'Error sending message',
+        description: error instanceof Error ? error.message : 'Please try again',
         status: 'error',
         duration: 5000,
         isClosable: true,
       });
-      setInputValue(messageContent); // Restore the message
     } finally {
       setSending(false);
     }
-  }, [inputValue, conversation, sending, createMessage, simulateBotResponse, toast]);
+  }, [inputValue, sending, streamState.isStreaming, activeConversation, createMessage, messages, sendMessage, toast]);
 
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+  // Handle updating conversation title
+  const handleUpdateTitle = useCallback(async (newTitle: string) => {
+    if (!activeConversation) return;
+    await updateConversation(activeConversation.id, { title: newTitle });
+  }, [activeConversation, updateConversation]);
+
+  const handleRefreshConversation = useCallback(() => {
+    if (activeConversation?.id) {
+      loadMessages(activeConversation.id);
+      toast({
+        title: 'Conversation refreshed',
+        status: 'success',
+        duration: 2000,
+      });
     }
-  }, [handleSendMessage]);
+  }, [activeConversation, loadMessages, toast]);
 
-  const formatMessageTime = useCallback((dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
-  }, []);
-
-  if (!conversation) {
+  if (!activeConversation) {
     return (
-      <Box
-        flex="1"
-        bg="gray.900"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Center flexDirection="column">
-          <FiMessageCircle size={64} color="gray.500" />
-          <Text color="gray.400" fontSize="xl" mt={4}>
-            Select a conversation to start chatting
-          </Text>
-          <Text color="gray.500" fontSize="md" mt={2}>
-            Choose from the sidebar or create a new conversation
-          </Text>
+      <Box h="100%" display="flex" flexDirection="column" bg="gray.800">
+        <Center h="100%">
+          <VStack spacing={4} textAlign="center" maxW="md">
+            <Text fontSize="xl" fontWeight="medium" color="gray.100">
+              Welcome to AI Chat
+            </Text>
+            <Text color="gray.400" fontSize="md">
+              Select a conversation from the sidebar or create a new one to get started.
+            </Text>
+          </VStack>
         </Center>
       </Box>
     );
   }
 
   return (
-    <Box
-      flex="1"
-      bg="gray.900"
-      display="flex"
-      flexDirection="column"
-      h="100%"
+    <Box 
+      h="100%" 
+      display="flex" 
+      flexDirection="column" 
+      bg="gray.800"
     >
-      {/* Header */}
-      <Box
-        p={4}
-        borderBottom="1px"
-        borderColor="gray.700"
-        bg="gray.800"
-      >
-        <Text fontSize="lg" fontWeight="bold" color="white">
-          {conversation.title || 'Untitled Conversation'}
-        </Text>
-        <Text fontSize="sm" color="gray.400">
-          AI Assistant • Always online
-        </Text>
-      </Box>
+      {/* Header - Fixed at top */}
+      <ChatHeader 
+        conversation={activeConversation}
+        onUpdateTitle={handleUpdateTitle}
+      />
 
-      {/* Messages */}
-      <Box
-        flex="1"
-        overflowY="auto"
-        p={4}
+      {/* Messages Area - Scrollable middle section */}
+      <Box 
+        flex="1" 
+        overflowY="auto" 
+        overflowX="hidden"
+        bg="gray.800"
+        minH={0}
       >
-        {loading ? (
-          <Center h="100%">
-            <Spinner size="xl" color="blue.400" />
-          </Center>
-        ) : (
-          <VStack spacing={4} align="stretch">
-            {messages.map((message: ChatMessage) => (
-              <MessageBubble 
-                key={message.id} 
-                message={message} 
-                formatTime={formatMessageTime}
-              />
-            ))}
-            
-            {/* Bot typing indicator */}
-            {botTyping && (
-              <Flex justify="flex-start">
-                <Flex maxW="70%" align="flex-start">
-                  <Avatar
-                    size="sm"
-                    bg="blue.500"
-                    color="white"
-                    name="AI"
-                    mr={3}
+        <Box p={4} maxW="4xl" mx="auto">
+          {loading ? (
+            <Center h="400px">
+              <Spinner size="lg" color="teal.400" />
+            </Center>
+          ) : (
+            <VStack spacing={4} align="stretch">
+              {/* Messages */}
+              {messages.length === 0 ? (
+                <Center py={20}>
+                  <VStack spacing={3} textAlign="center">
+                    <Text fontSize="lg" fontWeight="medium" color="gray.100">
+                      Start a conversation
+                    </Text>
+                    <Text color="gray.400">
+                      Ask me anything! I'm here to help.
+                    </Text>
+                  </VStack>
+                </Center>
+              ) : (
+                messages.map((message: ChatMessage) => (
+                  <MessageBubble 
+                    key={message.id} 
+                    message={message} 
+                    formatTime={formatMessageTime}
                   />
-                  <Card bg="gray.700" borderColor="gray.600" variant="outline">
-                    <CardBody p={3}>
-                      <Flex align="center">
-                        <Spinner size="sm" color="blue.400" mr={2} />
-                        <Text color="gray.400" fontSize="sm">
-                          AI is typing...
-                        </Text>
-                      </Flex>
-                    </CardBody>
-                  </Card>
-                </Flex>
-              </Flex>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </VStack>
-        )}
+                ))
+              )}
+              
+              {/* Streaming AI response */}
+              <StreamingMessage
+                streamingContent={streamState.streamingContent}
+                streamingThinking={streamState.streamingThinking}
+                botTyping={streamState.isStreaming}
+              />
+              
+              {/* Error state */}
+              {streamState.error && (
+                <Box p={3} bg="red.900" borderRadius="md" border="1px solid" borderColor="red.700">
+                  <Text color="red.200" fontSize="sm">
+                    {streamState.error}
+                  </Text>
+                </Box>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </VStack>
+          )}
+        </Box>
       </Box>
 
-      {/* Input */}
-      <Box
-        p={4}
-        borderTop="1px"
-        borderColor="gray.700"
+      {/* Input Area - Fixed at bottom */}
+      <Box 
+        p={4} 
         bg="gray.800"
+        borderTop="1px"
+        borderColor="gray.600"
+        flexShrink={0}
       >
-        <Flex>
-          <Input
+        <Box maxW="4xl" mx="auto">
+          <ChatInput
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            bg="gray.700"
-            border="1px solid"
-            borderColor="gray.600"
-            _focus={{
-              borderColor: 'blue.400',
-              boxShadow: '0 0 0 1px var(--chakra-colors-blue-400)'
-            }}
-            disabled={sending || botTyping}
+            onChange={setInputValue}
+            onSend={handleSendMessage}
+            onCancel={cancelStream}
+            disabled={sending}
+            isStreaming={streamState.isStreaming}
+            placeholder="Ask me anything..."
           />
-          <IconButton
-            aria-label="Send message"
-            icon={<FiSend />}
-            onClick={handleSendMessage}
-            ml={2}
-            colorScheme="blue"
-            isLoading={sending}
-            disabled={!inputValue.trim() || botTyping}
-          />
-        </Flex>
+        </Box>
       </Box>
     </Box>
-  );
-});
-
-// Separate memoized component for message bubbles
-const MessageBubble = React.memo(function MessageBubble({ 
-  message, 
-  formatTime 
-}: { 
-  message: ChatMessage; 
-  formatTime: (dateStr: string) => string;
-}) {
-  return (
-    <Flex
-      justify={message.role === 'user' ? 'flex-end' : 'flex-start'}
-    >
-      <Flex
-        maxW="70%"
-        align="flex-start"
-        direction={message.role === 'user' ? 'row-reverse' : 'row'}
-      >
-        <Avatar
-          size="sm"
-          bg={message.role === 'user' ? 'blue.500' : 'blue.500'}
-          color="white"
-          name={message.role === 'user' ? 'You' : 'AI'}
-          ml={message.role === 'user' ? 3 : 0}
-          mr={message.role === 'user' ? 0 : 3}
-        />
-        <Card
-          bg={message.role === 'user' ? 'blue.600' : 'gray.700'}
-          borderColor={message.role === 'user' ? 'blue.500' : 'gray.600'}
-          variant="outline"
-        >
-          <CardBody p={3}>
-            <Text
-              color="white"
-              fontSize="sm"
-              whiteSpace="pre-wrap"
-              lineHeight="1.5"
-            >
-              {message.content}
-            </Text>
-            <Text
-              color="gray.400"
-              fontSize="xs"
-              mt={2}
-              textAlign={message.role === 'user' ? 'right' : 'left'}
-            >
-              {formatTime(message.created_at)}
-            </Text>
-          </CardBody>
-        </Card>
-      </Flex>
-    </Flex>
   );
 }); 

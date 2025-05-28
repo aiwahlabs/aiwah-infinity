@@ -10,35 +10,41 @@ interface AppLayoutProps {
   appName: string;
   appIcon?: React.ElementType;
   appIconSrc?: string;
+  showHeader?: boolean;
+  showFooter?: boolean;
 }
 
 export function AppLayout({ 
   children, 
   appName, 
   appIcon, 
-  appIconSrc
+  appIconSrc,
+  showHeader = true,
+  showFooter = true
 }: AppLayoutProps) {
   return (
     <Flex 
       direction="column" 
       height="100vh"
-      bg="gray.900"
+      bg="gray.800"
       overflow="hidden"
     >
-      <AppHeader 
-        appName={appName} 
-        appIcon={appIcon} 
-        appIconSrc={appIconSrc}
-      />
+      {showHeader && (
+        <AppHeader 
+          appName={appName} 
+          appIcon={appIcon} 
+          appIconSrc={appIconSrc}
+        />
+      )}
       <Box 
         as="main" 
         flex="1" 
-        overflow="auto"
+        overflow="hidden"
         position="relative"
       >
         {children}
       </Box>
-      <Footer />
+      {showFooter && <Footer />}
     </Flex>
   );
 } 

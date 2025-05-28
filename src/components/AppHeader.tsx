@@ -21,8 +21,8 @@ export function AppHeader({
       py={4} 
       px={4}
       borderBottom="1px" 
-      borderColor="gray.700" 
-      bg="gray.900"
+      borderColor="gray.600" 
+      bg="gray.700"
       width="100%"
       zIndex={10}
     >
@@ -31,7 +31,7 @@ export function AppHeader({
           {AppIcon && (
             <Flex
               alignItems="center"
-              color="blue.400"
+              color="teal.400"
               mr={2}
             >
               <AppIcon size={24} />
@@ -47,8 +47,12 @@ export function AppHeader({
           <IconButton
             icon={<FiHome />}
             aria-label="Back to home"
-            colorScheme="blue"
+            colorScheme="teal"
             variant="outline"
+            _hover={{
+              bg: 'gray.600',
+              borderColor: 'teal.500'
+            }}
           />
         </Link>
       </Flex>

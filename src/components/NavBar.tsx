@@ -19,8 +19,8 @@ export function NavBar() {
       as="header" 
       py={4} 
       borderBottom="1px" 
-      borderColor="gray.700" 
-      bg="gray.900"
+      borderColor="gray.800" 
+      bg="gray.950"
       width="100%"
       zIndex={10}
     >
@@ -35,12 +35,29 @@ export function NavBar() {
           
           <HStack spacing={4}>
             {isAuthenticated ? (
-              <Button onClick={handleLogout} colorScheme="red" variant="outline">
+              <Button 
+                onClick={handleLogout} 
+                colorScheme="red" 
+                variant="outline"
+                _hover={{
+                  bg: 'red.900',
+                  borderColor: 'red.500'
+                }}
+              >
                 Logout
               </Button>
             ) : (
               <Link href="/login" passHref>
-                <Button variant="ghost" colorScheme="gray">Login</Button>
+                <Button 
+                  variant="ghost" 
+                  color="gray.300"
+                  _hover={{
+                    bg: 'gray.800',
+                    color: 'white'
+                  }}
+                >
+                  Login
+                </Button>
               </Link>
             )}
           </HStack>

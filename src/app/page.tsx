@@ -37,7 +37,7 @@ export default function Home() {
               _hover={{ 
                 transform: 'translateY(-4px)', 
                 boxShadow: 'xl',
-                borderColor: "blue.400"
+                borderColor: "teal.400"
               }}
               transition="all 0.2s ease-in-out"
               cursor="pointer"
@@ -47,7 +47,7 @@ export default function Home() {
               <CardHeader pb={4}>
                 <Flex align="center">
                   <Box
-                    bg="blue.500"
+                    bg="teal.500"
                     color="white"
                     p={3}
                     borderRadius="md"
@@ -74,7 +74,7 @@ export default function Home() {
               _hover={{ 
                 transform: 'translateY(-4px)', 
                 boxShadow: 'xl',
-                borderColor: "blue.400"
+                borderColor: "teal.400"
               }}
               transition="all 0.2s ease-in-out"
               cursor="pointer"
@@ -84,7 +84,7 @@ export default function Home() {
               <CardHeader pb={4}>
                 <Flex align="center">
                   <Box
-                    bg="blue.500"
+                    bg="teal.500"
                     color="white"
                     p={3}
                     borderRadius="md"

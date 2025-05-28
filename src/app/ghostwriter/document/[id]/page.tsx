@@ -277,7 +277,7 @@ export default function DocumentDetail() {
   if (loading) {
     return (
       <Center h="50vh">
-        <Spinner size="xl" color="blue.400" />
+        <Spinner size="xl" color="teal.400" />
       </Center>
     );
   }
@@ -291,7 +291,7 @@ export default function DocumentDetail() {
           <Text color="gray.400" mb={6}>The document you&apos;re looking for doesn&apos;t exist or couldn&apos;t be loaded.</Text>
           <Button 
             leftIcon={<FiArrowLeft />} 
-            colorScheme="blue"
+            colorScheme="teal"
             onClick={() => router.push('/ghostwriter')}
           >
             Back to Dashboard
@@ -322,7 +322,7 @@ export default function DocumentDetail() {
               <Button
                 type="submit"
                 leftIcon={<FiSave />}
-                colorScheme="blue"
+                colorScheme="teal"
                 onClick={handleSubmit}
                 isLoading={submitting}
                 size="sm"
@@ -417,8 +417,8 @@ export default function DocumentDetail() {
                 p={4}
                 resize="none"
                 _focus={{
-                  borderColor: 'blue.400',
-                  boxShadow: '0 0 0 1px var(--chakra-colors-blue-400)'
+                  borderColor: 'teal.400',
+                  boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
                 }}
                 whiteSpace="pre-wrap"
                 lineHeight="1.8"
@@ -444,8 +444,8 @@ export default function DocumentDetail() {
                 p={4}
                 resize="none"
                 _focus={{
-                  borderColor: 'blue.400',
-                  boxShadow: '0 0 0 1px var(--chakra-colors-blue-400)'
+                  borderColor: 'teal.400',
+                  boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
                 }}
                 whiteSpace="pre-wrap"
                 lineHeight="1.8"
@@ -472,8 +472,8 @@ export default function DocumentDetail() {
               p={4}
               resize="none"
               _focus={{
-                borderColor: 'blue.400',
-                boxShadow: '0 0 0 1px var(--chakra-colors-blue-400)'
+                borderColor: 'teal.400',
+                boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
               }}
               whiteSpace="pre-wrap"
               lineHeight="1.8"

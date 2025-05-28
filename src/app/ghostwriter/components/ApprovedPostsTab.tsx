@@ -118,7 +118,7 @@ export function ApprovedPostsTab() {
                       ref={isLastElement ? lastPostElementRef : null}
                       onClick={() => navigateToDocument(post.id)}
                       cursor="pointer"
-                      _hover={{ borderColor: "blue.400", transform: "translateY(-2px)" }}
+                      _hover={{ borderColor: "teal.400", transform: "translateY(-2px)" }}
                       transition="all 0.2s"
                     >
                       <CardBody>
@@ -146,8 +146,8 @@ export function ApprovedPostsTab() {
                         {post.user_comments && (
                           <Box mb={4} bg="gray.800" p={3} borderRadius="md">
                             <Flex align="center" mb={2}>
-                              <Icon as={FiMessageSquare} color="blue.400" mr={2} />
-                              <Text color="blue.300" fontWeight="medium">Comments</Text>
+                              <Icon as={FiMessageSquare} color="teal.400" mr={2} />
+                              <Text color="teal.300" fontWeight="medium">Comments</Text>
                             </Flex>
                             <Text 
                               color="gray.300" 
@@ -169,7 +169,7 @@ export function ApprovedPostsTab() {
                             rightIcon={<FiExternalLink />} 
                             size="sm" 
                             variant="ghost" 
-                            colorScheme="blue"
+                            colorScheme="teal"
                             onClick={(e) => {
                               e.stopPropagation();
                               navigateToDocument(post.id);
@@ -184,7 +184,7 @@ export function ApprovedPostsTab() {
                 })}
                 {loading && (
                   <Center p={4}>
-                    <Spinner color="blue.400" size="md" />
+                    <Spinner color="teal.400" size="md" />
                   </Center>
                 )}
               </VStack>

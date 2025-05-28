@@ -28,7 +28,7 @@ export function TabNavigation() {
               fontWeight="medium" 
               py={4}
               px={4}
-              _selected={{ color: "blue.400", borderColor: "blue.400" }}
+              _selected={{ color: "teal.400", borderColor: "teal.400" }}
             >
               <Icon as={FiHome} mr={2} /> Overview
             </Tab>
@@ -36,7 +36,7 @@ export function TabNavigation() {
               fontWeight="medium" 
               py={4}
               px={4}
-              _selected={{ color: "blue.400", borderColor: "blue.400" }}
+              _selected={{ color: "teal.400", borderColor: "teal.400" }}
             >
               <Icon as={FiClock} mr={2} /> Drafts
             </Tab>
@@ -44,14 +44,14 @@ export function TabNavigation() {
               fontWeight="medium" 
               py={4}
               px={4}
-              _selected={{ color: "blue.400", borderColor: "blue.400" }}
+              _selected={{ color: "teal.400", borderColor: "teal.400" }}
             >
               <Icon as={FiCheck} mr={2} /> Approved
             </Tab>
           </TabList>
           <Button 
             leftIcon={<FiPlus />} 
-            colorScheme="blue" 
+            colorScheme="teal" 
             size="sm" 
             onClick={handleCreateDocument}
           >

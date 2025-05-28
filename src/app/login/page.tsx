@@ -86,7 +86,7 @@ export default function Login() {
                       borderColor="gray.600"
                       size="lg"
                       _hover={{ borderColor: "gray.500" }}
-                      _focus={{ borderColor: "blue.400", boxShadow: "0 0 0 1px var(--chakra-colors-blue-400)" }}
+                      _focus={{ borderColor: "teal.400", boxShadow: "0 0 0 1px var(--chakra-colors-teal-400)" }}
                     />
                   </FormControl>
                   
@@ -101,13 +101,13 @@ export default function Login() {
                       borderColor="gray.600"
                       size="lg"
                       _hover={{ borderColor: "gray.500" }}
-                      _focus={{ borderColor: "blue.400", boxShadow: "0 0 0 1px var(--chakra-colors-blue-400)" }}
+                      _focus={{ borderColor: "teal.400", boxShadow: "0 0 0 1px var(--chakra-colors-teal-400)" }}
                     />
                   </FormControl>
                   
                   <Button 
                     type="submit" 
-                    colorScheme="blue" 
+                    colorScheme="teal" 
                     width="full"
                     isLoading={isLoading}
                     size="lg"

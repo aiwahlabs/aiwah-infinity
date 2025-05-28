@@ -11,8 +11,9 @@ export interface ChatConversation {
 export interface ChatMessage {
   id: number;
   conversation_id: number;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
+  thinking?: string;
   created_at: string;
   metadata: Record<string, any>;
 }
@@ -30,7 +31,8 @@ export interface CreateConversationData {
 
 export interface CreateMessageData {
   conversation_id: number;
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
+  thinking?: string;
   metadata?: Record<string, any>;
 } 

@@ -182,7 +182,7 @@ export function DashboardOverview() {
             <Card bg="gray.800" borderColor="gray.700">
               <CardHeader>
                 <Flex align="center">
-                  <Icon as={FiCalendar} boxSize={5} color="blue.400" mr={2} />
+                  <Icon as={FiCalendar} boxSize={5} color="teal.400" mr={2} />
                   <Heading size="md" color="white">Created in last 7 days</Heading>
                 </Flex>
               </CardHeader>

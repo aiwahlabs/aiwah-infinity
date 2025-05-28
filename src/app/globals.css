@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #0a0a0a;
@@ -64,4 +67,98 @@ html {
 .chakra-ui-dark .chakra-card {
   background-color: var(--chakra-colors-gray-800);
   border-color: var(--chakra-colors-gray-700);
+}
+
+/* Hide Next.js error overlay notifications */
+nextjs-portal {
+  display: none !important;
+}
+
+.nextjs-toast-errors-parent {
+  display: none !important;
+}
+
+/* Hide React error overlay iframe */
+body > iframe {
+  display: none !important;
+}
+
+/* Syntax highlighting styles */
+.hljs {
+  background: #1a1a1a !important;
+  color: #f8f8f2 !important;
+}
+
+/* Mermaid diagram styles */
+.mermaid {
+  background: transparent !important;
+}
+
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Custom scrollbar for code blocks */
+pre::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+pre::-webkit-scrollbar-track {
+  background: #2a2a2a;
+  border-radius: 4px;
+}
+
+pre::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-radius: 4px;
+}
+
+pre::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Markdown content spacing */
+.markdown-content > *:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-content > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Table responsive styling */
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.markdown-content th,
+.markdown-content td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid #4a5568;
+}
+
+.markdown-content th {
+  background-color: #2d3748;
+  font-weight: 600;
+}
+
+/* Code block copy button positioning */
+.code-block-container {
+  position: relative;
+}
+
+.copy-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.code-block-container:hover .copy-button {
+  opacity: 1;
 }

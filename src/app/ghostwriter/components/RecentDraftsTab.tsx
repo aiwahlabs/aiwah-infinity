@@ -206,7 +206,7 @@ export function RecentDraftsTab() {
                       variant="outline"
                       ref={isLastElement ? lastDraftElementRef : null}
                       cursor="pointer"
-                      _hover={{ borderColor: "blue.400", transform: "translateY(-2px)" }}
+                      _hover={{ borderColor: "teal.400", transform: "translateY(-2px)" }}
                       transition="all 0.2s"
                       onClick={() => handleViewDocument(draft.id)}
                     >
@@ -235,8 +235,8 @@ export function RecentDraftsTab() {
                         {draft.user_comments && (
                           <Box mb={4} bg="gray.800" p={3} borderRadius="md" onClick={(e) => e.stopPropagation()}>
                             <Flex align="center" mb={2}>
-                              <Icon as={FiMessageSquare} color="blue.400" mr={2} />
-                              <Text color="blue.300" fontWeight="medium">Comments</Text>
+                              <Icon as={FiMessageSquare} color="teal.400" mr={2} />
+                              <Text color="teal.300" fontWeight="medium">Comments</Text>
                             </Flex>
                             <Text 
                               color="gray.300" 
@@ -277,7 +277,7 @@ export function RecentDraftsTab() {
                         <ButtonGroup spacing={3} width="100%" justifyContent="flex-end" onClick={(e) => e.stopPropagation()}>
                           <Button
                             leftIcon={<FiEdit />}
-                            colorScheme="blue"
+                            colorScheme="teal"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -331,7 +331,7 @@ export function RecentDraftsTab() {
                 })}
                 {loading && (
                   <Center p={4}>
-                    <Spinner color="blue.400" size="md" />
+                    <Spinner color="teal.400" size="md" />
                   </Center>
                 )}
               </VStack>

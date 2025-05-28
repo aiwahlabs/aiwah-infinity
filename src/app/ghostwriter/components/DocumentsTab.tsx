@@ -102,7 +102,7 @@ export function DocumentsTab() {
           </Box>
           <Button 
             leftIcon={<FiPlus />} 
-            colorScheme="blue" 
+            colorScheme="teal" 
             onClick={handleCreateDocument}
           >
             Create Document
@@ -128,7 +128,7 @@ export function DocumentsTab() {
                 icon={<FiSearch />}
                 onClick={handleSearch}
                 ml={2}
-                colorScheme="blue"
+                colorScheme="teal"
               />
             </Flex>
             
@@ -168,7 +168,7 @@ export function DocumentsTab() {
           {/* Document List */}
           {loading ? (
             <Flex justify="center" align="center" p={10}>
-              <Spinner size="xl" color="blue.400" />
+              <Spinner size="xl" color="teal.400" />
             </Flex>
           ) : error ? (
             <Box textAlign="center" p={6} color="red.400">
@@ -198,7 +198,7 @@ export function DocumentsTab() {
                         <Td>
                           <Text
                             fontWeight="medium"
-                            _hover={{ color: 'blue.400', cursor: 'pointer' }}
+                            _hover={{ color: 'teal.400', cursor: 'pointer' }}
                             onClick={() => handleViewDocument(doc.id)}
                             noOfLines={1}
                           >

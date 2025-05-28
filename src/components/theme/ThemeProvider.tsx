@@ -27,7 +27,7 @@ const theme = extendTheme({
   styles: {
     global: {
       body: {
-        bg: 'gray.900',
+        bg: 'gray.950',
         color: 'white',
       },
       // Dark mode for all components
@@ -41,7 +41,7 @@ const theme = extendTheme({
     // Override specific component themes as needed
     Button: {
       defaultProps: {
-        colorScheme: 'blue',
+        colorScheme: 'teal',
       },
     },
     Card: {

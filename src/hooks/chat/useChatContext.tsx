@@ -18,6 +18,7 @@ interface ChatContextType {
   loadMessages: (conversationId: number) => Promise<void>;
   createConversation: (data: CreateConversationData) => Promise<ChatConversation | null>;
   createMessage: (data: CreateMessageData) => Promise<ChatMessage | null>;
+  updateConversation: (id: number, updates: Partial<ChatConversation>) => Promise<boolean>;
   deleteConversation: (id: number) => Promise<boolean>;
   setCurrentConversation: (conversation: ChatConversation | null) => void;
   updateFilter: (newFilter: Partial<ChatFilter>) => void;
@@ -42,12 +43,34 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const loadConversations = useCallback(async () => {
     try {
+      console.log('Loading conversations...');
       setLoading(true);
       setError(null);
+
+      // Get the current user
+      const { data: user, error: userError } = await supabase.auth.getUser();
+      console.log('User data:', user, 'User error:', userError);
+      
+      if (userError) {
+        console.error('Auth error:', userError);
+        setError(`Authentication error: ${userError.message}`);
+        setLoading(false);
+        return;
+      }
+      
+      if (!user.user) {
+        console.log('No user found, user not authenticated');
+        setError('Please log in to access your conversations');
+        setLoading(false);
+        return;
+      }
+
+      console.log('User authenticated, loading conversations for user:', user.user.id);
 
       let query = supabase
         .from('chat_conversations')
         .select('*', { count: 'exact' })
+        .eq('user_id', user.user.id) // Filter by current user
         .eq('is_archived', false)
         .order('updated_at', { ascending: false });
 
@@ -63,23 +86,37 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         query = query.range(filter.offset, filter.offset + (filter.limit || 20) - 1);
       }
 
+      console.log('Executing query...');
       const { data, error: queryError, count } = await query;
+      console.log('Query result:', { data, queryError, count });
 
-      if (queryError) throw queryError;
+      if (queryError) {
+        console.error('Query error:', queryError);
+        if (queryError.code === 'PGRST116') {
+          setError('Database table not found. Please check your database setup.');
+        } else {
+          setError(`Database error: ${queryError.message}`);
+        }
+        setLoading(false);
+        return;
+      }
 
+      console.log('Successfully loaded conversations:', data?.length || 0);
       setConversations(data || []);
       setTotalCount(count || 0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load conversations');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load conversations';
       console.error('Error loading conversations:', err);
+      setError(errorMessage);
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   }, [filter.search, filter.limit, filter.offset, supabase]);
 
   const loadMessages = useCallback(async (conversationId: number) => {
     try {
-      setLoading(true);
+      // Don't set global loading for messages, only for conversations
       setError(null);
 
       const { data, error: queryError } = await supabase
@@ -88,14 +125,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
 
-      if (queryError) throw queryError;
+      if (queryError) {
+        console.error('Error loading messages:', queryError);
+        setError(`Failed to load messages: ${queryError.message}`);
+        return;
+      }
 
       setMessages(data || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load messages');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load messages';
+      setError(errorMessage);
       console.error('Error loading messages:', err);
-    } finally {
-      setLoading(false);
     }
   }, [supabase]);
 
@@ -180,6 +220,33 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [supabase]);
 
+  const updateConversation = useCallback(async (id: number, updates: Partial<ChatConversation>): Promise<boolean> => {
+    try {
+      setError(null);
+
+      const { error: updateError } = await supabase
+        .from('chat_conversations')
+        .update(updates)
+        .eq('id', id);
+
+      if (updateError) throw updateError;
+
+      // Update state immediately
+      setConversations(prev => prev.map(conv => conv.id === id ? { ...conv, ...updates } : conv));
+
+      // Also update currentConversation if it's the one being updated
+      if (currentConversation?.id === id) {
+        setCurrentConversation(prev => prev ? { ...prev, ...updates } : prev);
+      }
+
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update conversation');
+      console.error('Error updating conversation:', err);
+      return false;
+    }
+  }, [supabase, currentConversation?.id]);
+
   const deleteConversation = useCallback(async (id: number): Promise<boolean> => {
     try {
       setError(null);
@@ -233,6 +300,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     loadMessages,
     createConversation,
     createMessage,
+    updateConversation,
     deleteConversation,
     setCurrentConversation,
     updateFilter,
@@ -249,6 +317,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     loadMessages,
     createConversation,
     createMessage,
+    updateConversation,
     deleteConversation,
     updateFilter,
     refreshConversations
