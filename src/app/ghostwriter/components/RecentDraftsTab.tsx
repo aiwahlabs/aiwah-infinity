@@ -174,7 +174,7 @@ export function RecentDraftsTab() {
 
   // Handle navigation to document detail page
   const handleViewDocument = (id: number) => {
-    router.push(`/dashboard/document/${id}`);
+    router.push(`/ghostwriter/document/${id}`);
   };
 
   return (

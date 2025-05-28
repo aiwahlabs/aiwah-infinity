@@ -85,7 +85,7 @@ export function ApprovedPostsTab() {
 
   // Navigate to document details
   const navigateToDocument = (id: number) => {
-    router.push(`/dashboard/document/${id}`);
+    router.push(`/ghostwriter/document/${id}`);
   };
 
   return (

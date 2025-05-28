@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Container, TabList, Tab, Icon, Flex, Button } from '@chakra-ui/react';
+import { Box, TabList, Tab, Icon, Flex, Button } from '@chakra-ui/react';
 import { FiHome, FiClock, FiCheck, FiPlus } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 
@@ -8,7 +8,7 @@ export function TabNavigation() {
   const router = useRouter();
 
   const handleCreateDocument = () => {
-    router.push('/dashboard/document/new');
+    router.push('/ghostwriter/document/new');
   };
 
   return (
@@ -21,7 +21,7 @@ export function TabNavigation() {
       borderColor="gray.700"
       boxShadow="sm"
     >
-      <Container maxW="container.xl" py={2}>
+      <Box py={2} px={4}>
         <Flex justify="space-between" align="center">
           <TabList borderBottom="none">
             <Tab 
@@ -58,7 +58,7 @@ export function TabNavigation() {
             New Document
           </Button>
         </Flex>
-      </Container>
+      </Box>
     </Box>
   );
 } 

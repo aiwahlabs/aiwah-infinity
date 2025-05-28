@@ -15,7 +15,7 @@ export function Footer() {
     >
       <Container maxW="container.xl">
         <Text color="gray.400" textAlign="center">
-          © {new Date().getFullYear()} Aiwah Infinity. All rights reserved.
+          Crafting the future, one line at a time ✨
         </Text>
       </Container>
     </Box>

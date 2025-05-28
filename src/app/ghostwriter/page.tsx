@@ -1,27 +1,27 @@
 'use client';
 
-import { Box, Container, Tabs, TabPanels, TabPanel } from '@chakra-ui/react';
+import { Box, Tabs, TabPanels, TabPanel } from '@chakra-ui/react';
 import { DashboardOverview, TabNavigation, RecentDraftsTab, ApprovedPostsTab } from './components';
 
 export default function Dashboard() {
   return (
-    <Box>
-      <Tabs variant="line" colorScheme="blue" size="md" isLazy>
+    <Box h="100%">
+      <Tabs variant="line" colorScheme="blue" size="md" isLazy h="100%" display="flex" flexDirection="column">
         <TabNavigation />
         
-        <Container maxW="container.xl" py={6} px={4}>
-          <TabPanels>
-            <TabPanel p={0}>
+        <Box flex="1" py={6} px={4} overflow="auto">
+          <TabPanels h="100%">
+            <TabPanel p={0} h="100%">
               <DashboardOverview />
             </TabPanel>
-            <TabPanel p={0}>
+            <TabPanel p={0} h="100%">
               <RecentDraftsTab />
             </TabPanel>
-            <TabPanel p={0}>
+            <TabPanel p={0} h="100%">
               <ApprovedPostsTab />
             </TabPanel>
           </TabPanels>
-        </Container>
+        </Box>
       </Tabs>
     </Box>
   );

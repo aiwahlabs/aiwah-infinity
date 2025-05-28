@@ -167,7 +167,7 @@ export default function DocumentDetail() {
             isClosable: true,
           });
           // Navigate to the new document
-          router.push(`/dashboard/document/${newDoc.id}`);
+          router.push(`/ghostwriter/document/${newDoc.id}`);
         }
       } else if (document) {
         // Update existing document
@@ -240,7 +240,7 @@ export default function DocumentDetail() {
             duration: 3000,
             isClosable: true,
           });
-          router.push('/dashboard');
+          router.push('/ghostwriter');
         }
       } catch (err) {
         toast({
@@ -292,7 +292,7 @@ export default function DocumentDetail() {
           <Button 
             leftIcon={<FiArrowLeft />} 
             colorScheme="blue"
-            onClick={() => router.push('/dashboard')}
+            onClick={() => router.push('/ghostwriter')}
           >
             Back to Dashboard
           </Button>
@@ -310,7 +310,7 @@ export default function DocumentDetail() {
             <Button 
               leftIcon={<FiArrowLeft />} 
               variant="ghost" 
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/ghostwriter')}
               size="sm"
               color="gray.400"
               _hover={{ color: 'white' }}

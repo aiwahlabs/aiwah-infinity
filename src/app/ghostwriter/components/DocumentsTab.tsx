@@ -58,11 +58,11 @@ export function DocumentsTab() {
   
   // Handle document actions
   const handleViewDocument = (id: number) => {
-    router.push(`/dashboard/document/${id}`);
+    router.push(`/ghostwriter/document/${id}`);
   };
   
   const handleEditDocument = (id: number) => {
-    router.push(`/dashboard/document/${id}`);
+    router.push(`/ghostwriter/document/${id}`);
   };
   
   const handleDeleteDocument = async (id: number) => {
@@ -83,7 +83,7 @@ export function DocumentsTab() {
   
   // Handle create new document
   const handleCreateDocument = async () => {
-    router.push('/dashboard/document/new');
+    router.push('/ghostwriter/document/new');
   };
   
   // Calculate pagination info
