@@ -1,67 +1,20 @@
 'use client';
 
 import React, { ReactNode, useEffect } from 'react';
-import { SaasProvider, theme as saasTheme } from '@saas-ui/react';
+import { SaasProvider } from '@saas-ui/react';
 import { 
-  extendTheme, 
   ColorModeScript, 
   ChakraProvider, 
-  useColorMode,
-  ThemeConfig
+  useColorMode
 } from '@chakra-ui/react';
+import { theme } from './theme';
 
-// Create config to force dark mode
-const config: ThemeConfig = {
-  initialColorMode: 'dark',
-  useSystemColorMode: false,
-};
-
-// Create theme with dark mode as default
-const theme = extendTheme({
-  ...saasTheme,
-  config,
-  colors: {
-    ...saasTheme.colors,
-    // Add more custom dark mode colors if needed
-  },
-  styles: {
-    global: {
-      body: {
-        bg: 'gray.950',
-        color: 'white',
-      },
-      // Dark mode for all components
-      '.chakra-ui': {
-        colorScheme: 'dark',
-      }
-    },
-  },
-  components: {
-    ...saasTheme.components,
-    // Override specific component themes as needed
-    Button: {
-      defaultProps: {
-        colorScheme: 'teal',
-      },
-    },
-    Card: {
-      baseStyle: {
-        container: {
-          bg: 'gray.800',
-          color: 'white',
-        }
-      }
-    }
-  }
-});
-
-// Force dark mode
+// Force dark mode component
 function ForceDarkMode({ children }: { children: ReactNode }) {
   const { setColorMode } = useColorMode();
   
   useEffect(() => {
     setColorMode('dark');
-    // Don't manipulate DOM directly to avoid hydration mismatches
   }, [setColorMode]);
   
   return <>{children}</>;

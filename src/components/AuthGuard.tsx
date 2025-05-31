@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@saas-ui/auth';
 import { useRouter, usePathname } from 'next/navigation';
-import { Center, Spinner, VStack, Text, Box } from '@chakra-ui/react';
+import { Center, Spinner, VStack, Text } from '@chakra-ui/react';
 
 interface AuthGuardProps {
   children: ReactNode;
