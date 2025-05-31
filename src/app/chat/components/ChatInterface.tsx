@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useCallback, useRef, useEffect, useState } from 'react';
 import {
   Box,
   VStack,
@@ -15,7 +15,7 @@ import {
   Divider,
 } from '@chakra-ui/react';
 import { FiRefreshCw } from 'react-icons/fi';
-import { ChatConversation, ChatMessage } from '../types';
+import { ChatMessage, ChatConversation } from '../types';
 import { useChatContext } from '@/hooks/chat/useChatContext';
 import { useChatStream } from '../hooks/useChatStream';
 import { ChatHeader } from './ChatHeader';
@@ -24,6 +24,7 @@ import { StreamingMessage } from './StreamingMessage';
 import { ChatInput } from './ChatInput';
 import { Card } from './ui';
 import { designTokens } from '../design/tokens';
+import { InlineLoading } from '@/components/ui';
 
 interface ChatInterfaceProps {
   conversation: ChatConversation | null;
@@ -210,7 +211,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
         <Box p={4} maxW="4xl" mx="auto">
           {loading ? (
             <Center h="400px">
-              <Spinner size="lg" color="teal.400" />
+              <InlineLoading />
             </Center>
           ) : (
             <VStack spacing={0} align="stretch">

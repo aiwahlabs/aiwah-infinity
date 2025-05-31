@@ -4,22 +4,15 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Flex,
-  Spinner,
-  Center,
   VStack,
   Text,
-  Fade,
-  ScaleFade,
-  Alert,
-  AlertIcon,
-  AlertTitle,
-  AlertDescription,
   Button,
 } from '@chakra-ui/react';
 import { ChatInterface } from './components/ChatInterface';
 import { ConversationSidebar } from './components/ConversationSidebar';
 import { useChatContext } from '@/hooks/chat/useChatContext';
 import { AuthGuard } from '@/components/AuthGuard';
+import { PageLoading } from '@/components/ui';
 
 // Main chat page component
 export default function ChatPage() {
@@ -36,42 +29,33 @@ export default function ChatPage() {
   // Show error state if there's an authentication or loading error
   if (error) {
     return (
-      <Center h="100%">
-        <VStack spacing={4} maxW="md" textAlign="center">
-          <Text color="red.400" fontSize="lg" fontWeight="medium">
-            Connection Error
-          </Text>
-          <Text color="red.300" fontSize="sm">
-            {error}
-          </Text>
-          <Button
-            colorScheme="teal"
-            onClick={() => {
-              console.log('Retrying connection...');
-              loadConversations();
-            }}
-          >
-            Retry Connection
-          </Button>
-        </VStack>
-      </Center>
+      <VStack spacing={4} h="100%" justify="center" align="center" p={8}>
+        <Text color="red.400" fontSize="lg" fontWeight="medium">
+          Connection Error
+        </Text>
+        <Text color="red.300" fontSize="sm" textAlign="center" maxW="md">
+          {error}
+        </Text>
+        <Button
+          colorScheme="brand"
+          onClick={() => {
+            console.log('Retrying connection...');
+            loadConversations();
+          }}
+        >
+          Retry Connection
+        </Button>
+      </VStack>
     );
   }
 
   // Show loading state with smooth animation
   if (loading || !isInitialized) {
     return (
-      <Center h="100%">
-        <VStack spacing={4}>
-          <Spinner 
-            size="lg" 
-            color="teal.500"
-          />
-          <Text color="gray.300" fontSize="md">
-            Loading chat interface...
-          </Text>
-        </VStack>
-      </Center>
+      <PageLoading 
+        message="Loading chat interface..."
+        size="lg"
+      />
     );
   }
 
@@ -101,7 +85,7 @@ export default function ChatPage() {
           bg="gray.600"
           cursor="col-resize"
           _hover={{ 
-            bg: 'teal.500',
+            bg: 'brand.500',
             boxShadow: '0 0 10px rgba(20, 184, 166, 0.3)'
           }}
           transition="all 0.2s ease"

@@ -5,16 +5,14 @@ import {
   Box,
   Flex,
   Text,
-  Spinner,
   HStack,
   Divider,
-  Collapse,
 } from '@chakra-ui/react';
 import {
   FiChevronDown,
-  FiChevronUp,
 } from 'react-icons/fi';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { InlineLoading } from '@/components/ui';
 
 interface StreamingMessageProps {
   streamingContent: string;
@@ -39,7 +37,11 @@ const StreamingContent = React.memo(function StreamingContent({
       {renderedContent}
       {/* Typing indicator */}
       <HStack spacing={2} mt={2}>
-        <Spinner size="xs" color="teal.400" />
+        <InlineLoading 
+          size="xs" 
+          message=""
+          spinnerProps={{ color: "brand.500" }}
+        />
         <Text color="gray.400" fontSize="xs">
           AI is typing...
         </Text>
@@ -70,7 +72,11 @@ const StreamingThinking = React.memo(function StreamingThinking({
           <Text color="purple.300" fontSize="xs" fontWeight="medium">
             Thoughts
           </Text>
-          <Spinner size="xs" color="purple.300" />
+          <InlineLoading 
+            size="xs" 
+            message=""
+            spinnerProps={{ color: "purple.300" }}
+          />
         </HStack>
         <Box
           as={FiChevronDown}
@@ -148,7 +154,11 @@ export const StreamingMessage = React.memo(function StreamingMessage({
 
           {/* Typing indicator */}
           <HStack spacing={3}>
-            <Spinner size="sm" color="teal.400" thickness="2px" />
+            <InlineLoading 
+              size="sm" 
+              message=""
+              spinnerProps={{ color: "brand.500", thickness: "2px" }}
+            />
             <Text color="gray.400" fontSize="sm">
               AI is thinking...
             </Text>

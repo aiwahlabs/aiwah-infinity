@@ -1,261 +1,308 @@
 'use client';
 
-import { Box, Card, CardBody, CardHeader, SimpleGrid, Heading, Text, Flex, Icon, Button } from '@chakra-ui/react';
-import { useAuth } from '@saas-ui/auth';
-import { FiFileText, FiCalendar, FiAlertCircle, FiCheck } from 'react-icons/fi';
+import React, { useState, useMemo, useEffect } from 'react';
+import { 
+  Box, 
+  SimpleGrid, 
+  Card, 
+  CardHeader, 
+  CardBody, 
+  Heading, 
+  Text, 
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  StatArrow,
+  Icon,
+  VStack,
+  HStack,
+  useColorModeValue,
+  Badge,
+  Progress,
+  Button,
+} from '@chakra-ui/react';
+import { FiFileText, FiCheckCircle, FiXCircle, FiClock, FiTrendingUp, FiPlusCircle } from 'react-icons/fi';
 import { useDocumentsContext } from '@/hooks/documents';
-import { useEffect, useState } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { Document, DocumentStatus } from '@/hooks/documents/types';
+import Link from 'next/link';
+import { PageLoading } from '@/components/ui';
 
-interface DailyCount {
-  date: string;
-  count: number;
-}
-
-// Define a proper type for the tooltip props
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{value: number; name: string}>;
-  label?: string;
-}
-
-export function DashboardOverview() {
-  const { user } = useAuth();
+export const DashboardOverview = () => {
   const { statsLoading, documents } = useDocumentsContext();
+  const cardBg = useColorModeValue('white', 'gray.800');
   
-  const [createdLastWeek, setCreatedLastWeek] = useState<DailyCount[]>([]);
-  const [publishedLastWeek, setPublishedLastWeek] = useState<DailyCount[]>([]);
-  const [draftCount, setDraftCount] = useState(0);
-  const [approvedCount, setApprovedCount] = useState(0);
-  
+  // Calculate stats
+  const stats = useMemo(() => {
+    if (!statsLoading && documents) {
+      const total = documents.length;
+      const approved = documents.filter(doc => doc.status === 'approved').length;
+      const drafts = documents.filter(doc => doc.status === 'draft').length;
+      const rejected = documents.filter(doc => doc.status === 'rejected').length;
+      const published = documents.filter(doc => doc.status === 'published').length;
+      
+      // Get recent documents (last 7 days)
+      const lastWeek = new Date();
+      lastWeek.setDate(lastWeek.getDate() - 7);
+      const recentDocs = documents.filter(doc => 
+        new Date(doc.created_at) > lastWeek
+      );
+      
+      // Calculate approval rate
+      const totalReviewed = approved + rejected;
+      const approvalRate = totalReviewed > 0 ? (approved / totalReviewed) * 100 : 0;
+      
+      return {
+        total,
+        approved,
+        drafts,
+        rejected,
+        published,
+        recent: recentDocs.length,
+        approvalRate: approvalRate.toFixed(1),
+        productivity: total > 0 ? ((approved + published) / total * 100).toFixed(1) : '0',
+      };
+    }
+    return {
+      total: 0,
+      approved: 0,
+      drafts: 0,
+      rejected: 0,
+      published: 0,
+      recent: 0,
+      approvalRate: '0',
+      productivity: '0',
+    };
+  }, [statsLoading, documents]);
+
+  const [recentDocuments, setRecentDocuments] = useState<Document[]>([]);
+
   useEffect(() => {
     if (!statsLoading && documents) {
-      // Get dates for the last 7 days
-      const lastSevenDays = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        return date.toISOString().split('T')[0];
-      }).reverse();
-      
-      // Initialize counters for each date
-      const createdCounter: Record<string, number> = {};
-      const publishedCounter: Record<string, number> = {};
-      
-      lastSevenDays.forEach(date => {
-        createdCounter[date] = 0;
-        publishedCounter[date] = 0;
-      });
-      
-      // Count drafts that need attention
-      const drafts = documents.filter(doc => doc.status === 'draft');
-      setDraftCount(drafts.length);
-      
-      // Count approved documents
-      const approved = documents.filter(doc => doc.status === 'approved');
-      setApprovedCount(approved.length);
-      
-      // Count documents created and published in the last 7 days
-      documents.forEach(doc => {
-        const createdDate = new Date(doc.created_at).toISOString().split('T')[0];
-        if (createdCounter[createdDate] !== undefined) {
-          createdCounter[createdDate]++;
-        }
-        
-        // Count published documents (only those with 'published' status)
-        if (doc.status === 'published') {
-          const updatedDate = new Date(doc.updated_at).toISOString().split('T')[0];
-          if (publishedCounter[updatedDate] !== undefined) {
-            publishedCounter[updatedDate]++;
-          }
-        }
-      });
-      
-      // Format data for the charts
-      setCreatedLastWeek(
-        lastSevenDays.map(date => ({
-          date: formatDate(date),
-          count: createdCounter[date]
-        }))
-      );
-      
-      setPublishedLastWeek(
-        lastSevenDays.map(date => ({
-          date: formatDate(date),
-          count: publishedCounter[date]
-        }))
-      );
+      // Get 5 most recent documents
+      const sorted = [...documents]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 5);
+      setRecentDocuments(sorted);
     }
   }, [statsLoading, documents]);
-  
-  // Helper function to format dates
+
+  if (statsLoading) {
+    return (
+      <PageLoading 
+        message="Loading dashboard data..."
+        size="md"
+        minHeight="60vh"
+      />
+    );
+  }
+
+  const getStatusColor = (status: DocumentStatus | null) => {
+    if (!status) return 'gray';
+    switch (status) {
+      case 'approved': return 'green';
+      case 'rejected': return 'red';
+      case 'published': return 'blue';
+      case 'word-limit': return 'orange';
+      default: return 'yellow';
+    }
+  };
+
+  const getStatusIcon = (status: DocumentStatus | null) => {
+    if (!status) return FiClock;
+    switch (status) {
+      case 'approved': return FiCheckCircle;
+      case 'rejected': return FiXCircle;
+      case 'published': return FiFileText;
+      default: return FiClock;
+    }
+  };
+
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return `${date.getDate()}/${date.getMonth() + 1}`;
-  };
-  
-  // Custom tooltip for charts
-  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-    if (active && payload && payload.length) {
-      return (
-        <Box bg="gray.800" p={2} borderRadius="md" borderColor="gray.700" borderWidth="1px">
-          <Text color="gray.200">{`${label}: ${payload[0].value} documents`}</Text>
-        </Box>
-      );
-    }
-    return null;
-  };
-  
-  const handleViewDrafts = () => {
-    // Navigate to the Drafts tab (index 1)
-    const tabsElement = document.querySelector('[role="tablist"]');
-    if (tabsElement) {
-      const draftTab = tabsElement.children[1] as HTMLElement;
-      if (draftTab) draftTab.click();
-    }
-  };
-  
-  const handleViewApproved = () => {
-    // Navigate to the Approved tab (index 2)
-    const tabsElement = document.querySelector('[role="tablist"]');
-    if (tabsElement) {
-      const approvedTab = tabsElement.children[2] as HTMLElement;
-      if (approvedTab) approvedTab.click();
-    }
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
     <Box>
-      <Text color="gray.400" mb={6}>Welcome to your Ghostwriter dashboard, {user?.email}</Text>
-      
-      {statsLoading ? (
-        <Box textAlign="center" p={10} color="gray.400">
-          <Text>Loading dashboard data...</Text>
-        </Box>
-      ) : (
-        <>
-          {/* Drafts Attention Widget */}
-          <Card bg="gray.800" borderColor="gray.700" mb={6}>
-            <CardBody>
-              <Flex align="center" justify="space-between">
-                <Flex align="center">
-                  <Icon as={FiAlertCircle} boxSize={6} color="yellow.400" mr={3} />
-                  <Box>
-                    <Heading size="md" color="white">{draftCount} Drafts need your attention</Heading>
-                    <Text color="gray.400" mt={1}>Review and approve/reject pending drafts</Text>
-                  </Box>
-                </Flex>
-                <Button 
-                  colorScheme="yellow" 
-                  variant="outline" 
-                  onClick={handleViewDrafts}
-                >
-                  View Drafts
-                </Button>
-              </Flex>
-            </CardBody>
-          </Card>
-          
-          {/* Approved Posts Widget */}
-          <Card bg="gray.800" borderColor="gray.700" mb={6}>
-            <CardBody>
-              <Flex align="center" justify="space-between">
-                <Flex align="center">
-                  <Icon as={FiCheck} boxSize={6} color="green.400" mr={3} />
-                  <Box>
-                    <Heading size="md" color="white">{approvedCount} Approved posts</Heading>
-                    <Text color="gray.400" mt={1}>View your approved content</Text>
-                  </Box>
-                </Flex>
-                <Button 
+      {/* Stats Grid */}
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
+        {/* Total Documents */}
+        <Card bg={cardBg}>
+          <CardBody>
+            <Stat>
+              <HStack justify="space-between" align="start">
+                <VStack align="start" spacing={1}>
+                  <StatLabel color="gray.500" fontSize="sm">Total Documents</StatLabel>
+                  <StatNumber color="white">{stats.total}</StatNumber>
+                  <StatHelpText color="gray.400" mb={0}>
+                    <StatArrow type="increase" />
+                    All time
+                  </StatHelpText>
+                </VStack>
+                <Icon as={FiFileText} color="blue.400" boxSize={8} />
+              </HStack>
+            </Stat>
+          </CardBody>
+        </Card>
+
+        {/* Approved */}
+        <Card bg={cardBg}>
+          <CardBody>
+            <Stat>
+              <HStack justify="space-between" align="start">
+                <VStack align="start" spacing={1}>
+                  <StatLabel color="gray.500" fontSize="sm">Approved</StatLabel>
+                  <StatNumber color="white">{stats.approved}</StatNumber>
+                  <StatHelpText color="gray.400" mb={0}>
+                    {stats.approvalRate}% approval rate
+                  </StatHelpText>
+                </VStack>
+                <Icon as={FiCheckCircle} color="green.400" boxSize={8} />
+              </HStack>
+            </Stat>
+          </CardBody>
+        </Card>
+
+        {/* Drafts */}
+        <Card bg={cardBg}>
+          <CardBody>
+            <Stat>
+              <HStack justify="space-between" align="start">
+                <VStack align="start" spacing={1}>
+                  <StatLabel color="gray.500" fontSize="sm">Drafts</StatLabel>
+                  <StatNumber color="white">{stats.drafts}</StatNumber>
+                  <StatHelpText color="gray.400" mb={0}>
+                    Pending review
+                  </StatHelpText>
+                </VStack>
+                <Icon as={FiClock} color="yellow.400" boxSize={8} />
+              </HStack>
+            </Stat>
+          </CardBody>
+        </Card>
+
+        {/* Productivity */}
+        <Card bg={cardBg}>
+          <CardBody>
+            <Stat>
+              <HStack justify="space-between" align="start">
+                <VStack align="start" spacing={1}>
+                  <StatLabel color="gray.500" fontSize="sm">Productivity</StatLabel>
+                  <StatNumber color="white">{stats.productivity}%</StatNumber>
+                  <StatHelpText color="gray.400" mb={0}>
+                    <StatArrow type="increase" />
+                    Success rate
+                  </StatHelpText>
+                </VStack>
+                <Icon as={FiTrendingUp} color="teal.400" boxSize={8} />
+              </HStack>
+            </Stat>
+          </CardBody>
+        </Card>
+      </SimpleGrid>
+
+      {/* Recent Activity */}
+      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
+        {/* Recent Documents */}
+        <Card bg={cardBg}>
+          <CardHeader>
+            <HStack justify="space-between">
+              <Heading size="md" color="white">Recent Documents</Heading>
+              <Button size="sm" colorScheme="teal" as={Link} href="/ghostwriter/document/new">
+                <Icon as={FiPlusCircle} mr={2} />
+                New Document
+              </Button>
+            </HStack>
+          </CardHeader>
+          <CardBody pt={0}>
+            <VStack spacing={3} align="stretch">
+              {recentDocuments.length > 0 ? (
+                recentDocuments.map((doc) => (
+                  <HStack key={doc.id} justify="space-between" p={3} bg="gray.700" borderRadius="md">
+                    <VStack align="start" spacing={1} flex={1}>
+                      <Text color="white" fontWeight="medium" noOfLines={1}>
+                        {doc.title || `Document #${doc.id}`}
+                      </Text>
+                      <Text color="gray.400" fontSize="xs">
+                        {formatDate(doc.created_at)}
+                      </Text>
+                    </VStack>
+                    <HStack spacing={2}>
+                      <Badge 
+                        colorScheme={getStatusColor(doc.status)} 
+                        textTransform="capitalize"
+                        variant="subtle"
+                      >
+                        {doc.status}
+                      </Badge>
+                      <Icon as={getStatusIcon(doc.status)} color="gray.400" />
+                    </HStack>
+                  </HStack>
+                ))
+              ) : (
+                <Text color="gray.400" textAlign="center" py={4}>
+                  No documents yet. Create your first document to get started.
+                </Text>
+              )}
+            </VStack>
+          </CardBody>
+        </Card>
+
+        {/* Quick Stats */}
+        <Card bg={cardBg}>
+          <CardHeader>
+            <Heading size="md" color="white">Performance Overview</Heading>
+          </CardHeader>
+          <CardBody pt={0}>
+            <VStack spacing={4} align="stretch">
+              {/* Approval Rate */}
+              <Box>
+                <HStack justify="space-between" mb={2}>
+                  <Text color="gray.300" fontSize="sm">Approval Rate</Text>
+                  <Text color="white" fontSize="sm">{stats.approvalRate}%</Text>
+                </HStack>
+                <Progress 
+                  value={parseFloat(stats.approvalRate)} 
                   colorScheme="green" 
-                  variant="outline" 
-                  onClick={handleViewApproved}
-                >
-                  View Approved
+                  bg="gray.700" 
+                  borderRadius="full"
+                  size="sm"
+                />
+              </Box>
+
+              {/* Content Progress */}
+              <Box>
+                <HStack justify="space-between" mb={2}>
+                  <Text color="gray.300" fontSize="sm">Content Progress</Text>
+                  <Text color="white" fontSize="sm">{stats.productivity}%</Text>
+                </HStack>
+                <Progress 
+                  value={parseFloat(stats.productivity)} 
+                  colorScheme="teal" 
+                  bg="gray.700" 
+                  borderRadius="full"
+                  size="sm"
+                />
+              </Box>
+
+              {/* Quick Actions */}
+              <VStack spacing={2} pt={4}>
+                <Button as={Link} href="/ghostwriter/document/new" colorScheme="teal" size="sm" w="full">
+                  Create New Document
                 </Button>
-              </Flex>
-            </CardBody>
-          </Card>
-          
-          <SimpleGrid columns={{ base: 1, md: 1, lg: 2 }} spacing={6}>
-            {/* Created in last 7 days */}
-            <Card bg="gray.800" borderColor="gray.700">
-              <CardHeader>
-                <Flex align="center">
-                  <Icon as={FiCalendar} boxSize={5} color="teal.400" mr={2} />
-                  <Heading size="md" color="white">Created in last 7 days</Heading>
-                </Flex>
-              </CardHeader>
-              <CardBody>
-                <Box height="250px">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={createdLastWeek}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                      <XAxis 
-                        dataKey="date" 
-                        tick={{ fill: '#A0AEC0' }} 
-                        axisLine={{ stroke: '#333' }}
-                      />
-                      <YAxis 
-                        tick={{ fill: '#A0AEC0' }} 
-                        axisLine={{ stroke: '#333' }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar 
-                        dataKey="count" 
-                        fill="#4299E1" 
-                        radius={[4, 4, 0, 0]} 
-                        name="Documents" 
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Box>
-              </CardBody>
-            </Card>
-            
-            {/* Published in last 7 days */}
-            <Card bg="gray.800" borderColor="gray.700">
-              <CardHeader>
-                <Flex align="center">
-                  <Icon as={FiFileText} boxSize={5} color="green.400" mr={2} />
-                  <Heading size="md" color="white">Published in last 7 days</Heading>
-                </Flex>
-              </CardHeader>
-              <CardBody>
-                <Box height="250px">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={publishedLastWeek}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
-                      <XAxis 
-                        dataKey="date" 
-                        tick={{ fill: '#A0AEC0' }} 
-                        axisLine={{ stroke: '#333' }}
-                      />
-                      <YAxis 
-                        tick={{ fill: '#A0AEC0' }} 
-                        axisLine={{ stroke: '#333' }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar 
-                        dataKey="count" 
-                        fill="#48BB78" 
-                        radius={[4, 4, 0, 0]} 
-                        name="Documents" 
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Box>
-              </CardBody>
-            </Card>
-          </SimpleGrid>
-        </>
-      )}
+                <Button as={Link} href="/ghostwriter?tab=1" variant="outline" size="sm" w="full">
+                  Review Drafts ({stats.drafts})
+                </Button>
+              </VStack>
+            </VStack>
+          </CardBody>
+        </Card>
+      </SimpleGrid>
     </Box>
   );
-} 
+}; 

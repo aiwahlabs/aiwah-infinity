@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@saas-ui/auth';
 import { useRouter, usePathname } from 'next/navigation';
-import { Center, Spinner, VStack, Text } from '@chakra-ui/react';
+import { FullScreenLoading } from '@/components/ui';
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -52,14 +52,10 @@ export function AuthGuard({
   // Show loading state while checking auth
   if (!isInitialized || isLoading) {
     return fallback || (
-      <Center h="100vh" bg="gray.900">
-        <VStack spacing={4}>
-          <Spinner size="xl" color="teal.500" thickness="3px" />
-          <Text color="gray.300" fontSize="lg">
-            Checking authentication...
-          </Text>
-        </VStack>
-      </Center>
+      <FullScreenLoading 
+        message="Checking authentication..."
+        size="lg"
+      />
     );
   }
 

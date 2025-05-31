@@ -1,11 +1,12 @@
 'use client';
 
-import { Box, Heading, Text, Card, Input, IconButton, Select, Flex, Spinner, Table, Thead, Tbody, Tr, Th, Td, ButtonGroup, Button, HStack, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
+import { Box, Heading, Text, Card, Input, IconButton, Select, Flex, Table, Thead, Tbody, Tr, Th, Td, ButtonGroup, Button, HStack, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
 import { FiSearch, FiMoreVertical, FiChevronLeft, FiChevronRight, FiEye, FiEdit, FiPlus } from 'react-icons/fi';
 import { useDocumentsContext, DocumentStatus } from '@/hooks/documents';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { StatusBadge } from './StatusBadge';
+import { InlineLoading } from '@/components/ui';
 
 export function DocumentsTab() {
   const router = useRouter();
@@ -168,7 +169,7 @@ export function DocumentsTab() {
           {/* Document List */}
           {loading ? (
             <Flex justify="center" align="center" p={10}>
-              <Spinner size="xl" color="teal.400" />
+              <InlineLoading />
             </Flex>
           ) : error ? (
             <Box textAlign="center" p={6} color="red.400">

@@ -1,20 +1,27 @@
 'use client';
 
-import { Box, Flex, Heading, IconButton, Image } from '@chakra-ui/react';
+import { Box, Flex, Heading, IconButton, Image, Button } from '@chakra-ui/react';
 import Link from 'next/link';
-import { FiHome } from 'react-icons/fi';
+import { FiHome, FiGrid } from 'react-icons/fi';
+import { ReactNode } from 'react';
 
 interface AppHeaderProps {
   appName: string;
   appIcon?: React.ElementType;
   appIconSrc?: string;
+  variant?: 'app' | 'home';
+  rightContent?: ReactNode;
 }
 
 export function AppHeader({ 
   appName, 
   appIcon: AppIcon, 
-  appIconSrc
+  appIconSrc,
+  variant = 'app',
+  rightContent
 }: AppHeaderProps) {
+  const isHome = variant === 'home';
+  
   return (
     <Box 
       as="header" 
@@ -43,18 +50,37 @@ export function AppHeader({
           <Heading size="md" color="white">{appName}</Heading>
         </Flex>
         
-        <Link href="/" passHref>
-          <IconButton
-            icon={<FiHome />}
-            aria-label="Back to home"
-            colorScheme="teal"
-            variant="outline"
-            _hover={{
-              bg: 'gray.600',
-              borderColor: 'teal.500'
-            }}
-          />
-        </Link>
+        {rightContent || (
+          isHome ? (
+            <Button
+              as={Link}
+              href="/ghostwriter"
+              leftIcon={<FiGrid />}
+              colorScheme="teal"
+              variant="outline"
+              size="sm"
+              _hover={{
+                bg: 'gray.600',
+                borderColor: 'teal.500'
+              }}
+            >
+              Apps
+            </Button>
+          ) : (
+            <Link href="/" passHref>
+              <IconButton
+                icon={<FiHome />}
+                aria-label="Back to home"
+                colorScheme="teal"
+                variant="outline"
+                _hover={{
+                  bg: 'gray.600',
+                  borderColor: 'teal.500'
+                }}
+              />
+            </Link>
+          )
+        )}
       </Flex>
     </Box>
   );

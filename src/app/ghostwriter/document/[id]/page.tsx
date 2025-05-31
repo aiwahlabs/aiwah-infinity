@@ -19,15 +19,17 @@ import {
   Button,
   Badge,
   useToast,
-  Spinner,
-  Center,
   Spacer,
   Card,
   CardBody,
-  Icon
+  Icon,
+  FormControl,
+  FormLabel,
+  Center
 } from '@chakra-ui/react';
 import { FiArrowLeft, FiCheckCircle, FiXCircle, FiTrash2, FiSave, FiInfo } from 'react-icons/fi';
 import { AuthGuard } from '@/components/AuthGuard';
+import { PageLoading } from '@/components/ui';
 
 // Define document status options
 const statusOptions = [
@@ -277,9 +279,11 @@ export default function DocumentDetail() {
   
   if (loading) {
     return (
-      <Center h="50vh">
-        <Spinner size="xl" color="teal.400" />
-      </Center>
+      <PageLoading 
+        message="Loading document..."
+        size="lg"
+        minHeight="50vh"
+      />
     );
   }
   

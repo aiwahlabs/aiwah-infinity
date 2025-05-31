@@ -99,7 +99,7 @@ export default function Login() {
                     
                     <Button 
                       type="submit" 
-                      colorScheme="teal" 
+                      colorScheme="brand" 
                       width="full"
                       isLoading={isLoading}
                       size="lg"
