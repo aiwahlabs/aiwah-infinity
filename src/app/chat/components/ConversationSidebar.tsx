@@ -160,7 +160,7 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
       </Box>
 
       {/* Conversations List */}
-      <Box flex="1" overflowY="auto" px={4}>
+      <Box flex="1" overflowY="auto" px={4} pb={4}>
         {loading ? (
           <Center py={8}>
             <Spinner color="teal.400" size="md" />
@@ -177,7 +177,7 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
             </VStack>
           </Center>
         ) : (
-          <VStack spacing={1} align="stretch">
+          <VStack spacing={0} align="stretch" pt={2}>
             {conversations.map((conversation: ChatConversation) => (
               <ConversationCard
                 key={conversation.id}
@@ -222,20 +222,30 @@ const ConversationCard = React.memo(function ConversationCard({
   return (
     <Box
       bg={isSelected ? "gray.700" : "gray.800"}
-      borderRadius="md"
+      borderRadius="lg"
       border="1px solid"
-      borderColor="gray.600"
+      borderColor={isSelected ? "teal.400" : "gray.700"}
+      borderWidth="1px"
       cursor="pointer"
-      p={3}
+      p={4}
       onClick={handleClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      transition="all 0.2s ease-in-out"
+      boxShadow={isSelected ? "md" : "sm"}
+      _hover={{
+        transform: isSelected ? "none" : "translateY(-2px)",
+        borderColor: isSelected ? "teal.400" : "teal.400",
+        boxShadow: isSelected ? "md" : "lg"
+      }}
+      mb={3}
+      overflow="hidden"
     >
       <Flex justify="space-between" align="flex-start">
         <Box flex="1" mr={2} minW={0}>
           <Text
             color="white"
-            fontWeight={isSelected ? "medium" : "normal"}
+            fontWeight={isSelected ? "semibold" : "medium"}
             fontSize="sm"
             noOfLines={1}
             mb={1}
@@ -248,13 +258,17 @@ const ConversationCard = React.memo(function ConversationCard({
         </Box>
         
         {/* Action buttons */}
-        {isHovered && (
+        {(isHovered || isSelected) && (
           <IconButton
             aria-label="Delete conversation"
             icon={<FiTrash2 />}
             size="xs"
             variant="ghost"
             color="gray.400"
+            _hover={{ 
+              color: "red.400",
+              bg: "red.900"
+            }}
             onClick={handleDelete}
           />
         )}

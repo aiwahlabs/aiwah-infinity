@@ -16,7 +16,7 @@ export function TabNavigation() {
       position="sticky"
       top="0"
       zIndex="20"
-      bg="gray.900"
+      bg="gray.800"
       borderBottom="1px"
       borderColor="gray.700"
       boxShadow="sm"

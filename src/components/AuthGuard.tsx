@@ -3,20 +3,22 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@saas-ui/auth';
 import { useRouter, usePathname } from 'next/navigation';
-import { FullScreenLoading } from '@/components/ui';
+import { Center, Spinner, VStack, Text, Box } from '@chakra-ui/react';
 
 interface AuthGuardProps {
   children: ReactNode;
   requireAuth?: boolean;
   redirectTo?: string;
   fallback?: ReactNode;
+  preserveLayout?: boolean;
 }
 
 export function AuthGuard({ 
   children, 
   requireAuth = true, 
   redirectTo = '/login',
-  fallback 
+  fallback,
+  preserveLayout = false
 }: AuthGuardProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -50,12 +52,29 @@ export function AuthGuard({
   }, [isAuthenticated, isLoading, isInitialized, requireAuth, redirectTo, router, pathname]);
 
   // Show loading state while checking auth
+  // Use a content-area loading instead of full-screen when preserveLayout is true
   if (!isInitialized || isLoading) {
     return fallback || (
-      <FullScreenLoading 
-        message="Checking authentication..."
-        size="lg"
-      />
+      <Box 
+        display="flex" 
+        alignItems="center" 
+        justifyContent="center" 
+        h={preserveLayout ? "100%" : "100vh"} 
+        bg={preserveLayout ? "transparent" : "gray.900"}
+        position={preserveLayout ? "relative" : "fixed"}
+        top={preserveLayout ? "auto" : 0}
+        left={preserveLayout ? "auto" : 0}
+        right={preserveLayout ? "auto" : 0}
+        bottom={preserveLayout ? "auto" : 0}
+        zIndex={preserveLayout ? 1 : 9999}
+      >
+        <VStack spacing={4}>
+          <Spinner size="xl" color="teal.500" thickness="3px" />
+          <Text color="gray.300" fontSize="lg">
+            Checking authentication...
+          </Text>
+        </VStack>
+      </Box>
     );
   }
 

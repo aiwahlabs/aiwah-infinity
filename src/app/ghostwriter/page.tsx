@@ -6,7 +6,7 @@ import { AuthGuard } from '@/components/AuthGuard';
 
 export default function Dashboard() {
   return (
-    <AuthGuard>
+    <AuthGuard preserveLayout={true}>
       <Box h="100%">
         <Tabs variant="line" colorScheme="teal" size="md" isLazy h="100%" display="flex" flexDirection="column">
           <TabNavigation />
