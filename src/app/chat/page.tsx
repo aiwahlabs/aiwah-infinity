@@ -19,12 +19,11 @@ import {
 import { ChatInterface } from './components/ChatInterface';
 import { ConversationSidebar } from './components/ConversationSidebar';
 import { useChatContext } from '@/hooks/chat/useChatContext';
-import { useAuth } from '@saas-ui/auth';
+import { AuthGuard } from '@/components/AuthGuard';
 
 // Main chat page component
 export default function ChatPage() {
   const { currentConversation, loading, error, setCurrentConversation, loadConversations } = useChatContext();
-  const { user, isAuthenticated } = useAuth();
   const [sidebarWidth, setSidebarWidth] = useState(320);
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -77,61 +76,63 @@ export default function ChatPage() {
   }
 
   return (
-    <Flex h="100%" bg="gray.800">
-      {/* Sidebar */}
-      <Box
-        w={`${sidebarWidth}px`}
-        minW={`${sidebarWidth}px`}
-        h="100%"
-        borderRight="1px solid"
-        borderColor="gray.700"
-        bg="gray.800"
-        flexShrink={0}
-      >
-        <ConversationSidebar 
-          onSelectConversation={(conversation) => {
-            setCurrentConversation(conversation);
+    <AuthGuard>
+      <Flex h="100%" bg="gray.800">
+        {/* Sidebar */}
+        <Box
+          w={`${sidebarWidth}px`}
+          minW={`${sidebarWidth}px`}
+          h="100%"
+          borderRight="1px solid"
+          borderColor="gray.700"
+          bg="gray.800"
+          flexShrink={0}
+        >
+          <ConversationSidebar 
+            onSelectConversation={(conversation) => {
+              setCurrentConversation(conversation);
+            }}
+          />
+        </Box>
+
+        {/* Resize handle */}
+        <Box
+          w="2px"
+          bg="gray.600"
+          cursor="col-resize"
+          _hover={{ 
+            bg: 'teal.500',
+            boxShadow: '0 0 10px rgba(20, 184, 166, 0.3)'
+          }}
+          transition="all 0.2s ease"
+          onMouseDown={(e) => {
+            const startX = e.clientX;
+            const startWidth = sidebarWidth;
+
+            const handleMouseMove = (e: MouseEvent) => {
+              const newWidth = Math.max(280, Math.min(500, startWidth + (e.clientX - startX)));
+              setSidebarWidth(newWidth);
+            };
+
+            const handleMouseUp = () => {
+              document.removeEventListener('mousemove', handleMouseMove);
+              document.removeEventListener('mouseup', handleMouseUp);
+              document.body.style.cursor = '';
+              document.body.style.userSelect = '';
+            };
+
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
           }}
         />
-      </Box>
 
-      {/* Resize handle */}
-      <Box
-        w="2px"
-        bg="gray.600"
-        cursor="col-resize"
-        _hover={{ 
-          bg: 'teal.500',
-          boxShadow: '0 0 10px rgba(20, 184, 166, 0.3)'
-        }}
-        transition="all 0.2s ease"
-        onMouseDown={(e) => {
-          const startX = e.clientX;
-          const startWidth = sidebarWidth;
-
-          const handleMouseMove = (e: MouseEvent) => {
-            const newWidth = Math.max(280, Math.min(500, startWidth + (e.clientX - startX)));
-            setSidebarWidth(newWidth);
-          };
-
-          const handleMouseUp = () => {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-            document.body.style.cursor = '';
-            document.body.style.userSelect = '';
-          };
-
-          document.body.style.cursor = 'col-resize';
-          document.body.style.userSelect = 'none';
-          document.addEventListener('mousemove', handleMouseMove);
-          document.addEventListener('mouseup', handleMouseUp);
-        }}
-      />
-
-      {/* Main chat area */}
-      <Box flex="1" h="100%" minW={0}>
-        <ChatInterface conversation={currentConversation} />
-      </Box>
-    </Flex>
+        {/* Main chat area */}
+        <Box flex="1" h="100%" minW={0}>
+          <ChatInterface conversation={currentConversation} />
+        </Box>
+      </Flex>
+    </AuthGuard>
   );
 } 

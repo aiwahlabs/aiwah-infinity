@@ -7,7 +7,10 @@ export async function GET(request: NextRequest) {
   
   if (code) {
     const cookieStore = request.cookies;
-    const response = NextResponse.redirect(new URL('/', request.url));
+    
+    // Check for stored redirect path
+    const redirectPath = requestUrl.searchParams.get('redirect') || '/';
+    const response = NextResponse.redirect(new URL(redirectPath, request.url));
     
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

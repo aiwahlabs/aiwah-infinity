@@ -27,6 +27,7 @@ import {
   Icon
 } from '@chakra-ui/react';
 import { FiArrowLeft, FiCheckCircle, FiXCircle, FiTrash2, FiSave, FiInfo } from 'react-icons/fi';
+import { AuthGuard } from '@/components/AuthGuard';
 
 // Define document status options
 const statusOptions = [
@@ -302,288 +303,290 @@ export default function DocumentDetail() {
   }
   
   return (
-    <Box bg="gray.900" minH="100vh">
-      <Container maxW="container.xl" py={6}>
-        {/* Header with Title and Action Buttons */}
-        <Box mb={6}>
-          <Flex align="center" mb={4}>
-            <Button 
-              leftIcon={<FiArrowLeft />} 
-              variant="ghost" 
-              onClick={() => router.push('/ghostwriter')}
-              size="sm"
-              color="gray.400"
-              _hover={{ color: 'white' }}
-            >
-              Back to Dashboard
-            </Button>
-            <Spacer />
-            <HStack spacing={3}>
-              <Button
-                type="submit"
-                leftIcon={<FiSave />}
-                colorScheme="teal"
-                onClick={handleSubmit}
-                isLoading={submitting}
-                size="sm"
-              >
-                Save Changes
-              </Button>
-              {!isNewDoc && (
-                <>
-                  <Button
-                    leftIcon={<FiCheckCircle />}
-                    colorScheme="green"
-                    variant="outline"
-                    onClick={() => handleStatusChange('approved')}
-                    isLoading={operationsLoading}
-                    isDisabled={document?.status === 'approved'}
-                    size="sm"
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    leftIcon={<FiXCircle />}
-                    colorScheme="red"
-                    variant="outline"
-                    onClick={() => handleStatusChange('rejected')}
-                    isLoading={operationsLoading}
-                    isDisabled={document?.status === 'rejected'}
-                    size="sm"
-                  >
-                    Reject
-                  </Button>
-                  <Button
-                    leftIcon={<FiTrash2 />}
-                    colorScheme="red"
-                    variant="ghost"
-                    onClick={handleDelete}
-                    isLoading={operationsLoading}
-                    size="sm"
-                  >
-                    Delete
-                  </Button>
-                </>
-              )}
-            </HStack>
-          </Flex>
-          
-          {/* Document Title and Info */}
-          <Flex align="center" mb={2}>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Document Title"
-              variant="unstyled"
-              fontSize="2xl"
-              fontWeight="bold"
-              color="white"
-              size="lg"
-              _placeholder={{ color: 'gray.500' }}
-              maxW="70%"
-            />
-            <Spacer />
-            {!isNewDoc && (
-              <HStack spacing={4}>
-                <StatusBadge status={status} />
-                <Text color="gray.400" fontSize="sm">ID: {document?.id}</Text>
-                <Text color="gray.400" fontSize="sm">Type: {document?.type || 'N/A'}</Text>
-              </HStack>
-            )}
-          </Flex>
-          <Text color="gray.400" fontSize="sm" mb={4}>
-            {!isNewDoc && `Last Updated: ${formatDate(document?.updated_at || null)}`}
-          </Text>
-        </Box>
-        
-        <form onSubmit={handleSubmit}>
-          {/* Top Row: Content and Comments (2 columns) */}
-          <Grid templateColumns="1fr 1fr" gap={6} mb={6}>
-            {/* Content Column */}
-            <Box>
-              <Heading as="h3" size="md" color="white" mb={3}>
-                Content
-              </Heading>
-              <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Enter document content..."
-                bg="gray.800"
-                border="1px solid"
-                borderColor="gray.700"
-                borderRadius="md"
-                size="md"
-                height="300px"
-                p={4}
-                resize="none"
-                _focus={{
-                  borderColor: 'teal.400',
-                  boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
-                }}
-                whiteSpace="pre-wrap"
-                lineHeight="1.8"
-                fontSize="md"
-              />
-            </Box>
-            
-            {/* Comments Column */}
-            <Box>
-              <Heading as="h3" size="md" color="white" mb={3}>
-                User Comments
-              </Heading>
-              <Textarea
-                value={userComments}
-                onChange={(e) => setUserComments(e.target.value)}
-                placeholder="Enter user comments..."
-                bg="gray.800"
-                border="1px solid"
-                borderColor="gray.700"
-                borderRadius="md"
-                size="md"
-                height="300px"
-                p={4}
-                resize="none"
-                _focus={{
-                  borderColor: 'teal.400',
-                  boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
-                }}
-                whiteSpace="pre-wrap"
-                lineHeight="1.8"
-                fontSize="md"
-              />
-            </Box>
-          </Grid>
-          
-          {/* Middle Row: Notes (full width) */}
+    <AuthGuard>
+      <Box bg="gray.900" minH="100vh">
+        <Container maxW="container.xl" py={6}>
+          {/* Header with Title and Action Buttons */}
           <Box mb={6}>
-            <Heading as="h3" size="md" color="white" mb={3}>
-              Notes
-            </Heading>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Enter internal notes..."
-              bg="gray.800"
-              border="1px solid"
-              borderColor="gray.700"
-              borderRadius="md"
-              size="md"
-              height="200px"
-              p={4}
-              resize="none"
-              _focus={{
-                borderColor: 'teal.400',
-                boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
-              }}
-              whiteSpace="pre-wrap"
-              lineHeight="1.8"
-              fontSize="md"
-            />
+            <Flex align="center" mb={4}>
+              <Button 
+                leftIcon={<FiArrowLeft />} 
+                variant="ghost" 
+                onClick={() => router.push('/ghostwriter')}
+                size="sm"
+                color="gray.400"
+                _hover={{ color: 'white' }}
+              >
+                Back to Dashboard
+              </Button>
+              <Spacer />
+              <HStack spacing={3}>
+                <Button
+                  type="submit"
+                  leftIcon={<FiSave />}
+                  colorScheme="teal"
+                  onClick={handleSubmit}
+                  isLoading={submitting}
+                  size="sm"
+                >
+                  Save Changes
+                </Button>
+                {!isNewDoc && (
+                  <>
+                    <Button
+                      leftIcon={<FiCheckCircle />}
+                      colorScheme="green"
+                      variant="outline"
+                      onClick={() => handleStatusChange('approved')}
+                      isLoading={operationsLoading}
+                      isDisabled={document?.status === 'approved'}
+                      size="sm"
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      leftIcon={<FiXCircle />}
+                      colorScheme="red"
+                      variant="outline"
+                      onClick={() => handleStatusChange('rejected')}
+                      isLoading={operationsLoading}
+                      isDisabled={document?.status === 'rejected'}
+                      size="sm"
+                    >
+                      Reject
+                    </Button>
+                    <Button
+                      leftIcon={<FiTrash2 />}
+                      colorScheme="red"
+                      variant="ghost"
+                      onClick={handleDelete}
+                      isLoading={operationsLoading}
+                      size="sm"
+                    >
+                      Delete
+                    </Button>
+                  </>
+                )}
+              </HStack>
+            </Flex>
+            
+            {/* Document Title and Info */}
+            <Flex align="center" mb={2}>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Document Title"
+                variant="unstyled"
+                fontSize="2xl"
+                fontWeight="bold"
+                color="white"
+                size="lg"
+                _placeholder={{ color: 'gray.500' }}
+                maxW="70%"
+              />
+              <Spacer />
+              {!isNewDoc && (
+                <HStack spacing={4}>
+                  <StatusBadge status={status} />
+                  <Text color="gray.400" fontSize="sm">ID: {document?.id}</Text>
+                  <Text color="gray.400" fontSize="sm">Type: {document?.type || 'N/A'}</Text>
+                </HStack>
+              )}
+            </Flex>
+            <Text color="gray.400" fontSize="sm" mb={4}>
+              {!isNewDoc && `Last Updated: ${formatDate(document?.updated_at || null)}`}
+            </Text>
           </Box>
           
-          {/* Bottom Row: Form Fields (2 columns) */}
-          <Grid templateColumns="1fr 1fr" gap={6} mb={6}>
-            {/* Left Column */}
-            <Card bg="gray.800" borderColor="gray.700" variant="outline">
-              <CardBody>
-                <Heading as="h3" size="md" color="white" mb={4}>
-                  Document Information
+          <form onSubmit={handleSubmit}>
+            {/* Top Row: Content and Comments (2 columns) */}
+            <Grid templateColumns="1fr 1fr" gap={6} mb={6}>
+              {/* Content Column */}
+              <Box>
+                <Heading as="h3" size="md" color="white" mb={3}>
+                  Content
                 </Heading>
-                
-                <VStack spacing={4} align="stretch">
-                  <Box>
-                    <Text color="gray.400" fontSize="sm" mb={1}>Title</Text>
-                    <Input
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Document title"
-                      bg="gray.700"
-                      border="1px solid"
-                      borderColor="gray.600"
-                      size="sm"
-                    />
-                    <Text color="gray.500" fontSize="xs" mt={1}>Document title</Text>
-                  </Box>
-                  
-                  <Box>
-                    <Text color="gray.400" fontSize="sm" mb={1}>Type</Text>
-                    <Select
-                      value={type}
-                      onChange={(e) => setType(e.target.value)}
-                      bg="gray.700"
-                      border="1px solid"
-                      borderColor="gray.600"
-                      size="sm"
-                    >
-                      <option value="">Select Type</option>
-                      {typeOptions.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Select>
-                    <Text color="gray.500" fontSize="xs" mt={1}>Document type</Text>
-                  </Box>
-                </VStack>
-              </CardBody>
-            </Card>
+                <Textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Enter document content..."
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="gray.700"
+                  borderRadius="md"
+                  size="md"
+                  height="300px"
+                  p={4}
+                  resize="none"
+                  _focus={{
+                    borderColor: 'teal.400',
+                    boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
+                  }}
+                  whiteSpace="pre-wrap"
+                  lineHeight="1.8"
+                  fontSize="md"
+                />
+              </Box>
+              
+              {/* Comments Column */}
+              <Box>
+                <Heading as="h3" size="md" color="white" mb={3}>
+                  User Comments
+                </Heading>
+                <Textarea
+                  value={userComments}
+                  onChange={(e) => setUserComments(e.target.value)}
+                  placeholder="Enter user comments..."
+                  bg="gray.800"
+                  border="1px solid"
+                  borderColor="gray.700"
+                  borderRadius="md"
+                  size="md"
+                  height="300px"
+                  p={4}
+                  resize="none"
+                  _focus={{
+                    borderColor: 'teal.400',
+                    boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
+                  }}
+                  whiteSpace="pre-wrap"
+                  lineHeight="1.8"
+                  fontSize="md"
+                />
+              </Box>
+            </Grid>
             
-            {/* Right Column */}
-            <Card bg="gray.800" borderColor="gray.700" variant="outline">
-              <CardBody>
-                <Heading as="h3" size="md" color="white" mb={4}>
-                  Status Information
-                </Heading>
-                
-                <VStack spacing={4} align="stretch">
-                  <Box>
-                    <Text color="gray.400" fontSize="sm" mb={1}>Status</Text>
-                    <Select
-                      value={status}
-                      onChange={(e) => setStatus(e.target.value as DocumentStatus)}
-                      bg="gray.700"
-                      border="1px solid"
-                      borderColor="gray.600"
-                      size="sm"
-                    >
-                      {statusOptions.map(option => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Select>
-                    <Text color="gray.500" fontSize="xs" mt={1}>Document status</Text>
-                  </Box>
-                  
-                  <Box>
-                    <Text color="gray.400" fontSize="sm" mb={1}>Posted On</Text>
-                    <Input
-                      type="date"
-                      value={postedOn}
-                      onChange={(e) => setPostedOn(e.target.value)}
-                      bg="gray.700"
-                      border="1px solid"
-                      borderColor="gray.600"
-                      size="sm"
-                    />
-                    <Text color="gray.500" fontSize="xs" mt={1}>Date when document was posted</Text>
-                  </Box>
-                </VStack>
-              </CardBody>
-            </Card>
-          </Grid>
-          
-          {/* Footer - Creation Info */}
-          {!isNewDoc && (
+            {/* Middle Row: Notes (full width) */}
             <Box mb={6}>
-              <HStack spacing={4} color="gray.500" fontSize="sm">
-                <Text>Created: {formatDate(document?.created_at || null)}</Text>
-                <Text>Last Updated: {formatDate(document?.updated_at || null)}</Text>
-              </HStack>
+              <Heading as="h3" size="md" color="white" mb={3}>
+                Notes
+              </Heading>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Enter internal notes..."
+                bg="gray.800"
+                border="1px solid"
+                borderColor="gray.700"
+                borderRadius="md"
+                size="md"
+                height="200px"
+                p={4}
+                resize="none"
+                _focus={{
+                  borderColor: 'teal.400',
+                  boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
+                }}
+                whiteSpace="pre-wrap"
+                lineHeight="1.8"
+                fontSize="md"
+              />
             </Box>
-          )}
-        </form>
-      </Container>
-    </Box>
+            
+            {/* Bottom Row: Form Fields (2 columns) */}
+            <Grid templateColumns="1fr 1fr" gap={6} mb={6}>
+              {/* Left Column */}
+              <Card bg="gray.800" borderColor="gray.700" variant="outline">
+                <CardBody>
+                  <Heading as="h3" size="md" color="white" mb={4}>
+                    Document Information
+                  </Heading>
+                  
+                  <VStack spacing={4} align="stretch">
+                    <Box>
+                      <Text color="gray.400" fontSize="sm" mb={1}>Title</Text>
+                      <Input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Document title"
+                        bg="gray.700"
+                        border="1px solid"
+                        borderColor="gray.600"
+                        size="sm"
+                      />
+                      <Text color="gray.500" fontSize="xs" mt={1}>Document title</Text>
+                    </Box>
+                    
+                    <Box>
+                      <Text color="gray.400" fontSize="sm" mb={1}>Type</Text>
+                      <Select
+                        value={type}
+                        onChange={(e) => setType(e.target.value)}
+                        bg="gray.700"
+                        border="1px solid"
+                        borderColor="gray.600"
+                        size="sm"
+                      >
+                        <option value="">Select Type</option>
+                        {typeOptions.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Select>
+                      <Text color="gray.500" fontSize="xs" mt={1}>Document type</Text>
+                    </Box>
+                  </VStack>
+                </CardBody>
+              </Card>
+              
+              {/* Right Column */}
+              <Card bg="gray.800" borderColor="gray.700" variant="outline">
+                <CardBody>
+                  <Heading as="h3" size="md" color="white" mb={4}>
+                    Status Information
+                  </Heading>
+                  
+                  <VStack spacing={4} align="stretch">
+                    <Box>
+                      <Text color="gray.400" fontSize="sm" mb={1}>Status</Text>
+                      <Select
+                        value={status}
+                        onChange={(e) => setStatus(e.target.value as DocumentStatus)}
+                        bg="gray.700"
+                        border="1px solid"
+                        borderColor="gray.600"
+                        size="sm"
+                      >
+                        {statusOptions.map(option => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Select>
+                      <Text color="gray.500" fontSize="xs" mt={1}>Document status</Text>
+                    </Box>
+                    
+                    <Box>
+                      <Text color="gray.400" fontSize="sm" mb={1}>Posted On</Text>
+                      <Input
+                        type="date"
+                        value={postedOn}
+                        onChange={(e) => setPostedOn(e.target.value)}
+                        bg="gray.700"
+                        border="1px solid"
+                        borderColor="gray.600"
+                        size="sm"
+                      />
+                      <Text color="gray.500" fontSize="xs" mt={1}>Date when document was posted</Text>
+                    </Box>
+                  </VStack>
+                </CardBody>
+              </Card>
+            </Grid>
+            
+            {/* Footer - Creation Info */}
+            {!isNewDoc && (
+              <Box mb={6}>
+                <HStack spacing={4} color="gray.500" fontSize="sm">
+                  <Text>Created: {formatDate(document?.created_at || null)}</Text>
+                  <Text>Last Updated: {formatDate(document?.updated_at || null)}</Text>
+                </HStack>
+              </Box>
+            )}
+          </form>
+        </Container>
+      </Box>
+    </AuthGuard>
   );
 } 
