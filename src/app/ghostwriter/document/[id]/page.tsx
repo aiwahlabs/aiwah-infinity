@@ -23,11 +23,12 @@ import {
   Card,
   CardBody,
   Icon,
-  Center
+  Center,
+  Spinner
 } from '@chakra-ui/react';
 import { FiArrowLeft, FiCheckCircle, FiXCircle, FiTrash2, FiSave, FiInfo } from 'react-icons/fi';
 import { AuthGuard } from '@/components/AuthGuard';
-import { DocumentDetailLoading } from '../../components/loading';
+
 
 // Define document status options
 const statusOptions = [
@@ -276,7 +277,13 @@ export default function DocumentDetail() {
   };
   
   if (loading) {
-    return <DocumentDetailLoading />;
+    return (
+      <Container maxW="container.xl" py={8}>
+        <Center p={10}>
+          <Spinner color="teal.400" size="lg" />
+        </Center>
+      </Container>
+    );
   }
   
   if (error || (!document && !isNewDoc)) {

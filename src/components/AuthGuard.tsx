@@ -56,7 +56,7 @@ export function AuthGuard({
       router.push(redirectTo);
     } else if (!requireAuth && isAuthenticated && (pathname === '/login' || pathname === '/signup')) {
       // Redirect authenticated users away from auth pages
-      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/';
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard';
       sessionStorage.removeItem('redirectAfterLogin');
       router.push(redirectPath);
     }

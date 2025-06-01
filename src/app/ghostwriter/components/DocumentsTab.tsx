@@ -1,12 +1,12 @@
 'use client';
 
-import { Box, Heading, Text, Card, Input, IconButton, Select, Flex, Table, Thead, Tbody, Tr, Th, Td, ButtonGroup, Button, HStack, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
+import { Box, Heading, Text, Card, Input, IconButton, Select, Flex, Table, Thead, Tbody, Tr, Th, Td, ButtonGroup, Button, HStack, Menu, MenuButton, MenuList, MenuItem, Center, Spinner } from '@chakra-ui/react';
 import { FiSearch, FiMoreVertical, FiChevronLeft, FiChevronRight, FiEye, FiEdit, FiPlus } from 'react-icons/fi';
 import { useDocumentsContext, DocumentStatus } from '@/hooks/documents';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { StatusBadge } from './StatusBadge';
-import { DocumentsTabLoading } from './loading';
+
 
 export function DocumentsTab() {
   const router = useRouter();
@@ -168,7 +168,9 @@ export function DocumentsTab() {
           
           {/* Document List */}
           {loading ? (
-            <DocumentsTabLoading />
+            <Center p={8}>
+              <Spinner color="teal.400" size="lg" />
+            </Center>
           ) : error ? (
             <Box textAlign="center" p={6} color="red.400">
               <Text>Error loading documents. Please try again.</Text>

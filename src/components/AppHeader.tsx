@@ -67,7 +67,7 @@ export function AppHeader({
               Apps
             </Button>
           ) : (
-            <Link href="/" passHref>
+            <Link href="/dashboard" passHref>
               <IconButton
                 icon={<FiHome />}
                 aria-label="Back to home"
