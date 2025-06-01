@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Heading, Text, Card, CardBody, CardHeader, Icon, Flex, Container, SimpleGrid } from '@chakra-ui/react';
+import { Box, Heading, Text, Card, CardBody, Icon, Flex, Container, VStack } from '@chakra-ui/react';
 import { FiFileText, FiMessageCircle } from 'react-icons/fi';
 import Link from 'next/link';
 import { AuthGuard } from '@/components/AuthGuard';
@@ -9,8 +9,8 @@ import { AuthGuard } from '@/components/AuthGuard';
 export default function Home() {
   return (
     <AuthGuard>
-      <Container maxW="container.xl" py={12}>
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
+      <Box minH="100vh" p={8}>
+        <VStack spacing={4} align="stretch" w="400px">
           <Link href="/ghostwriter" passHref style={{ display: 'contents' }}>
             <Card 
               bg="gray.800" 
@@ -19,31 +19,34 @@ export default function Home() {
               borderRadius="lg" 
               overflow="hidden" 
               _hover={{ 
-                transform: 'translateY(-4px)', 
+                transform: 'translateY(-2px)', 
                 boxShadow: 'xl',
                 borderColor: "teal.400"
               }}
               transition="all 0.2s ease-in-out"
               cursor="pointer"
-              height="100%"
-              maxW="100%"
             >
-              <CardHeader pb={4}>
+              <CardBody p={4}>
                 <Flex align="center">
                   <Box
                     bg="teal.500"
                     color="white"
                     p={3}
-                    borderRadius="md"
+                    borderRadius="lg"
                     mr={4}
+                    flexShrink={0}
                   >
-                    <Icon as={FiFileText} boxSize={6} />
+                    <Icon as={FiFileText} boxSize={5} />
                   </Box>
-                  <Heading size="md" color="white">Ghostwriter</Heading>
+                  <Box>
+                    <Heading textStyle="section-heading" color="white" mb={1}>
+                      Ghostwriter
+                    </Heading>
+                    <Text textStyle="body" color="gray.400">
+                      Create and manage your content
+                    </Text>
+                  </Box>
                 </Flex>
-              </CardHeader>
-              <CardBody pt={0} pb={6}>
-                <Text color="gray.300" fontSize="md">Create and manage your content</Text>
               </CardBody>
             </Card>
           </Link>
@@ -56,36 +59,39 @@ export default function Home() {
               borderRadius="lg" 
               overflow="hidden" 
               _hover={{ 
-                transform: 'translateY(-4px)', 
+                transform: 'translateY(-2px)', 
                 boxShadow: 'xl',
                 borderColor: "teal.400"
               }}
               transition="all 0.2s ease-in-out"
               cursor="pointer"
-              height="100%"
-              maxW="100%"
             >
-              <CardHeader pb={4}>
+              <CardBody p={4}>
                 <Flex align="center">
                   <Box
                     bg="teal.500"
                     color="white"
                     p={3}
-                    borderRadius="md"
+                    borderRadius="lg"
                     mr={4}
+                    flexShrink={0}
                   >
-                    <Icon as={FiMessageCircle} boxSize={6} />
+                    <Icon as={FiMessageCircle} boxSize={5} />
                   </Box>
-                  <Heading size="md" color="white">Chat</Heading>
+                  <Box>
+                    <Heading textStyle="section-heading" color="white" mb={1}>
+                      Chat
+                    </Heading>
+                    <Text textStyle="body" color="gray.400">
+                      Chat with AI assistant
+                    </Text>
+                  </Box>
                 </Flex>
-              </CardHeader>
-              <CardBody pt={0} pb={6}>
-                <Text color="gray.300" fontSize="md">Chat with AI assistant</Text>
               </CardBody>
             </Card>
           </Link>
-        </SimpleGrid>
-      </Container>
+        </VStack>
+      </Box>
     </AuthGuard>
   );
 } 

@@ -23,10 +23,10 @@ export default function ChatPage() {
       {/* Show error state if there's an authentication or loading error */}
       {error ? (
         <VStack spacing={4} h="100%" justify="center" align="center" p={8}>
-          <Text color="red.400" fontSize="lg" fontWeight="medium">
+          <Text color="red.400" textStyle="section-heading" fontWeight="medium">
             Connection Error
           </Text>
-          <Text color="red.300" fontSize="sm" textAlign="center" maxW="md">
+          <Text color="red.300" textStyle="body" textAlign="center" maxW="md">
             {error}
           </Text>
           <Button

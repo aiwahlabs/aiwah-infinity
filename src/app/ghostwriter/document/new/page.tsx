@@ -18,7 +18,7 @@ import {
   Icon,
   useToast
 } from '@chakra-ui/react';
-import { FiArrowLeft, FiSave, FiFileText } from 'react-icons/fi';
+import { FiSave, FiFileText } from 'react-icons/fi';
 import { AuthGuard } from '@/components/AuthGuard';
 import { useDocumentsContext } from '@/hooks/documents';
 import { useRouter } from 'next/navigation';
@@ -79,28 +79,20 @@ export default function NewDocumentPage() {
     <AuthGuard>
       <Box h="100%" overflow="auto" p={8}>
         <VStack spacing={6} align="stretch">
-          <HStack spacing={4} align="center">
-            <Button
-              leftIcon={<FiArrowLeft />}
-              variant="ghost"
-              onClick={() => router.back()}
-            >
-              Back
-            </Button>
-            <VStack align="start" spacing={1} flex={1}>
+          <HStack spacing={4} align="center" justify="space-between">
+            <VStack align="start" spacing={1}>
               <HStack>
-                <Icon as={FiFileText} color="teal.400" boxSize={6} />
-                <Heading size="lg" color="gray.100">Create New Document</Heading>
+                <Icon as={FiFileText} color="teal.400" boxSize={5} />
+                <Heading textStyle="page-title">Create New Document</Heading>
               </HStack>
-              <Text color="gray.400">Write and save your content</Text>
+              <Text textStyle="body">Write and save your content</Text>
             </VStack>
-            <Button
-              leftIcon={<FiSave />}
-              colorScheme="teal"
-              onClick={handleSave}
-              isLoading={operationsLoading}
-              size="lg"
-            >
+                          <Button
+                leftIcon={<FiSave />}
+                colorScheme="teal"
+                onClick={handleSave}
+                isLoading={operationsLoading}
+              >
               Save Document
             </Button>
           </HStack>

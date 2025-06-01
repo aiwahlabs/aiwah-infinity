@@ -26,7 +26,7 @@ import {
   Center,
   Spinner
 } from '@chakra-ui/react';
-import { FiArrowLeft, FiCheckCircle, FiXCircle, FiTrash2, FiSave, FiInfo } from 'react-icons/fi';
+import { FiCheckCircle, FiXCircle, FiTrash2, FiSave, FiInfo } from 'react-icons/fi';
 import { AuthGuard } from '@/components/AuthGuard';
 
 
@@ -294,7 +294,6 @@ export default function DocumentDetail() {
           <Heading size="lg" mb={2} color="white">Document Not Found</Heading>
           <Text color="gray.400" mb={6}>The document you&apos;re looking for doesn&apos;t exist or couldn&apos;t be loaded.</Text>
           <Button 
-            leftIcon={<FiArrowLeft />} 
             colorScheme="teal"
             onClick={() => router.push('/ghostwriter')}
           >
@@ -310,18 +309,7 @@ export default function DocumentDetail() {
       <Container maxW="container.xl" py={6}>
         {/* Header with Title and Action Buttons */}
         <Box mb={6}>
-          <Flex align="center" mb={4}>
-            <Button 
-              leftIcon={<FiArrowLeft />} 
-              variant="ghost" 
-              onClick={() => router.push('/ghostwriter')}
-              size="sm"
-              color="gray.400"
-              _hover={{ color: 'white' }}
-            >
-              Back to Ghostwriter
-            </Button>
-            <Spacer />
+          <Flex align="center" mb={4} justify="flex-end">
             <HStack spacing={3}>
               <Button
                 type="submit"

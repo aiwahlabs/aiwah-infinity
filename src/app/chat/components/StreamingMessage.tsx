@@ -109,7 +109,7 @@ const StreamingThinking = React.memo(function StreamingThinking({
         borderColor="gray.600"
       >
         <HStack spacing={2}>
-          <Text color="purple.300" fontSize="xs" fontWeight="medium">
+          <Text color="purple.300" textStyle="caption" fontWeight="medium">
             Thoughts
           </Text>
           <TypingIndicator />
@@ -130,8 +130,7 @@ const StreamingThinking = React.memo(function StreamingThinking({
         mt={2}
       >
         <Text 
-          color="gray.300" 
-          fontSize="sm" 
+          textStyle="body"
           whiteSpace="pre-wrap"
           lineHeight="1.5"
         >
@@ -174,7 +173,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
           {/* Message header */}
           <Flex justify="space-between" align="center" mb={3}>
             <Text
-              fontSize="sm"
+              textStyle="card-title"
               fontWeight="medium"
               color="gray.300"
             >
@@ -182,7 +181,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
             </Text>
             
             <HStack spacing={2}>
-              <Text fontSize="xs" color="gray.500">
+              <Text textStyle="caption" color="gray.500">
                 Just now
               </Text>
             </HStack>
@@ -208,7 +207,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
         {/* Message header */}
         <Flex justify="space-between" align="center" mb={3}>
           <Text
-            fontSize="sm"
+            textStyle="card-title"
             fontWeight="medium"
             color="gray.300"
           >
@@ -216,7 +215,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
           </Text>
           
           <HStack spacing={2}>
-            <Text fontSize="xs" color="gray.500">
+            <Text textStyle="caption" color="gray.500">
               Just now
             </Text>
           </HStack>

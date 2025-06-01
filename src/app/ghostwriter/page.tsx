@@ -101,17 +101,13 @@ export default function GhostwriterDashboard() {
     <AuthGuard>
       <Box h="100%" overflow="auto" p={8}>
         <VStack spacing={8} align="stretch">
-          {/* Header */}
+          {/* Simplified Header */}
           <HStack justify="space-between" align="center">
-            <VStack align="start" spacing={1}>
-              <Heading size="lg" color="gray.100">Document Management</Heading>
-              <Text color="gray.400">Create, manage, and track your content</Text>
-            </VStack>
+            <Heading textStyle="page-title">Document Management</Heading>
             <Button 
               leftIcon={<FiPlusCircle />} 
               colorScheme="teal" 
               onClick={handleCreateDocument}
-              size="lg"
             >
               New Document
             </Button>
@@ -186,13 +182,12 @@ export default function GhostwriterDashboard() {
             <Card bg={cardBg}>
               <CardBody>
                 <VStack align="stretch" spacing={4}>
-                  <Heading size="md" color="gray.100">Quick Actions</Heading>
+                  <Heading textStyle="section-heading">Quick Actions</Heading>
                   
                   <VStack spacing={3}>
                     <Button
                       leftIcon={<FiPlusCircle />}
                       colorScheme="teal"
-                      size="lg"
                       width="full"
                       onClick={handleCreateDocument}
                     >
@@ -232,7 +227,7 @@ export default function GhostwriterDashboard() {
               <CardBody>
                 <VStack align="stretch" spacing={4}>
                   <HStack justify="space-between">
-                    <Heading size="md" color="gray.100">Recent Documents</Heading>
+                    <Heading textStyle="section-heading">Recent Documents</Heading>
                     <Link href="/ghostwriter/all">
                       <Button variant="ghost" size="sm" color="teal.400">
                         View All
@@ -244,7 +239,7 @@ export default function GhostwriterDashboard() {
                     <Center py={8}>
                       <VStack spacing={2}>
                         <Icon as={FiFileText} color="gray.500" boxSize={12} />
-                        <Text color="gray.500">No documents yet</Text>
+                        <Text textStyle="body">No documents yet</Text>
                         <Button 
                           size="sm" 
                           colorScheme="teal" 

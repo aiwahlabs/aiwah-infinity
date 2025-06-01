@@ -156,10 +156,10 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
       <Box h="100%" display="flex" flexDirection="column" bg="gray.800">
         <Center h="100%">
           <VStack spacing={4} textAlign="center" maxW="md">
-            <Text fontSize="xl" fontWeight="medium" color="gray.100">
+            <Text textStyle="page-title" fontWeight="medium">
               Welcome to AI Chat
             </Text>
-            <Text color="gray.400" fontSize="md">
+            <Text textStyle="body">
               Select a conversation from the sidebar or create a new one to get started.
             </Text>
           </VStack>
@@ -195,10 +195,10 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
               {messages.length === 0 ? (
                 <Center py={20}>
                   <VStack spacing={3} textAlign="center">
-                    <Text fontSize="lg" fontWeight="medium" color="gray.100">
+                    <Text textStyle="section-heading" fontWeight="medium">
                       Start a conversation
                     </Text>
-                    <Text color="gray.400">
+                    <Text textStyle="body">
                       Ask me anything! I&apos;m here to help.
                     </Text>
                   </VStack>
@@ -225,7 +225,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
                 <Box>
                   <Box py={4}>
                     <Box p={3} bg="red.900" borderRadius="md" border="1px solid" borderColor="red.700">
-                      <Text color="red.200" fontSize="sm">
+                      <Text color="red.200" textStyle="body">
                         {streamState.error}
                       </Text>
                     </Box>

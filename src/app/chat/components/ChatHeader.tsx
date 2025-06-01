@@ -6,11 +6,8 @@ import {
   Text,
   Flex,
   Input,
-  IconButton,
-  ButtonGroup,
   useToast,
 } from '@chakra-ui/react';
-import { FiCheck, FiX } from 'react-icons/fi';
 import { ChatConversation } from '../types';
 import { ModelSelector } from './ModelSelector';
 
@@ -66,61 +63,51 @@ function EditableTitle({
 
   if (isEditing) {
     return (
-      <Flex align="center">
-        <Input
-          ref={inputRef}
-          value={editValue}
-          onChange={(e) => setEditValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={handleSave}
-          fontSize="md"
-          fontWeight="medium"
-          color="white"
-          bg="gray.800"
-          border="1px solid"
-          borderColor="gray.600"
-          _focus={{ 
-            borderColor: "teal.400", 
-            outline: "none"
-          }}
-          px={2}
-          py={1}
-          borderRadius="md"
-          minW="200px"
-        />
-        <ButtonGroup size="sm" spacing={1} ml={2}>
-          <IconButton
-            aria-label="Save"
-            icon={<FiCheck />}
-            onClick={handleSave}
-            colorScheme="green"
-            variant="ghost"
-            size="sm"
-          />
-          <IconButton
-            aria-label="Cancel"
-            icon={<FiX />}
-            onClick={handleCancel}
-            colorScheme="red"
-            variant="ghost"
-            size="sm"
-          />
-        </ButtonGroup>
-      </Flex>
+      <Input
+        ref={inputRef}
+        value={editValue}
+        onChange={(e) => setEditValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleSave}
+        fontSize="14px"
+        lineHeight="1.4"
+        fontWeight="medium"
+        color="white"
+        bg="transparent"
+        border="none"
+        _focus={{ 
+          outline: "none",
+          boxShadow: "none"
+        }}
+        _hover={{
+          bg: "transparent"
+        }}
+        px={2}
+        py={1}
+        borderRadius="md"
+        flex="1"
+        minH="auto"
+        h="auto"
+      />
     );
   }
 
   return (
     <Text
-      fontSize="md"
+      fontSize="14px"
+      lineHeight="1.4"
       fontWeight="medium"
       color="white"
       py={1}
       px={2}
       borderRadius="md"
-      _hover={{ bg: "gray.700" }}
+      _hover={{ 
+        bg: "gray.700",
+        color: "gray.100"
+      }}
       cursor="pointer"
-      minW="200px"
+      display="inline-block"
+      maxW="fit-content"
       onClick={() => setIsEditing(true)}
     >
       {value || 'Untitled Conversation'}

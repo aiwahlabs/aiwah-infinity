@@ -56,7 +56,7 @@ export const MessageBubble = React.memo(function MessageBubble({
         {/* Message header */}
         <Flex justify="space-between" align="center" mb={3}>
           <Text
-            fontSize="sm"
+            textStyle="card-title"
             fontWeight="medium"
             color={isUser ? "gray.500" : "gray.300"}
           >
@@ -64,7 +64,7 @@ export const MessageBubble = React.memo(function MessageBubble({
           </Text>
           
           <HStack spacing={2}>
-            <Text fontSize="xs" color="gray.500">
+            <Text textStyle="caption" color="gray.500">
               {formatTime(message.created_at)}
             </Text>
             <IconButton
@@ -95,7 +95,7 @@ export const MessageBubble = React.memo(function MessageBubble({
               _hover={{ bg: "gray.600" }}
               transition="background-color 0.2s"
             >
-              <Text color="purple.300" fontSize="xs" fontWeight="medium">
+              <Text color="purple.300" textStyle="caption" fontWeight="medium">
                 Thoughts
               </Text>
               <Box
@@ -115,8 +115,7 @@ export const MessageBubble = React.memo(function MessageBubble({
                 mt={2}
               >
                 <Text 
-                  color="gray.300" 
-                  fontSize="sm" 
+                  textStyle="body"
                   whiteSpace="pre-wrap"
                   lineHeight="1.5"
                 >
