@@ -4,7 +4,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@saas-ui/auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@chakra-ui/react';
-import { HomePageLoading } from '@/app/components/loading/HomeLoading';
+import { useNavigationLoading } from './NavigationLoadingProvider';
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -24,12 +24,13 @@ export function AuthGuard({
   const pathname = usePathname();
   const toast = useToast();
   const [isInitialized, setIsInitialized] = useState(false);
+  const { isNavigating } = useNavigationLoading();
 
   useEffect(() => {
-    // Short delay to ensure auth state is stable
+    // Very short delay to ensure auth state is stable
     const timer = setTimeout(() => {
       setIsInitialized(true);
-    }, 50);
+    }, 10);
 
     return () => clearTimeout(timer);
   }, []);
@@ -61,19 +62,24 @@ export function AuthGuard({
     }
   }, [isAuthenticated, isLoading, isInitialized, requireAuth, redirectTo, router, pathname, toast]);
 
-  // Show loading during auth state resolution
+  // Don't show auth loading if we're already showing navigation loading
+  if (isNavigating) {
+    return null; // Let the navigation loading handle it
+  }
+
+  // Show loading only during actual auth state resolution (not navigation)
   if (!isInitialized || isLoading) {
-    return fallback || <HomePageLoading />;
+    return fallback || null; // Let parent handle loading
   }
 
-  // For auth-required pages, show loading while redirecting
+  // For auth-required pages, show loading while redirecting (only if not navigating)
   if (requireAuth && !isAuthenticated) {
-    return fallback || <HomePageLoading />;
+    return fallback || null; // Let parent handle loading
   }
 
-  // For non-auth pages (login/signup), show loading while redirecting
+  // For non-auth pages (login/signup), show loading while redirecting (only if not navigating)
   if (!requireAuth && isAuthenticated && (pathname === '/login' || pathname === '/signup')) {
-    return fallback || <HomePageLoading />;
+    return fallback || null; // Let parent handle loading
   }
 
   return <>{children}</>;

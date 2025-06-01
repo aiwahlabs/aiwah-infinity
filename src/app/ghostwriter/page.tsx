@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Box, Tabs, TabPanels, TabPanel } from '@chakra-ui/react';
 import { DashboardOverview, TabNavigation, RecentDraftsTab, ApprovedPostsTab } from './components';
 import { AuthGuard } from '@/components/AuthGuard';

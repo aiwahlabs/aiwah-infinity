@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Flex,
@@ -12,19 +12,11 @@ import { ChatInterface } from './components/ChatInterface';
 import { ConversationSidebar } from './components/ConversationSidebar';
 import { useChatContext } from '@/hooks/chat/useChatContext';
 import { AuthGuard } from '@/components/AuthGuard';
-import { ChatPageLoading } from './components/loading';
 
 // Main chat page component
 export default function ChatPage() {
-  const { currentConversation, loading, error, setCurrentConversation, loadConversations } = useChatContext();
+  const { currentConversation, error, setCurrentConversation, loadConversations } = useChatContext();
   const [sidebarWidth, setSidebarWidth] = useState(320);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // Initialize after a longer delay to prevent flash
-  useEffect(() => {
-    const timer = setTimeout(() => setIsInitialized(true), 250);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <AuthGuard>
@@ -47,8 +39,6 @@ export default function ChatPage() {
             Retry Connection
           </Button>
         </VStack>
-      ) : (loading || !isInitialized) ? (
-        <ChatPageLoading />
       ) : (
         <Flex h="100%">
           {/* Sidebar */}

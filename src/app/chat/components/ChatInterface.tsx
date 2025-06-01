@@ -16,7 +16,7 @@ import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
 import { StreamingMessage } from './StreamingMessage';
 import { ChatInput } from './ChatInput';
-import { ChatInterfaceLoading } from './loading';
+
 
 interface ChatInterfaceProps {
   conversation: ChatConversation | null;
@@ -190,9 +190,6 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
         minH={0}
       >
         <Box p={4} maxW="4xl" mx="auto">
-          {loading ? (
-            <ChatInterfaceLoading />
-          ) : (
             <VStack spacing={0} align="stretch">
               {/* Messages */}
               {messages.length === 0 ? (
@@ -239,7 +236,6 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
               
               <div ref={messagesEndRef} />
             </VStack>
-          )}
         </Box>
       </Box>
 
