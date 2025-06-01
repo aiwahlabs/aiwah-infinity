@@ -19,7 +19,7 @@ import { FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
 import { useState, useCallback } from 'react';
 import { useChatContext } from '@/hooks/chat';
 import { ChatConversation } from '../types';
-import { ConversationSidebarLoading } from './loading';
+
 
 interface ConversationSidebarProps {
   onSelectConversation: (conversation: ChatConversation) => void;
@@ -124,7 +124,7 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
       {/* Header */}
       <Box p={4}>
         <Flex justify="space-between" align="center" mb={4}>
-          <Text fontSize="lg" fontWeight="semibold" color="white">
+          <Text textStyle="section-heading" fontWeight="semibold">
             Conversations
           </Text>
           <Button
@@ -159,15 +159,13 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
 
       {/* Conversations List */}
       <Box flex="1" overflowY="auto" px={4} pb={4}>
-        {loading ? (
-          <ConversationSidebarLoading />
-        ) : conversations.length === 0 ? (
+        {conversations.length === 0 ? (
           <Center py={8}>
             <VStack spacing={3} textAlign="center">
-              <Text color="gray.400" fontSize="sm">
+              <Text textStyle="body">
                 No conversations yet
               </Text>
-              <Text color="gray.400" fontSize="xs">
+              <Text textStyle="caption">
                 Start a new conversation to begin
               </Text>
             </VStack>
@@ -242,13 +240,13 @@ const ConversationCard = React.memo(function ConversationCard({
           <Text
             color="white"
             fontWeight={isSelected ? "semibold" : "medium"}
-            fontSize="sm"
+            textStyle="card-title"
             noOfLines={1}
             mb={1}
           >
             {conversation.title || 'Untitled Conversation'}
           </Text>
-          <Text color="gray.400" fontSize="xs">
+          <Text textStyle="caption">
             {formatDate(conversation.updated_at)}
           </Text>
         </Box>

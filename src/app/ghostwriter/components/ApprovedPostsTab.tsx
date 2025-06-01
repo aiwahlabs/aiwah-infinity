@@ -6,7 +6,7 @@ import { useDocumentsContext } from '@/hooks/documents';
 import { Document } from '@/hooks/documents/types';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ApprovedPostsLoading } from './loading';
+
 
 export function ApprovedPostsTab() {
   const router = useRouter();
@@ -94,7 +94,9 @@ export function ApprovedPostsTab() {
       <Text color="gray.400" mb={6}>View your approved content</Text>
       
       {statsLoading ? (
-        <ApprovedPostsLoading />
+        <Center p={8}>
+          <Spinner color="teal.400" size="lg" />
+        </Center>
       ) : (
         <Card bg="gray.800" borderColor="gray.700">
           <CardHeader>

@@ -21,12 +21,13 @@ import {
   Badge,
   Progress,
   Button,
+  Skeleton,
 } from '@chakra-ui/react';
 import { FiFileText, FiCheckCircle, FiXCircle, FiClock, FiTrendingUp, FiPlusCircle } from 'react-icons/fi';
 import { useDocumentsContext } from '@/hooks/documents';
 import { Document, DocumentStatus } from '@/hooks/documents/types';
 import Link from 'next/link';
-import { DashboardOverviewLoading } from './loading';
+
 
 export const DashboardOverview = () => {
   const { statsLoading, documents } = useDocumentsContext();
@@ -88,7 +89,19 @@ export const DashboardOverview = () => {
   }, [statsLoading, documents]);
 
   if (statsLoading) {
-    return <DashboardOverviewLoading />;
+    return (
+      <Box p={8}>
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} bg={cardBg}>
+              <CardBody>
+                <Skeleton height="80px" borderRadius="md" />
+              </CardBody>
+            </Card>
+          ))}
+        </SimpleGrid>
+      </Box>
+    );
   }
 
   const getStatusColor = (status: DocumentStatus | null) => {

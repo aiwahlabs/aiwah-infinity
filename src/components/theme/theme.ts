@@ -341,6 +341,30 @@ const components = {
       },
     },
   },
+  
+  // Override Chakra's default heading sizes with improved readability
+  Heading: {
+    baseStyle: {
+      color: 'gray.100',
+    },
+    sizes: {
+      xs: { fontSize: 'xs', lineHeight: '1.4' },     // 12px
+      sm: { fontSize: 'sm', lineHeight: '1.4' },     // 14px  
+      md: { fontSize: 'md', lineHeight: '1.4' },     // 16px
+      lg: { fontSize: 'lg', lineHeight: '1.4' },     // 18px
+      xl: { fontSize: 'xl', lineHeight: '1.4' },     // 20px
+      '2xl': { fontSize: '2xl', lineHeight: '1.3' }, // 24px
+    },
+  },
+  
+  // Override default text sizes
+  Text: {
+    baseStyle: {
+      color: 'gray.300',
+      fontSize: 'sm',   // Default to 14px - readable
+      lineHeight: '1.5',
+    },
+  },
 };
 
 // Global styles
@@ -390,6 +414,65 @@ const fonts = {
   mono: 'JetBrains Mono, Fira Code, Consolas, monospace',
 };
 
+// Typography system with improved font sizes - more readable but still compact
+const fontSizes = {
+  xs: '0.75rem',    // 12px - small
+  sm: '0.875rem',   // 14px - small text  
+  md: '1rem',       // 16px - base size
+  lg: '1.125rem',   // 18px - slightly larger
+  xl: '1.25rem',    // 20px - headings
+  '2xl': '1.5rem',  // 24px - large headings
+  '3xl': '1.875rem', // 30px - very large
+  '4xl': '2.25rem', // 36px
+  '5xl': '2.75rem', // 44px
+  '6xl': '3.5rem',  // 56px
+};
+
+// Text styles for consistent typography across the app
+const textStyles = {
+  // Page titles
+  'page-title': {
+    fontSize: 'xl',      // 20px - readable page titles
+    fontWeight: 'semibold',
+    lineHeight: '1.4',
+    color: 'gray.100',
+  },
+  // Section headings
+  'section-heading': {
+    fontSize: 'lg',      // 18px - readable section headings
+    fontWeight: 'medium',
+    lineHeight: '1.4',
+    color: 'gray.100',
+  },
+  // Card titles
+  'card-title': {
+    fontSize: 'md',      // 16px - readable card titles
+    fontWeight: 'medium',
+    lineHeight: '1.4',
+    color: 'gray.100',
+  },
+  // Body text
+  'body': {
+    fontSize: 'sm',      // 14px - much more readable body text
+    fontWeight: 'normal',
+    lineHeight: '1.5',
+    color: 'gray.300',
+  },
+  // Small text
+  'caption': {
+    fontSize: 'xs',      // 12px - readable small text
+    fontWeight: 'normal',
+    lineHeight: '1.4',
+    color: 'gray.400',
+  },
+  // Button text
+  'button': {
+    fontSize: 'sm',      // 14px - readable button text
+    fontWeight: 'medium',
+    lineHeight: '1.4',
+  },
+};
+
 // Create the custom theme
 export const theme = extendTheme(
   {
@@ -398,6 +481,8 @@ export const theme = extendTheme(
     components,
     styles,
     fonts,
+    fontSizes,
+    textStyles,
     // Use Saas UI shadows and other tokens
     shadows: saasTheme.shadows,
     radii: saasTheme.radii,

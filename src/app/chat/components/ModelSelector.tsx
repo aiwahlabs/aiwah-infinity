@@ -91,7 +91,7 @@ export function ModelSelector({
           borderColor="gray.600"
           color="white"
           fontWeight="normal"
-          fontSize="sm"
+          textStyle="body"
         >
           {modelInfo.name}
         </Button>
@@ -107,7 +107,7 @@ export function ModelSelector({
             {/* Current Model Info */}
             <Box>
               <Flex justify="space-between" align="center" mb={2}>
-                <Text fontSize="sm" fontWeight="medium" color="white">
+                <Text textStyle="card-title" fontWeight="medium" color="white">
                   Current Model
                 </Text>
                 <Badge
@@ -122,7 +122,7 @@ export function ModelSelector({
                 </Badge>
               </Flex>
               
-              <Text fontSize="xs" color="gray.400" mb={2}>
+              <Text textStyle="caption" color="gray.400" mb={2}>
                 {modelInfo.description}
               </Text>
 
@@ -133,7 +133,7 @@ export function ModelSelector({
                     size="sm"
                     variant="outline"
                     colorScheme="teal"
-                    fontSize="xs"
+                    textStyle="caption"
                   >
                     {capability}
                   </Badge>
@@ -143,14 +143,14 @@ export function ModelSelector({
                     size="sm"
                     variant="outline"
                     colorScheme="gray"
-                    fontSize="xs"
+                    textStyle="caption"
                   >
                     +{modelInfo.capabilities.length - 3}
                   </Badge>
                 )}
               </HStack>
 
-              <Flex align="center" gap={1} fontSize="xs" color="gray.400">
+              <Flex align="center" gap={1} textStyle="caption" color="gray.400">
                 <Icon as={FiInfo} boxSize={3} />
                 <Text>Context: {modelInfo.contextLength.toLocaleString()} tokens</Text>
               </Flex>
@@ -158,7 +158,7 @@ export function ModelSelector({
 
             {/* Model Selection */}
             <Box>
-              <Text fontSize="sm" fontWeight="medium" color="white" mb={2}>
+              <Text textStyle="card-title" fontWeight="medium" color="white" mb={2}>
                 Switch Model
               </Text>
               <VStack spacing={1} align="stretch">
@@ -176,7 +176,7 @@ export function ModelSelector({
                       onClick={() => handleModelChange(model)}
                     >
                       <Flex justify="space-between" align="center" w="full">
-                        <Text fontSize="xs">{info.name}</Text>
+                        <Text textStyle="caption">{info.name}</Text>
                         <Badge
                           size="xs"
                           colorScheme={getSpeedColor(info.speed)}

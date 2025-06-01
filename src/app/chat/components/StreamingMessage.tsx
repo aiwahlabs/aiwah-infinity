@@ -8,11 +8,58 @@ import {
   HStack,
   Divider,
 } from '@chakra-ui/react';
+
+// Simple typing indicator component
+const TypingIndicator = React.memo(function TypingIndicator() {
+  return (
+    <HStack spacing={1}>
+      <Box
+        w="6px"
+        h="6px"
+        bg="gray.400"
+        borderRadius="full"
+        animation="typing 1.4s infinite ease-in-out"
+        css={{
+          '@keyframes typing': {
+            '0%, 80%, 100%': { opacity: 0.3 },
+            '40%': { opacity: 1 },
+          },
+        }}
+      />
+      <Box
+        w="6px"
+        h="6px"
+        bg="gray.400"
+        borderRadius="full"
+        animation="typing 1.4s infinite ease-in-out 0.2s"
+        css={{
+          '@keyframes typing': {
+            '0%, 80%, 100%': { opacity: 0.3 },
+            '40%': { opacity: 1 },
+          },
+        }}
+      />
+      <Box
+        w="6px"
+        h="6px"
+        bg="gray.400"
+        borderRadius="full"
+        animation="typing 1.4s infinite ease-in-out 0.4s"
+        css={{
+          '@keyframes typing': {
+            '0%, 80%, 100%': { opacity: 0.3 },
+            '40%': { opacity: 1 },
+          },
+        }}
+      />
+    </HStack>
+  );
+});
 import {
   FiChevronDown,
 } from 'react-icons/fi';
 import { SimpleMarkdownRenderer } from './SimpleMarkdownRenderer';
-import { MessageStreamingLoading } from './loading';
+
 
 interface StreamingMessageProps {
   streamingContent: string;
@@ -37,7 +84,7 @@ const StreamingContent = React.memo(function StreamingContent({
       {renderedContent}
       {/* Typing indicator */}
       <HStack spacing={2} mt={2}>
-        <MessageStreamingLoading />
+        <TypingIndicator />
       </HStack>
     </Box>
   );
@@ -62,10 +109,10 @@ const StreamingThinking = React.memo(function StreamingThinking({
         borderColor="gray.600"
       >
         <HStack spacing={2}>
-          <Text color="purple.300" fontSize="xs" fontWeight="medium">
+          <Text color="purple.300" textStyle="caption" fontWeight="medium">
             Thoughts
           </Text>
-          <MessageStreamingLoading />
+          <TypingIndicator />
         </HStack>
         <Box
           as={FiChevronDown}
@@ -83,8 +130,7 @@ const StreamingThinking = React.memo(function StreamingThinking({
         mt={2}
       >
         <Text 
-          color="gray.300" 
-          fontSize="sm" 
+          textStyle="body"
           whiteSpace="pre-wrap"
           lineHeight="1.5"
         >
@@ -127,7 +173,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
           {/* Message header */}
           <Flex justify="space-between" align="center" mb={3}>
             <Text
-              fontSize="sm"
+              textStyle="card-title"
               fontWeight="medium"
               color="gray.300"
             >
@@ -135,7 +181,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
             </Text>
             
             <HStack spacing={2}>
-              <Text fontSize="xs" color="gray.500">
+              <Text textStyle="caption" color="gray.500">
                 Just now
               </Text>
             </HStack>
@@ -143,7 +189,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
 
           {/* Typing indicator */}
           <HStack spacing={3}>
-            <MessageStreamingLoading />
+            <TypingIndicator />
           </HStack>
         </Box>
 
@@ -161,7 +207,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
         {/* Message header */}
         <Flex justify="space-between" align="center" mb={3}>
           <Text
-            fontSize="sm"
+            textStyle="card-title"
             fontWeight="medium"
             color="gray.300"
           >
@@ -169,7 +215,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
           </Text>
           
           <HStack spacing={2}>
-            <Text fontSize="xs" color="gray.500">
+            <Text textStyle="caption" color="gray.500">
               Just now
             </Text>
           </HStack>

@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ClientOnly } from "@/components/ClientOnlyProvider";
 import { ResponsiveWarning } from "@/components/ResponsiveWarning";
+import { NavigationLoadingProvider } from "@/components/NavigationLoadingProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,10 +40,12 @@ export default function RootLayout({
       >
         <ClientOnly>
           <ThemeProvider>
-            <AuthProvider>
-              {children}
-              <ResponsiveWarning />
-            </AuthProvider>
+            <NavigationLoadingProvider>
+              <AuthProvider>
+                {children}
+                <ResponsiveWarning />
+              </AuthProvider>
+            </NavigationLoadingProvider>
           </ThemeProvider>
         </ClientOnly>
       </body>
