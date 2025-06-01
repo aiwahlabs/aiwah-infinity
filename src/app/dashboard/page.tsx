@@ -10,9 +10,6 @@ export default function Dashboard() {
   return (
     <AuthGuard>
       <Container maxW="container.xl" py={12}>
-        <Heading size="lg" mb={8} color="white" textAlign="center">
-          Your Applications
-        </Heading>
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
           <Link href="/ghostwriter" passHref style={{ display: 'contents' }}>
             <Card 
