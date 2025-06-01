@@ -6,7 +6,7 @@ import { FiFileText, FiMessageCircle } from 'react-icons/fi';
 import Link from 'next/link';
 import { AuthGuard } from '@/components/AuthGuard';
 
-export default function Dashboard() {
+export default function Home() {
   return (
     <AuthGuard>
       <Container maxW="container.xl" py={12}>

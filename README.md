@@ -58,7 +58,7 @@ aiwah-infinity/
 ├── src/
 │   ├── app/                  # Next.js App Router
 │   │   ├── auth/             # Auth callback routes
-│   │   ├── dashboard/        # Protected dashboard page
+│   │   ├── home/             # Protected home page
 │   │   ├── login/            # Login page
 │   │   ├── signup/           # Signup page
 │   │   ├── layout.tsx        # Root layout with Providers

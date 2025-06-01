@@ -298,7 +298,7 @@ export default function DocumentDetail() {
             colorScheme="teal"
             onClick={() => router.push('/ghostwriter')}
           >
-            Back to Dashboard
+            Back to Ghostwriter
           </Button>
         </Center>
       </Container>
@@ -319,7 +319,7 @@ export default function DocumentDetail() {
               color="gray.400"
               _hover={{ color: 'white' }}
             >
-              Back to Dashboard
+              Back to Ghostwriter
             </Button>
             <Spacer />
             <HStack spacing={3}>

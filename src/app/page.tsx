@@ -10,15 +10,15 @@ export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    // Redirect authenticated users to dashboard
+    // Redirect authenticated users to home
     if (!isLoading && isAuthenticated) {
-      router.push('/dashboard');
+      router.push('/home');
     }
   }, [isAuthenticated, isLoading, router]);
 
   return (
     <AuthGuard requireAuth={false}>
-      {/* Simple entry point - will redirect to /login if not authenticated or /dashboard if authenticated */}
+      {/* Simple entry point - will redirect to /login if not authenticated or /home if authenticated */}
       <div style={{ 
         height: '100vh', 
         display: 'flex', 

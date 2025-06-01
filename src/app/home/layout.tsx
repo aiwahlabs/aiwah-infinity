@@ -2,15 +2,15 @@
 
 import React from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { FiGrid } from 'react-icons/fi';
+import { FiHome } from 'react-icons/fi';
 
-export default function DashboardLayout({
+export default function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <AppLayout appName="Dashboard" appIcon={FiGrid} showFooter={true}>
+    <AppLayout appName="Home" appIcon={FiHome} variant="home" showFooter={true}>
       {children}
     </AppLayout>
   );

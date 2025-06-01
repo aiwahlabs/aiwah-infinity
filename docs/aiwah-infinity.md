@@ -48,18 +48,37 @@ Backend Services (Supabase + OpenRouter APIs)
 
 1. **Component Isolation**: Each feature has its own components directory
 2. **Global Navigation Loading**: Single loading system for all route transitions
-3. **Dark Mode Only**: Simplified theming with consistent dark UI
-4. **Type Safety**: Full TypeScript coverage with strict mode
-5. **Real-time Updates**: Live data synchronization via Supabase
-6. **Responsive Design**: Minimum 800x500px screen requirement
+3. **Fixed Layout System**: AppLayout provides fixed viewport, components handle their own scrolling
+4. **Layout-Level Navigation**: AppLayout at layout level with dynamic breadcrumbs prevents flickering
+5. **Dark Mode Only**: Simplified theming with consistent dark UI
+6. **Type Safety**: Full TypeScript coverage with strict mode
+7. **Real-time Updates**: Live data synchronization via Supabase
+8. **Responsive Design**: Minimum 800x500px screen requirement
 
 ### Application Structure
 
 The application consists of three main areas:
 
-1. **Dashboard** (`/dashboard`) - Global app launcher and navigation hub
-2. **Chat** (`/chat`) - AI-powered conversation interface
+1. **Home** (`/home`) - Global app launcher and navigation hub
+2. **Chat** (`/chat`) - AI-powered conversation interface  
 3. **Ghostwriter** (`/ghostwriter`) - Document management and creation system
+
+### Navigation Design
+
+The application features a seamless navigation system with visual continuity:
+
+- **Home Page**: Shows only a home icon (white, non-clickable) in the header
+- **App Pages**: Display breadcrumb navigation with consistent styling
+- **Visual Continuity**: Navigation transitions only add new elements, never change existing ones
+- **Consistent Sizing**: All header elements use 32px height with balanced padding
+
+### Breadcrumb Navigation
+
+Dynamic breadcrumb navigation provides hierarchical context:
+- **Home Icon**: Always appears identically (14px icon, 32px container)
+- **Clickable Elements**: Teal color with hover effects
+- **Active Elements**: Gray color, non-clickable appearance  
+- **Smooth Transitions**: No layout shifts during navigation
 
 ## Technology Stack
 
@@ -118,8 +137,8 @@ src/
 │   ├── page.tsx                # Entry point (redirects)
 │   ├── globals.css             # Global styles
 │   ├── responsive.css          # Responsive design rules
-│   ├── dashboard/              # Global dashboard
-│   │   ├── layout.tsx          # Dashboard layout
+│   ├── home/                   # Global home page
+│   │   ├── layout.tsx          # Home layout
 │   │   └── page.tsx            # App selection page
 │   ├── chat/                   # Chat application
 │   │   ├── layout.tsx          # Chat layout with providers
@@ -127,7 +146,7 @@ src/
 │   │   └── components/         # Chat-specific components
 │   ├── ghostwriter/            # Document management
 │   │   ├── layout.tsx          # Ghostwriter layout
-│   │   ├── page.tsx            # Dashboard page
+│   │   ├── page.tsx            # Main page
 │   │   ├── document/[id]/      # Document detail pages
 │   │   └── components/         # Ghostwriter components
 │   └── auth/                   # Authentication pages
@@ -234,12 +253,33 @@ The application uses a global navigation loading system to provide smooth transi
 - Wraps all protected pages
 - Shows skeleton during navigation
 - Maintains header/footer structure
+- Passes variant and breadcrumbs to AppHeader
+
+**AppHeader** (`src/components/AppHeader.tsx`)
+- Displays seamless navigation with dynamic breadcrumbs
+- HomeIcon component ensures visual consistency across all contexts
+- All elements use consistent 32px height and balanced padding (px={2}, py={1})
+- Automatic layout based on variant ('home' vs 'app') and breadcrumb presence
 
 **Usage Pattern:**
 ```tsx
-// Page layouts
-<AppLayout appName="Your App" appIcon={YourIcon}>
+// Page layouts with breadcrumbs
+<AppLayout 
+  appName="Your App" 
+  appIcon={YourIcon}
+  variant="app"
+  breadcrumbs={getBreadcrumbs()}
+>
   <YourPageContent />
+</AppLayout>
+
+// Home page layout
+<AppLayout 
+  appName="Home" 
+  appIcon={FiHome}
+  variant="home"
+>
+  <HomePageContent />
 </AppLayout>
 ```
 
@@ -258,23 +298,24 @@ The application uses a global navigation loading system to provide smooth transi
 1. User visits protected route
 2. AuthGuard checks authentication
 3. Redirects to `/login` if not authenticated
-4. After login, redirects to original destination or `/dashboard`
+4. After login, redirects to original destination or `/home`
 
-### Dashboard System
+### Home System
 
-The dashboard (`/dashboard`) serves as the main entry point and navigation hub:
+The home page (`/home`) serves as the main entry point and navigation hub:
 
-**Dashboard Layout** (`src/app/dashboard/layout.tsx`)
-- Uses standard AppLayout with "Dashboard" branding
+**Home Layout** (`src/app/home/layout.tsx`)
+- Uses AppLayout with variant="home" for proper header display
+- Shows only home icon (white, non-clickable) in header
 - No additional providers needed
 - Simple, clean layout
 
-**Dashboard Page** (`src/app/dashboard/page.tsx`)
+**Home Page** (`src/app/home/page.tsx`)
 - Shows available applications (Chat, Ghostwriter)
 - Card-based navigation interface
 - Links to sub-applications
 
-**Dashboard Features:**
+**Home Features:**
 - App launcher interface
 - Consistent navigation
 - Visual app cards with icons
@@ -347,17 +388,92 @@ export default function FeatureLayout({ children }) {
 )}
 ```
 
+**5. Scrolling Pattern**
+```tsx
+// AppLayout is fixed - components handle their own scrolling
+export default function YourPage() {
+  return (
+    <AuthGuard>
+      <Box h="100%" overflow="auto" p={8}>
+        <YourScrollableContent />
+      </Box>
+    </AuthGuard>
+  );
+}
+
+// For components that need internal scrolling
+<Box h="400px" overflow="auto">
+  <LongContentList />
+</Box>
+```
+
+**6. Breadcrumb Navigation**
+```tsx
+// Define breadcrumbs for hierarchical navigation
+const breadcrumbs = [
+  {
+    label: 'Home',  // Label for identification - HomeIcon shows only icon
+    href: '/home',
+    icon: FiHome,
+  },
+  {
+    label: 'Ghostwriter',
+    href: '/ghostwriter',
+    icon: FiFileText,
+  },
+  {
+    label: 'Approved',
+    href: '/ghostwriter/approved',
+    icon: FiCheckCircle,
+    isActive: true, // Current page - gray, non-clickable
+  },
+];
+
+// Use in AppLayout with dynamic breadcrumbs
+<AppLayout 
+  appName="Ghostwriter" 
+  appIcon={FiFileText} 
+  variant="app"
+  breadcrumbs={breadcrumbs}
+>
+  <YourPageContent />
+</AppLayout>
+
+// Dynamic breadcrumb generation in layout
+const getBreadcrumbs = () => {
+  const breadcrumbs = [
+    { label: 'Home', href: '/home', icon: FiHome },
+    { label: 'Ghostwriter', href: '/ghostwriter', icon: FiFileText, isActive: pathname === '/ghostwriter' },
+  ];
+  
+  if (pathname === '/ghostwriter/drafts') {
+    breadcrumbs.push({
+      label: 'Drafts',
+      href: '/ghostwriter/drafts', 
+      icon: FiEdit3,
+      isActive: true,
+    });
+  }
+  
+  return breadcrumbs;
+};
+```
+
 ### Key Components
 
 **AppLayout** - Main wrapper for all protected pages
 - Provides consistent header/footer
 - Handles navigation loading
 - Manages global layout structure
+- **Fixed viewport**: No scrolling at layout level - components must handle their own scrolling
 
 **AppHeader** - Application header component
-- Shows app name and icon
-- Provides navigation (home button goes to `/dashboard`)
-- Supports custom right content
+- Displays seamless navigation with consistent visual design
+- HomeIcon component: identical 14px icon in 32px container across all contexts
+- Breadcrumb navigation: hierarchical with visual state indicators
+- Layout variants: 'home' (icon only) vs 'app' (breadcrumbs/app name)
+- Consistent styling: all elements use 32px height, px={2} py={1} padding
+- Color coding: teal (clickable), white/gray (current page), subdued arrows
 
 **AuthGuard** - Route protection wrapper
 - Ensures user authentication
@@ -603,6 +719,63 @@ export function Component({ ...props }: ComponentProps) {
 // Always export as named export for consistency
 ```
 
+**4. Layout & Scrolling Pattern**
+```typescript
+// LAYOUT LEVEL: AppLayout in layout.tsx with dynamic breadcrumbs
+export default function FeatureLayout({ children }) {
+  const pathname = usePathname();
+  
+  const getBreadcrumbs = () => {
+    const breadcrumbs = [
+      { label: 'Home', href: '/home', icon: FiHome }, // Shows as icon only
+      { label: 'App', href: '/app', icon: FiGrid, isActive: pathname === '/app' },
+    ];
+    
+    // Add dynamic breadcrumbs based on pathname  
+    if (pathname === '/app/subpage') {
+      breadcrumbs.push({
+        label: 'Sub Page',
+        href: '/app/subpage',
+        icon: FiEdit,
+        isActive: true, // Gray, non-clickable
+      });
+    }
+    
+    return breadcrumbs;
+  };
+
+  return (
+    <AppLayout 
+      appName="App" 
+      appIcon={FiGrid} 
+      variant="app"
+      breadcrumbs={getBreadcrumbs()}
+    >
+      {children}
+    </AppLayout>
+  );
+}
+
+// PAGE LEVEL: Just content, no AppLayout (prevents flickering)
+export default function Page() {
+  return (
+    <AuthGuard>
+      <Box h="100%" overflow="auto" p={8}>
+        {/* Page content - will scroll if needed */}
+        <VStack spacing={6} align="stretch">
+          <PageContent />
+        </VStack>
+      </Box>
+    </AuthGuard>
+  );
+}
+
+// For nested scrollable areas
+<Box h="300px" overflow="auto" border="1px solid" borderColor="gray.700">
+  <List />
+</Box>
+```
+
 ### Error Handling
 
 **1. API Errors**
@@ -779,6 +952,91 @@ npm run format      # Prettier formatting
 - [ ] Error states are handled
 - [ ] All features work correctly
 
+## Navigation System Details
+
+### Header Design Philosophy
+
+The AppHeader implements a seamless navigation system with these key principles:
+
+**Visual Continuity**
+- Navigation transitions only add/remove elements, never change existing ones
+- Home icon appears identically in all contexts (size, spacing, positioning)
+- Consistent 32px height and balanced padding across all elements
+
+**HomeIcon Component**
+```tsx
+// Shared component ensures identical appearance everywhere
+function HomeIcon({ isClickable = false, href = '/home' }) {
+  const baseProps = {
+    variant: "ghost",
+    icon: <FiHome size={14} />,
+    "aria-label": "Navigate to main page",
+    minW: "32px",
+    h: "32px", 
+    px: 2,
+    py: 1,
+  };
+  
+  return (
+    <IconButton
+      {...baseProps}
+      color={isClickable ? "teal.400" : "white"}
+      // ... hover and link props
+    />
+  );
+}
+```
+
+**Breadcrumb System**
+- **Home**: Always renders as HomeIcon (icon only, no text)
+- **Intermediate levels**: Clickable with teal color and hover effects
+- **Current page**: Gray color, non-clickable appearance
+- **Arrows**: Subdued gray (#9CA3AF) for visual hierarchy
+
+**Layout Variants**
+- `variant="home"`: Shows only HomeIcon in white (non-clickable)
+- `variant="app"`: Shows breadcrumbs or app name with consistent styling
+- Automatic height consistency prevents layout shifts
+
+### Implementation Pattern
+
+```tsx
+// In feature layouts - generate dynamic breadcrumbs
+export default function FeatureLayout({ children }) {
+  const pathname = usePathname();
+  
+  const getBreadcrumbs = () => {
+    const breadcrumbs = [
+      { label: 'Home', href: '/home', icon: FiHome },
+      { label: 'Feature', href: '/feature', icon: FeatureIcon, isActive: pathname === '/feature' },
+    ];
+    
+    // Add sub-navigation based on pathname
+    if (pathname.includes('/feature/sub')) {
+      breadcrumbs.push({
+        label: 'Sub Page',
+        href: pathname,
+        icon: SubIcon,
+        isActive: true,
+      });
+    }
+    
+    return breadcrumbs;
+  };
+
+  return (
+    <AppLayout 
+      appName="Feature" 
+      appIcon={FeatureIcon}
+      variant="app"
+      breadcrumbs={getBreadcrumbs()}
+    >
+      {children}
+    </AppLayout>
+  );
+}
+```
+
 ## Contributing Guidelines
 
 ### Development Workflow
@@ -865,7 +1123,7 @@ src/app/new-feature/
 - Add proper TypeScript types
 
 **4. Integration**
-- Add navigation links to dashboard
+- Add navigation links to home page
 - Test with existing features
 - Ensure consistent styling
 - Handle error states
