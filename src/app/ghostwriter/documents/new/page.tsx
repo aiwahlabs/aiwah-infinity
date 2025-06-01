@@ -63,7 +63,7 @@ export default function NewDocumentPage() {
         duration: 3000,
         isClosable: true,
       });
-      router.push(`/ghostwriter/document/${document.id}`);
+              router.push(`/ghostwriter/documents/${document.id}`);
     } else {
       toast({
         title: 'Error',

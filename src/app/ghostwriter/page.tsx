@@ -55,7 +55,7 @@ export default function GhostwriterDashboard() {
   }, [documents]);
 
   const handleCreateDocument = () => {
-    router.push('/ghostwriter/document/new');
+    router.push('/ghostwriter/documents/new');
   };
 
   if (loading || statsLoading) {
@@ -189,7 +189,7 @@ export default function GhostwriterDashboard() {
                       Create Document
                     </Button>
                     
-                    <Link href="/ghostwriter/drafts" style={{ width: '100%' }}>
+                    <Link href="/ghostwriter/documents?status=draft" style={{ width: '100%' }}>
                       <Button
                         leftIcon={<FiEdit3 />}
                         variant="outline"
@@ -200,7 +200,7 @@ export default function GhostwriterDashboard() {
                       </Button>
                     </Link>
                     
-                    <Link href="/ghostwriter/approved" style={{ width: '100%' }}>
+                    <Link href="/ghostwriter/documents?status=approved" style={{ width: '100%' }}>
                       <Button
                         leftIcon={<FiCheckCircle />}
                         variant="outline"
@@ -211,7 +211,7 @@ export default function GhostwriterDashboard() {
                       </Button>
                     </Link>
 
-                    <Link href="/ghostwriter/all" style={{ width: '100%' }}>
+                    <Link href="/ghostwriter/documents" style={{ width: '100%' }}>
                       <Button
                         leftIcon={<FiFileText />}
                         variant="outline"
@@ -260,7 +260,7 @@ export default function GhostwriterDashboard() {
                     ) : (
                       <VStack spacing={2} align="stretch">
                         {recentDocuments.map((doc) => (
-                          <Link key={doc.id} href={`/ghostwriter/document/${doc.id}`}>
+                          <Link key={doc.id} href={`/ghostwriter/documents/${doc.id}`}>
                             <Card 
                               size="sm" 
                               variant="outline" 

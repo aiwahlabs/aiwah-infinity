@@ -220,7 +220,7 @@ export const DashboardOverview = () => {
           <CardHeader>
             <HStack justify="space-between">
               <Heading size="md" color="white">Recent Documents</Heading>
-              <Button size="sm" colorScheme="teal" as={Link} href="/ghostwriter/document/new">
+                              <Button size="sm" colorScheme="teal" as={Link} href="/ghostwriter/documents/new">
                 <Icon as={FiPlusCircle} mr={2} />
                 New Document
               </Button>
@@ -299,7 +299,7 @@ export const DashboardOverview = () => {
 
               {/* Quick Actions */}
               <VStack spacing={2} pt={4}>
-                <Button as={Link} href="/ghostwriter/document/new" colorScheme="teal" size="sm" w="full">
+                <Button as={Link} href="/ghostwriter/documents/new" colorScheme="teal" size="sm" w="full">
                   Create New Document
                 </Button>
                 <Button as={Link} href="/ghostwriter?tab=1" variant="outline" size="sm" w="full">

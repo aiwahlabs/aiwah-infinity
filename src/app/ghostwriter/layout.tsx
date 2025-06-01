@@ -30,35 +30,33 @@ export default function GhostwriterLayout({
     ];
 
     // Add sub-page breadcrumbs based on pathname
-    if (pathname === '/ghostwriter/drafts') {
+    if (pathname === '/ghostwriter/documents') {
       breadcrumbs.push({
-        label: 'Drafts',
-        href: '/ghostwriter/drafts',
-        icon: FiEdit3,
-        isActive: true,
-      });
-    } else if (pathname === '/ghostwriter/approved') {
-      breadcrumbs.push({
-        label: 'Approved',
-        href: '/ghostwriter/approved',
-        icon: FiCheckCircle,
-        isActive: true,
-      });
-    } else if (pathname === '/ghostwriter/all') {
-      breadcrumbs.push({
-        label: 'All Documents',
-        href: '/ghostwriter/all',
+        label: 'Documents',
+        href: '/ghostwriter/documents',
         icon: FiFileText,
         isActive: true,
       });
-    } else if (pathname === '/ghostwriter/document/new') {
+    } else if (pathname === '/ghostwriter/documents/new') {
+      breadcrumbs.push({
+        label: 'Documents',
+        href: '/ghostwriter/documents',
+        icon: FiFileText,
+        isActive: false,
+      });
       breadcrumbs.push({
         label: 'New Document',
-        href: '/ghostwriter/document/new',
+        href: '/ghostwriter/documents/new',
         icon: FiPlusCircle,
         isActive: true,
       });
-    } else if (pathname.startsWith('/ghostwriter/document/') && pathname !== '/ghostwriter/document/new') {
+    } else if (pathname.startsWith('/ghostwriter/documents/') && pathname !== '/ghostwriter/documents/new') {
+      breadcrumbs.push({
+        label: 'Documents',
+        href: '/ghostwriter/documents',
+        icon: FiFileText,
+        isActive: false,
+      });
       breadcrumbs.push({
         label: 'Edit Document',
         href: pathname,
