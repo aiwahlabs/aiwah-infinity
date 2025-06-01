@@ -100,212 +100,221 @@ export default function GhostwriterDashboard() {
   return (
     <AuthGuard>
       <Box h="100%" overflow="auto" p={8}>
-        <VStack spacing={8} align="stretch">
-          {/* Simplified Header */}
-          <HStack justify="space-between" align="center">
-            <Heading textStyle="page-title">Document Management</Heading>
+        <VStack spacing={6} align="stretch">
+          {/* Header Section */}
+          <HStack justify="space-between" align="center" mb={2}>
+            <VStack align="start" spacing={1}>
+              <Heading textStyle="page-title">Document Management</Heading>
+              <Text textStyle="body" color="gray.400">
+                Create, edit, and manage your content workflow
+              </Text>
+            </VStack>
             <Button 
               leftIcon={<FiPlusCircle />} 
               colorScheme="teal" 
+              size="lg"
               onClick={handleCreateDocument}
             >
               New Document
             </Button>
           </HStack>
 
-          {/* Stats Overview */}
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6}>
+          {/* Stats Overview - More compact */}
+          <SimpleGrid columns={{ base: 2, lg: 4 }} spacing={4}>
             <Card bg={cardBg} _hover={{ transform: 'translateY(-2px)', transition: 'all 0.2s' }}>
-              <CardBody>
-                <Stat>
-                  <HStack justify="space-between" align="start">
-                    <VStack align="start" spacing={1}>
-                      <StatLabel color="gray.500" fontSize="sm">Total Documents</StatLabel>
-                      <StatNumber color="gray.100">{stats.total}</StatNumber>
-                      <StatHelpText color="gray.400" mb={0}>All time</StatHelpText>
-                    </VStack>
-                    <Icon as={FiFileText} color="blue.400" boxSize={8} />
-                  </HStack>
-                </Stat>
+              <CardBody p={4}>
+                <HStack justify="space-between" align="center">
+                  <VStack align="start" spacing={0}>
+                    <Text textStyle="caption" color="gray.500">Total Documents</Text>
+                    <Text textStyle="section-heading" color="gray.100">{stats.total}</Text>
+                  </VStack>
+                  <Icon as={FiFileText} color="blue.400" boxSize={6} />
+                </HStack>
               </CardBody>
             </Card>
 
             <Card bg={cardBg} _hover={{ transform: 'translateY(-2px)', transition: 'all 0.2s' }}>
-              <CardBody>
-                <Stat>
-                  <HStack justify="space-between" align="start">
-                    <VStack align="start" spacing={1}>
-                      <StatLabel color="gray.500" fontSize="sm">Drafts</StatLabel>
-                      <StatNumber color="gray.100">{stats.byStatus.draft}</StatNumber>
-                      <StatHelpText color="gray.400" mb={0}>Pending review</StatHelpText>
-                    </VStack>
-                    <Icon as={FiClock} color="yellow.400" boxSize={8} />
-                  </HStack>
-                </Stat>
+              <CardBody p={4}>
+                <HStack justify="space-between" align="center">
+                  <VStack align="start" spacing={0}>
+                    <Text textStyle="caption" color="gray.500">Drafts</Text>
+                    <Text textStyle="section-heading" color="gray.100">{stats.byStatus.draft}</Text>
+                  </VStack>
+                  <Icon as={FiClock} color="yellow.400" boxSize={6} />
+                </HStack>
               </CardBody>
             </Card>
 
             <Card bg={cardBg} _hover={{ transform: 'translateY(-2px)', transition: 'all 0.2s' }}>
-              <CardBody>
-                <Stat>
-                  <HStack justify="space-between" align="start">
-                    <VStack align="start" spacing={1}>
-                      <StatLabel color="gray.500" fontSize="sm">Approved</StatLabel>
-                      <StatNumber color="gray.100">{stats.byStatus.approved}</StatNumber>
-                      <StatHelpText color="gray.400" mb={0}>Ready to publish</StatHelpText>
-                    </VStack>
-                    <Icon as={FiCheckCircle} color="green.400" boxSize={8} />
-                  </HStack>
-                </Stat>
+              <CardBody p={4}>
+                <HStack justify="space-between" align="center">
+                  <VStack align="start" spacing={0}>
+                    <Text textStyle="caption" color="gray.500">Approved</Text>
+                    <Text textStyle="section-heading" color="gray.100">{stats.byStatus.approved}</Text>
+                  </VStack>
+                  <Icon as={FiCheckCircle} color="green.400" boxSize={6} />
+                </HStack>
               </CardBody>
             </Card>
 
             <Card bg={cardBg} _hover={{ transform: 'translateY(-2px)', transition: 'all 0.2s' }}>
-              <CardBody>
-                <Stat>
-                  <HStack justify="space-between" align="start">
-                    <VStack align="start" spacing={1}>
-                      <StatLabel color="gray.500" fontSize="sm">Published</StatLabel>
-                      <StatNumber color="gray.100">{stats.byStatus.published}</StatNumber>
-                      <StatHelpText color="gray.400" mb={0}>Live content</StatHelpText>
-                    </VStack>
-                    <Icon as={FiArchive} color="teal.400" boxSize={8} />
-                  </HStack>
-                </Stat>
+              <CardBody p={4}>
+                <HStack justify="space-between" align="center">
+                  <VStack align="start" spacing={0}>
+                    <Text textStyle="caption" color="gray.500">Published</Text>
+                    <Text textStyle="section-heading" color="gray.100">{stats.byStatus.published}</Text>
+                  </VStack>
+                  <Icon as={FiArchive} color="teal.400" boxSize={6} />
+                </HStack>
               </CardBody>
             </Card>
           </SimpleGrid>
 
-          {/* Main Content Areas */}
-          <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
-            {/* Quick Actions */}
+          {/* Main Content - 3 Column Layout */}
+          <SimpleGrid columns={{ base: 1, lg: 3 }} spacing={6}>
+            {/* Quick Actions - Smaller column */}
             <Card bg={cardBg}>
-              <CardBody>
+              <CardBody p={5}>
                 <VStack align="stretch" spacing={4}>
-                  <Heading textStyle="section-heading">Quick Actions</Heading>
+                  <Text textStyle="section-heading">Quick Actions</Text>
                   
-                  <VStack spacing={3}>
+                  <VStack spacing={2}>
                     <Button
                       leftIcon={<FiPlusCircle />}
                       colorScheme="teal"
                       width="full"
+                      size="sm"
                       onClick={handleCreateDocument}
                     >
-                      Create New Document
+                      Create Document
                     </Button>
                     
-                    <SimpleGrid columns={2} spacing={3} width="full">
-                      <Link href="/ghostwriter/drafts">
-                        <Button
-                          leftIcon={<FiEdit3 />}
-                          variant="outline"
-                          size="md"
-                          width="full"
-                        >
-                          View Drafts ({stats.byStatus.draft})
-                        </Button>
-                      </Link>
-                      
-                      <Link href="/ghostwriter/approved">
-                        <Button
-                          leftIcon={<FiCheckCircle />}
-                          variant="outline"
-                          size="md"
-                          width="full"
-                        >
-                          Approved ({stats.byStatus.approved})
-                        </Button>
-                      </Link>
-                    </SimpleGrid>
+                    <Link href="/ghostwriter/drafts" style={{ width: '100%' }}>
+                      <Button
+                        leftIcon={<FiEdit3 />}
+                        variant="outline"
+                        size="sm"
+                        width="full"
+                      >
+                        Drafts ({stats.byStatus.draft})
+                      </Button>
+                    </Link>
+                    
+                    <Link href="/ghostwriter/approved" style={{ width: '100%' }}>
+                      <Button
+                        leftIcon={<FiCheckCircle />}
+                        variant="outline"
+                        size="sm"
+                        width="full"
+                      >
+                        Approved ({stats.byStatus.approved})
+                      </Button>
+                    </Link>
+
+                    <Link href="/ghostwriter/all" style={{ width: '100%' }}>
+                      <Button
+                        leftIcon={<FiFileText />}
+                        variant="outline"
+                        size="sm"
+                        width="full"
+                      >
+                        All Documents
+                      </Button>
+                    </Link>
                   </VStack>
                 </VStack>
               </CardBody>
             </Card>
 
-            {/* Recent Documents */}
-            <Card bg={cardBg}>
-              <CardBody>
-                <VStack align="stretch" spacing={4}>
-                  <HStack justify="space-between">
-                    <Heading textStyle="section-heading">Recent Documents</Heading>
-                    <Link href="/ghostwriter/all">
-                      <Button variant="ghost" size="sm" color="teal.400">
-                        View All
-                      </Button>
-                    </Link>
-                  </HStack>
-                  
-                  {recentDocuments.length === 0 ? (
-                    <Center py={8}>
-                      <VStack spacing={2}>
-                        <Icon as={FiFileText} color="gray.500" boxSize={12} />
-                        <Text textStyle="body">No documents yet</Text>
-                        <Button 
-                          size="sm" 
-                          colorScheme="teal" 
-                          onClick={handleCreateDocument}
-                        >
-                          Create your first document
+            {/* Recent Documents - Takes 2 columns */}
+            <Box gridColumn={{ lg: "span 2" }}>
+              <Card bg={cardBg} h="full">
+                <CardBody p={5}>
+                  <VStack align="stretch" spacing={4} h="full">
+                    <HStack justify="space-between">
+                      <Text textStyle="section-heading">Recent Documents</Text>
+                      <Link href="/ghostwriter/all">
+                        <Button variant="ghost" size="sm" color="teal.400">
+                          View All
                         </Button>
-                      </VStack>
-                    </Center>
-                  ) : (
-                    <VStack spacing={3} align="stretch">
-                      {recentDocuments.map((doc) => (
-                        <Link key={doc.id} href={`/ghostwriter/document/${doc.id}`}>
-                          <Card 
+                      </Link>
+                    </HStack>
+                    
+                    {recentDocuments.length === 0 ? (
+                      <Center flex={1} py={8}>
+                        <VStack spacing={3}>
+                          <Icon as={FiFileText} color="gray.500" boxSize={12} />
+                          <Text textStyle="card-title">No documents yet</Text>
+                          <Text textStyle="body" color="gray.400" textAlign="center">
+                            Start creating your first document to see it here
+                          </Text>
+                          <Button 
                             size="sm" 
-                            variant="outline" 
-                            _hover={{ borderColor: 'teal.400', transform: 'translateY(-1px)' }}
-                            transition="all 0.2s"
-                            cursor="pointer"
+                            colorScheme="teal" 
+                            onClick={handleCreateDocument}
                           >
-                            <CardBody py={3}>
-                              <HStack justify="space-between" align="start">
-                                <VStack align="start" spacing={1} flex={1}>
-                                  <Text 
-                                    fontWeight="medium" 
-                                    color="gray.100" 
-                                    noOfLines={1}
-                                  >
-                                    {doc.title || 'Untitled Document'}
-                                  </Text>
-                                  <Text 
-                                    fontSize="sm" 
-                                    color="gray.400" 
-                                    noOfLines={2}
-                                  >
-                                    {doc.content.substring(0, 100)}...
-                                  </Text>
-                                  <Text fontSize="xs" color="gray.500">
-                                    {new Date(doc.created_at).toLocaleDateString()}
-                                  </Text>
-                                </VStack>
-                                <Icon 
-                                  as={
-                                    doc.status === 'approved' ? FiCheckCircle :
-                                    doc.status === 'rejected' ? FiXCircle :
-                                    doc.status === 'published' ? FiArchive :
-                                    FiClock
-                                  }
-                                  color={
-                                    doc.status === 'approved' ? 'green.400' :
-                                    doc.status === 'rejected' ? 'red.400' :
-                                    doc.status === 'published' ? 'teal.400' :
-                                    'yellow.400'
-                                  }
-                                  boxSize={5}
-                                />
-                              </HStack>
-                            </CardBody>
-                          </Card>
-                        </Link>
-                      ))}
-                    </VStack>
-                  )}
-                </VStack>
-              </CardBody>
-            </Card>
+                            Create your first document
+                          </Button>
+                        </VStack>
+                      </Center>
+                    ) : (
+                      <VStack spacing={2} align="stretch">
+                        {recentDocuments.map((doc) => (
+                          <Link key={doc.id} href={`/ghostwriter/document/${doc.id}`}>
+                            <Card 
+                              size="sm" 
+                              variant="outline" 
+                              _hover={{ borderColor: 'teal.400', transform: 'translateY(-1px)' }}
+                              transition="all 0.2s"
+                              cursor="pointer"
+                            >
+                              <CardBody p={3}>
+                                <HStack justify="space-between" align="start">
+                                  <VStack align="start" spacing={1} flex={1}>
+                                    <Text 
+                                      textStyle="card-title"
+                                      color="gray.100" 
+                                      noOfLines={1}
+                                    >
+                                      {doc.title || 'Untitled Document'}
+                                    </Text>
+                                    <Text 
+                                      textStyle="body"
+                                      color="gray.400" 
+                                      noOfLines={2}
+                                    >
+                                      {doc.content.substring(0, 100)}...
+                                    </Text>
+                                    <Text textStyle="caption" color="gray.500">
+                                      {new Date(doc.created_at).toLocaleDateString()}
+                                    </Text>
+                                  </VStack>
+                                  <Icon 
+                                    as={
+                                      doc.status === 'approved' ? FiCheckCircle :
+                                      doc.status === 'rejected' ? FiXCircle :
+                                      doc.status === 'published' ? FiArchive :
+                                      FiClock
+                                    }
+                                    color={
+                                      doc.status === 'approved' ? 'green.400' :
+                                      doc.status === 'rejected' ? 'red.400' :
+                                      doc.status === 'published' ? 'teal.400' :
+                                      'yellow.400'
+                                    }
+                                    boxSize={4}
+                                  />
+                                </HStack>
+                              </CardBody>
+                            </Card>
+                          </Link>
+                        ))}
+                      </VStack>
+                    )}
+                  </VStack>
+                </CardBody>
+              </Card>
+            </Box>
           </SimpleGrid>
         </VStack>
       </Box>
