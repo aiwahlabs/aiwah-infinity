@@ -1,0 +1,21 @@
+/* Responsive constraints for screens less than 800px width or 500px height */
+@media (max-width: 799px), (max-height: 499px) {
+  /* Hide all content when JavaScript is disabled */
+  body > div {
+    display: none !important;
+  }
+  
+  /* Show a message when JavaScript is disabled */
+  body::before {
+    content: "This app requires a screen width of at least 800px and height of at least 500px.";
+    display: flex;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    color: white;
+    background-color: #171923;
+    font-family: var(--font-geist-sans), sans-serif;
+  }
+} 
