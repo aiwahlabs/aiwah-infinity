@@ -11,8 +11,8 @@ import {
 import {
   FiChevronDown,
 } from 'react-icons/fi';
-import { MarkdownRenderer } from './MarkdownRenderer';
-import { InlineLoading } from '@/components/ui';
+import { SimpleMarkdownRenderer } from './SimpleMarkdownRenderer';
+import { MessageStreamingLoading } from './loading';
 
 interface StreamingMessageProps {
   streamingContent: string;
@@ -29,7 +29,7 @@ const StreamingContent = React.memo(function StreamingContent({
   // Memoize the markdown rendering to prevent unnecessary re-renders
   const renderedContent = useMemo(() => {
     if (!content) return null;
-    return <MarkdownRenderer content={content} isStreaming={true} />;
+    return <SimpleMarkdownRenderer content={content} isStreaming={true} />;
   }, [content]);
 
   return (
@@ -37,14 +37,7 @@ const StreamingContent = React.memo(function StreamingContent({
       {renderedContent}
       {/* Typing indicator */}
       <HStack spacing={2} mt={2}>
-        <InlineLoading 
-          size="xs" 
-          message=""
-          spinnerProps={{ color: "brand.500" }}
-        />
-        <Text color="gray.400" fontSize="xs">
-          AI is typing...
-        </Text>
+        <MessageStreamingLoading />
       </HStack>
     </Box>
   );
@@ -72,11 +65,7 @@ const StreamingThinking = React.memo(function StreamingThinking({
           <Text color="purple.300" fontSize="xs" fontWeight="medium">
             Thoughts
           </Text>
-          <InlineLoading 
-            size="xs" 
-            message=""
-            spinnerProps={{ color: "purple.300" }}
-          />
+          <MessageStreamingLoading />
         </HStack>
         <Box
           as={FiChevronDown}
@@ -154,14 +143,7 @@ export const StreamingMessage = React.memo(function StreamingMessage({
 
           {/* Typing indicator */}
           <HStack spacing={3}>
-            <InlineLoading 
-              size="sm" 
-              message=""
-              spinnerProps={{ color: "brand.500", thickness: "2px" }}
-            />
-            <Text color="gray.400" fontSize="sm">
-              AI is thinking...
-            </Text>
+            <MessageStreamingLoading />
           </HStack>
         </Box>
 

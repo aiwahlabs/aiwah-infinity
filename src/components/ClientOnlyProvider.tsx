@@ -1,7 +1,6 @@
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
-import { LoadingScreen } from './LoadingScreen';
 
 interface ClientOnlyProps {
   children: ReactNode;
@@ -23,8 +22,10 @@ export function ClientOnly({ children, fallback }: ClientOnlyProps) {
     };
   }, []);
 
+  // For root layout usage, we need to always render children to prevent routing issues
+  // The mounting check is just for avoiding hydration mismatches, not for loading states
   if (!hasMounted) {
-    return fallback ? <>{fallback}</> : <LoadingScreen />;
+    return fallback ? <>{fallback}</> : <>{children}</>;
   }
 
   return <>{children}</>;

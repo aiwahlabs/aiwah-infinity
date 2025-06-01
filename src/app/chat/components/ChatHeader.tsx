@@ -13,7 +13,6 @@ import {
 import { FiCheck, FiX } from 'react-icons/fi';
 import { ChatConversation } from '../types';
 import { ModelSelector } from './ModelSelector';
-import { getChatService } from '@/lib/ai/chatService';
 
 interface ChatHeaderProps {
   conversation: ChatConversation;
@@ -134,7 +133,6 @@ export const ChatHeader = React.memo(function ChatHeader({
   onUpdateTitle
 }: ChatHeaderProps) {
   const toast = useToast();
-  const chatService = getChatService();
 
   const handleUpdateTitle = useCallback(async (newTitle: string) => {
     try {
@@ -145,7 +143,7 @@ export const ChatHeader = React.memo(function ChatHeader({
         duration: 2000,
         isClosable: true,
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Failed to rename conversation',
         status: 'error',

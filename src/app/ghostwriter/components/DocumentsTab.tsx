@@ -6,7 +6,7 @@ import { useDocumentsContext, DocumentStatus } from '@/hooks/documents';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { StatusBadge } from './StatusBadge';
-import { InlineLoading } from '@/components/ui';
+import { DocumentsTabLoading } from './loading';
 
 export function DocumentsTab() {
   const router = useRouter();
@@ -168,9 +168,7 @@ export function DocumentsTab() {
           
           {/* Document List */}
           {loading ? (
-            <Flex justify="center" align="center" p={10}>
-              <InlineLoading />
-            </Flex>
+            <DocumentsTabLoading />
           ) : error ? (
             <Box textAlign="center" p={6} color="red.400">
               <Text>Error loading documents. Please try again.</Text>

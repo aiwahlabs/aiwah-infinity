@@ -13,6 +13,17 @@ export {
   withLoading,
 } from './Loading';
 
+export {
+  CardSkeleton,
+  ListSkeleton,
+  InlineSkeleton,
+  TableSkeleton,
+  ProfileSkeleton,
+  DashboardSkeleton,
+  ChatSkeleton,
+  SidebarSkeleton,
+} from './skeletons';
+
 export type {
   LoadingProps,
   LoadingVariant,

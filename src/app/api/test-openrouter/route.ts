@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getChatService } from '@/lib/ai/chatService';
 
 export async function GET() {

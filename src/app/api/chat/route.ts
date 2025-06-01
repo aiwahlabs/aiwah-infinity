@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getOpenRouterClient, OpenRouterMessage, OpenRouterModel, OPENROUTER_MODELS } from '@/lib/openrouter';
+import { getOpenRouterClient, OpenRouterMessage, OpenRouterModel } from '@/lib/openrouter';
 
 export async function POST(request: NextRequest) {
   try {

@@ -10,10 +10,8 @@ import {
   IconButton,
   Flex,
   Icon,
-  Spinner,
   Center,
   useToast,
-  HStack,
   InputGroup,
   InputLeftElement,
 } from '@chakra-ui/react';
@@ -21,6 +19,7 @@ import { FiPlus, FiSearch, FiTrash2 } from 'react-icons/fi';
 import { useState, useCallback } from 'react';
 import { useChatContext } from '@/hooks/chat';
 import { ChatConversation } from '../types';
+import { ConversationSidebarLoading } from './loading';
 
 interface ConversationSidebarProps {
   onSelectConversation: (conversation: ChatConversation) => void;
@@ -33,8 +32,7 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
     loading,
     createConversation,
     deleteConversation,
-    updateFilter,
-    filter
+    updateFilter
   } = useChatContext();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,7 +54,7 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
           isClosable: true,
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Failed to create conversation',
         status: 'error',
@@ -162,9 +160,7 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
       {/* Conversations List */}
       <Box flex="1" overflowY="auto" px={4} pb={4}>
         {loading ? (
-          <Center py={8}>
-            <Spinner color="teal.400" size="md" />
-          </Center>
+          <ConversationSidebarLoading />
         ) : conversations.length === 0 ? (
           <Center py={8}>
             <VStack spacing={3} textAlign="center">

@@ -1,4 +1,4 @@
-import { OpenRouterMessage, OpenRouterModel, OPENROUTER_MODELS, MODEL_INFO, getOpenRouterClient } from '@/lib/openrouter';
+import { OpenRouterMessage, OpenRouterModel, OpenRouterResponse, OPENROUTER_MODELS, MODEL_INFO, getOpenRouterClient } from '@/lib/openrouter';
 import { ChatMessage } from '@/app/chat/types';
 
 export interface ChatServiceOptions {
@@ -61,7 +61,7 @@ export class ChatService {
     return openRouterMessages;
   }
 
-  private extractResponseContent(response: any, model: OpenRouterModel): ChatResponse {
+  private extractResponseContent(response: OpenRouterResponse, model: OpenRouterModel): ChatResponse {
     const choice = response.choices?.[0];
     if (!choice) return { content: 'No response generated' };
 

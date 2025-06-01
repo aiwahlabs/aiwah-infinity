@@ -8,12 +8,12 @@ import {
   Spinner,
   Text,
   Portal,
-  useTheme,
   SpinnerProps,
   BoxProps,
   TextProps,
 } from '@chakra-ui/react';
 import { colors } from '@/components/theme';
+import { CardSkeleton, ListSkeleton, InlineSkeleton, TableSkeleton, ProfileSkeleton, DashboardSkeleton, ChatSkeleton, SidebarSkeleton } from './skeletons';
 
 // Loading variant types
 export type LoadingVariant = 
@@ -82,6 +82,18 @@ export interface LoadingProps {
   
   /** Disable backdrop blur for performance */
   disableBlur?: boolean;
+  
+  /** Skeleton variant */
+  skeletonVariant?: 'card' | 'list' | 'inline' | 'table' | 'profile' | 'dashboard' | 'chat' | 'sidebar';
+  
+  /** Skeleton count */
+  skeletonCount?: number;
+  
+  /** Skeleton rows */
+  skeletonRows?: number;
+  
+  /** Skeleton columns */
+  skeletonColumns?: number;
 }
 
 // Variant configurations
@@ -152,7 +164,7 @@ const variantConfig = {
 
 // Background styles
 const backgroundStyles = {
-  none: {} as any,
+  none: {} as Record<string, unknown>,
   transparent: {
     bg: 'transparent',
   },
@@ -197,8 +209,35 @@ export function Loading({
   usePortal,
   overlayOpacity,
   disableBlur = false,
+  skeletonVariant,
+  skeletonCount = 3,
+  skeletonRows = 5,
+  skeletonColumns = 4,
   ...props
 }: LoadingProps) {
+  if (skeletonVariant) {
+    switch (skeletonVariant) {
+      case 'card':
+        return <CardSkeleton />;
+      case 'list':
+        return <ListSkeleton count={skeletonCount} />;
+      case 'inline':
+        return <InlineSkeleton />;
+      case 'table':
+        return <TableSkeleton rows={skeletonRows} columns={skeletonColumns} />;
+      case 'profile':
+        return <ProfileSkeleton />;
+      case 'dashboard':
+        return <DashboardSkeleton />;
+      case 'chat':
+        return <ChatSkeleton />;
+      case 'sidebar':
+        return <SidebarSkeleton />;
+      default:
+        return null;
+    }
+  }
+  
   // Don't render if not loading
   if (!isLoading) return null;
   

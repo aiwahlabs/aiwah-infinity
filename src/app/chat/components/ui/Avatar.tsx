@@ -7,7 +7,6 @@ import {
   Box,
   AvatarBadge,
 } from '@chakra-ui/react';
-import { designTokens } from '../../design/tokens';
 
 export interface AvatarProps extends Omit<ChakraAvatarProps, 'size'> {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
@@ -40,7 +39,7 @@ const variantStyles = {
     color: 'white',
   },
   glow: {
-    boxShadow: designTokens.shadows.glow,
+    boxShadow: 'lg',
     border: '2px solid',
     borderColor: 'brand.500',
   },
@@ -93,7 +92,7 @@ export const Avatar = forwardRef<HTMLSpanElement, AvatarProps>(
           _hover={{
             transform: 'scale(1.05)',
             ...(variant === 'glow' && {
-              boxShadow: designTokens.shadows['glow-lg'],
+              boxShadow: 'xl',
             }),
           }}
           {...props}

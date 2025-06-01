@@ -7,7 +7,6 @@ import {
   Text,
   IconButton,
   HStack,
-  VStack,
   useClipboard,
   useToast,
   Divider,
@@ -19,7 +18,7 @@ import {
   FiChevronUp,
 } from 'react-icons/fi';
 import { ChatMessage } from '../types';
-import { MarkdownRenderer } from './MarkdownRenderer';
+import { SimpleMarkdownRenderer } from './SimpleMarkdownRenderer';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -33,7 +32,7 @@ export const MessageBubble = React.memo(function MessageBubble({
   isStreaming = false,
 }: MessageBubbleProps) {
   const [showThoughts, setShowThoughts] = useState(false);
-  const { onCopy, hasCopied } = useClipboard(message.content);
+  const { onCopy } = useClipboard(message.content);
   const toast = useToast();
 
   const isUser = message.role === 'user';
@@ -130,7 +129,7 @@ export const MessageBubble = React.memo(function MessageBubble({
 
         {/* Message content */}
         <Box color={isUser ? "gray.400" : "white"}>
-          <MarkdownRenderer
+          <SimpleMarkdownRenderer
             content={message.content}
             isStreaming={isStreaming}
           />

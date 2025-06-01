@@ -26,7 +26,7 @@ import { FiFileText, FiCheckCircle, FiXCircle, FiClock, FiTrendingUp, FiPlusCirc
 import { useDocumentsContext } from '@/hooks/documents';
 import { Document, DocumentStatus } from '@/hooks/documents/types';
 import Link from 'next/link';
-import { PageLoading } from '@/components/ui';
+import { DashboardOverviewLoading } from './loading';
 
 export const DashboardOverview = () => {
   const { statsLoading, documents } = useDocumentsContext();
@@ -88,13 +88,7 @@ export const DashboardOverview = () => {
   }, [statsLoading, documents]);
 
   if (statsLoading) {
-    return (
-      <PageLoading 
-        message="Loading dashboard data..."
-        size="md"
-        minHeight="60vh"
-      />
-    );
+    return <DashboardOverviewLoading />;
   }
 
   const getStatusColor = (status: DocumentStatus | null) => {

@@ -7,12 +7,9 @@ import React from 'react';
 import { Box, Button, Card, CardBody, VStack, Text } from '@chakra-ui/react';
 import {
   Loading,
-  FullScreenLoading,
   PageLoading,
   CardLoading,
   InlineLoading,
-  ButtonLoading,
-  ModalLoading,
   WidgetLoading,
   useLoading,
   withLoading,

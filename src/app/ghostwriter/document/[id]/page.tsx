@@ -23,13 +23,11 @@ import {
   Card,
   CardBody,
   Icon,
-  FormControl,
-  FormLabel,
   Center
 } from '@chakra-ui/react';
 import { FiArrowLeft, FiCheckCircle, FiXCircle, FiTrash2, FiSave, FiInfo } from 'react-icons/fi';
 import { AuthGuard } from '@/components/AuthGuard';
-import { PageLoading } from '@/components/ui';
+import { DocumentDetailLoading } from '../../components/loading';
 
 // Define document status options
 const statusOptions = [
@@ -278,13 +276,7 @@ export default function DocumentDetail() {
   };
   
   if (loading) {
-    return (
-      <PageLoading 
-        message="Loading document..."
-        size="lg"
-        minHeight="50vh"
-      />
-    );
+    return <DocumentDetailLoading />;
   }
   
   if (error || (!document && !isNewDoc)) {
@@ -307,7 +299,7 @@ export default function DocumentDetail() {
   }
   
   return (
-    <AuthGuard preserveLayout={true}>
+    <AuthGuard>
       <Container maxW="container.xl" py={6}>
         {/* Header with Title and Action Buttons */}
         <Box mb={6}>

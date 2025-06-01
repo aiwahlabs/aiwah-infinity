@@ -5,16 +5,10 @@ import {
   Box,
   VStack,
   Center,
-  Spinner,
   useToast,
-  Flex,
   Text,
-  HStack,
-  IconButton,
-  Tooltip,
   Divider,
 } from '@chakra-ui/react';
-import { FiRefreshCw } from 'react-icons/fi';
 import { ChatMessage, ChatConversation } from '../types';
 import { useChatContext } from '@/hooks/chat/useChatContext';
 import { useChatStream } from '../hooks/useChatStream';
@@ -22,9 +16,7 @@ import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
 import { StreamingMessage } from './StreamingMessage';
 import { ChatInput } from './ChatInput';
-import { Card } from './ui';
-import { designTokens } from '../design/tokens';
-import { InlineLoading } from '@/components/ui';
+import { ChatInterfaceLoading } from './loading';
 
 interface ChatInterfaceProps {
   conversation: ChatConversation | null;
@@ -159,17 +151,6 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     await updateConversation(activeConversation.id, { title: newTitle });
   }, [activeConversation, updateConversation]);
 
-  const handleRefreshConversation = useCallback(() => {
-    if (activeConversation?.id) {
-      loadMessages(activeConversation.id);
-      toast({
-        title: 'Conversation refreshed',
-        status: 'success',
-        duration: 2000,
-      });
-    }
-  }, [activeConversation, loadMessages, toast]);
-
   if (!activeConversation) {
     return (
       <Box h="100%" display="flex" flexDirection="column" bg="gray.800">
@@ -210,9 +191,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
       >
         <Box p={4} maxW="4xl" mx="auto">
           {loading ? (
-            <Center h="400px">
-              <InlineLoading />
-            </Center>
+            <ChatInterfaceLoading />
           ) : (
             <VStack spacing={0} align="stretch">
               {/* Messages */}
@@ -223,7 +202,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
                       Start a conversation
                     </Text>
                     <Text color="gray.400">
-                      Ask me anything! I'm here to help.
+                      Ask me anything! I&apos;m here to help.
                     </Text>
                   </VStack>
                 </Center>

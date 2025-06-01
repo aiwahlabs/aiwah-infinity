@@ -5,7 +5,7 @@ export interface ChatConversation {
   created_at: string;
   updated_at: string;
   is_archived: boolean;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export interface ChatMessage {
@@ -15,7 +15,7 @@ export interface ChatMessage {
   content: string;
   thinking?: string;
   created_at: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export interface ChatFilter {
@@ -26,7 +26,7 @@ export interface ChatFilter {
 
 export interface CreateConversationData {
   title?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CreateMessageData {
@@ -34,5 +34,5 @@ export interface CreateMessageData {
   role: 'user' | 'assistant' | 'system';
   content: string;
   thinking?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 } 

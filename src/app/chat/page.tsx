@@ -12,7 +12,7 @@ import { ChatInterface } from './components/ChatInterface';
 import { ConversationSidebar } from './components/ConversationSidebar';
 import { useChatContext } from '@/hooks/chat/useChatContext';
 import { AuthGuard } from '@/components/AuthGuard';
-import { PageLoading } from '@/components/ui';
+import { ChatPageLoading } from './components/loading';
 
 // Main chat page component
 export default function ChatPage() {
@@ -20,14 +20,14 @@ export default function ChatPage() {
   const [sidebarWidth, setSidebarWidth] = useState(320);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize after a short delay to prevent flash
+  // Initialize after a longer delay to prevent flash
   useEffect(() => {
-    const timer = setTimeout(() => setIsInitialized(true), 100);
+    const timer = setTimeout(() => setIsInitialized(true), 250);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <AuthGuard preserveLayout={true}>
+    <AuthGuard>
       {/* Show error state if there's an authentication or loading error */}
       {error ? (
         <VStack spacing={4} h="100%" justify="center" align="center" p={8}>
@@ -48,10 +48,7 @@ export default function ChatPage() {
           </Button>
         </VStack>
       ) : (loading || !isInitialized) ? (
-        <PageLoading 
-          message="Loading chat interface..."
-          size="lg"
-        />
+        <ChatPageLoading />
       ) : (
         <Flex h="100%">
           {/* Sidebar */}

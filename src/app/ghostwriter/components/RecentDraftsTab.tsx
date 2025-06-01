@@ -6,6 +6,7 @@ import { useDocumentsContext } from '@/hooks/documents';
 import { Document } from '@/hooks/documents/types';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { RecentDraftsLoading } from './loading';
 
 export function RecentDraftsTab() {
   const router = useRouter();
@@ -182,9 +183,7 @@ export function RecentDraftsTab() {
       <Text color="gray.400" mb={6}>Review and manage draft documents</Text>
       
       {statsLoading ? (
-        <Box textAlign="center" p={10} color="gray.400">
-          <Text>Loading drafts...</Text>
-        </Box>
+        <RecentDraftsLoading />
       ) : (
         <Card bg="gray.800" borderColor="gray.700">
           <CardHeader>
