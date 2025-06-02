@@ -72,7 +72,7 @@ export const ChatInput = React.memo(function ChatInput({
   const canSend = value.trim() && !disabled && !isStreaming && value.length <= maxLength;
 
   return (
-    <Flex align="flex-end" gap={3} bg="gray.800" p={4} borderRadius="md">
+    <Flex align="flex-end" gap={3} bg="gray.700" p={4} borderRadius="md" border="1px solid" borderColor="gray.600">
       {/* Text input */}
       <Box flex="1">
         <Textarea
@@ -84,18 +84,18 @@ export const ChatInput = React.memo(function ChatInput({
           resize="none"
           minH="40px"
           maxH="200px"
-          bg="transparent"
+          bg="gray.800"
           border="1px solid"
           borderColor="gray.600"
-          color="white"
+          color="gray.100"
           textStyle="body"
-          lineHeight="1.5"
+          lineHeight="1.6"
           borderRadius="md"
           _placeholder={{ color: 'gray.400' }}
           _focus={{
             outline: 'none',
             boxShadow: 'none',
-            borderColor: 'teal.400',
+            borderColor: 'brand.400',
           }}
           _hover={{
             borderColor: 'gray.500',
@@ -109,20 +109,29 @@ export const ChatInput = React.memo(function ChatInput({
         <IconButton
           aria-label="Stop"
           icon={<FiStopCircle />}
-          colorScheme="red"
+          bg="error.500"
+          color="white"
           variant="solid"
           size="sm"
           onClick={onCancel}
+          _hover={{ bg: "error.600" }}
         />
       ) : (
         <IconButton
           aria-label="Send"
           icon={<FiSend />}
-          colorScheme="teal"
+          bg="brand.500"
+          color="white"
           variant="solid"
           size="sm"
           onClick={onSend}
           disabled={!canSend}
+          _hover={{ bg: "brand.600" }}
+          _disabled={{ 
+            bg: "gray.600", 
+            color: "gray.400",
+            cursor: "not-allowed"
+          }}
         />
       )}
     </Flex>

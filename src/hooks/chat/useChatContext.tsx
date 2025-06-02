@@ -20,6 +20,7 @@ interface ChatContextType {
   createMessage: (data: CreateMessageData) => Promise<ChatMessage | null>;
   updateConversation: (id: number, updates: Partial<ChatConversation>) => Promise<boolean>;
   deleteConversation: (id: number) => Promise<boolean>;
+  deleteMessage: (messageId: number) => Promise<boolean>;
   setCurrentConversation: (conversation: ChatConversation | null) => void;
   updateFilter: (newFilter: Partial<ChatFilter>) => void;
   refreshConversations: () => Promise<void>;
@@ -275,6 +276,50 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [supabase, currentConversation?.id]);
 
+  const deleteMessage = useCallback(async (messageId: number): Promise<boolean> => {
+    try {
+      setError(null);
+
+      const { error: deleteError } = await supabase
+        .from('chat_messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (deleteError) throw deleteError;
+
+      // Update messages list immediately without reload
+      setMessages(prev => prev.filter(message => message.id !== messageId));
+
+      // Update conversation's updated_at timestamp
+      const updatedAt = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from('chat_conversations')
+        .update({ updated_at: updatedAt })
+        .eq('id', currentConversation?.id);
+
+      if (updateError) {
+        console.warn('Failed to update conversation timestamp:', updateError);
+        // Don't throw here as the message was deleted successfully
+      }
+
+      // Update the conversation in the list
+      setConversations(prev => 
+        prev.map(conv => 
+          conv.id === currentConversation?.id 
+            ? { ...conv, updated_at: updatedAt }
+            : conv
+        ).sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      );
+
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : `Unknown error: ${JSON.stringify(err)}`;
+      setError(errorMessage);
+      console.error('Error deleting message:', errorMessage, err);
+      return false;
+    }
+  }, [supabase, currentConversation?.id]);
+
   const updateFilter = useCallback((newFilter: Partial<ChatFilter>) => {
     setFilter(prev => ({ ...prev, ...newFilter }));
   }, []);
@@ -302,6 +347,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     createMessage,
     updateConversation,
     deleteConversation,
+    deleteMessage,
     setCurrentConversation,
     updateFilter,
     refreshConversations
@@ -319,6 +365,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     createMessage,
     updateConversation,
     deleteConversation,
+    deleteMessage,
+    setCurrentConversation,
     updateFilter,
     refreshConversations
   ]);

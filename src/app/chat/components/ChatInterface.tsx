@@ -11,10 +11,10 @@ import {
 } from '@chakra-ui/react';
 import { ChatMessage, ChatConversation } from '../types';
 import { useChatContext } from '@/hooks/chat/useChatContext';
-import { useChatStream } from '../hooks/useChatStream';
+import { useAsyncChat } from '@/hooks/chat/useAsyncChat';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
-import { StreamingMessage } from './StreamingMessage';
+import { AsyncProcessingIndicator } from './AsyncProcessingIndicator';
 import { ChatInput } from './ChatInput';
 
 
@@ -32,15 +32,15 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     loadMessages 
   } = useChatContext();
   
-  const {
-    streamState,
-    sendMessage,
-    cancelStream,
-    resetStream,
-  } = useChatStream();
-  
   // Use currentConversation from context with fallback to prop
   const activeConversation = currentConversation || conversation;
+  
+  const {
+    sendMessage: sendAsyncMessage,
+    isProcessing,
+    error: asyncError,
+    clearError,
+  } = useAsyncChat(activeConversation?.id);
   
   const [inputValue, setInputValue] = useState('');
   const [sending, setSending] = useState(false);
@@ -51,14 +51,27 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
   useEffect(() => {
     if (activeConversation?.id) {
       loadMessages(activeConversation.id);
-      resetStream();
     }
-  }, [activeConversation?.id, loadMessages, resetStream]);
+  }, [activeConversation?.id, loadMessages]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive or processing state changes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamState.streamingContent, streamState.streamingThinking]);
+  }, [messages, isProcessing]);
+
+  // Show error toast when async error occurs
+  useEffect(() => {
+    if (asyncError) {
+      toast({
+        title: 'Error processing message',
+        description: asyncError,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        onCloseComplete: clearError,
+      });
+    }
+  }, [asyncError, toast, clearError]);
 
   // Format message timestamp with relative time
   const formatMessageTime = useCallback((dateStr: string) => {
@@ -85,56 +98,29 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     }
   }, []);
 
-  // Handle sending messages
+  // Handle sending messages with async processing
   const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim() || sending || streamState.isStreaming || !activeConversation) return;
+    if (!inputValue.trim() || sending || isProcessing || !activeConversation) return;
 
     const userMessage = inputValue.trim();
     setInputValue('');
     setSending(true);
 
     try {
-      // Add user message to database
-      const userMessageData = await createMessage({
-        conversation_id: activeConversation.id,
-        role: 'user',
-        content: userMessage,
-      });
-
-      if (!userMessageData) {
-        throw new Error('Failed to create user message');
-      }
-
-      // Get all messages for context (including the new user message)
-      const allMessages = [...messages, userMessageData];
+      // Send message and trigger async processing
+      await sendAsyncMessage(activeConversation.id, userMessage);
       
-      // Send message with streaming
-      await sendMessage(allMessages, {
-        onComplete: async (finalContent: string, finalThinking?: string) => {
-          // Save the complete AI response to database
-          if (finalContent.trim()) {
-            await createMessage({
-              conversation_id: activeConversation.id,
-              role: 'assistant',
-              content: finalContent,
-              thinking: finalThinking || undefined,
-            });
-          }
-        },
-        onError: (error: string) => {
-          toast({
-            title: 'Error sending message',
-            description: error,
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-          });
-        }
-      });
+      // Message was sent successfully - the async hook will handle real-time updates
+      console.log('Message sent for async processing');
+      
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Restore input value on error so user doesn't lose their message
+      setInputValue(userMessage);
+      
       toast({
-        title: 'Error sending message',
+        title: 'Failed to send message',
         description: error instanceof Error ? error.message : 'Please try again',
         status: 'error',
         duration: 5000,
@@ -143,7 +129,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     } finally {
       setSending(false);
     }
-  }, [inputValue, sending, streamState.isStreaming, activeConversation, createMessage, messages, sendMessage, toast]);
+  }, [inputValue, sending, isProcessing, activeConversation, sendAsyncMessage, toast]);
 
   // Handle updating conversation title
   const handleUpdateTitle = useCallback(async (newTitle: string) => {
@@ -151,15 +137,21 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     await updateConversation(activeConversation.id, { title: newTitle });
   }, [activeConversation, updateConversation]);
 
+  // Handle canceling processing (placeholder for future enhancement)
+  const handleCancel = useCallback(() => {
+    // TODO: Implement task cancellation via API if needed
+    console.log('Cancel processing requested');
+  }, []);
+
   if (!activeConversation) {
     return (
       <Box h="100%" display="flex" flexDirection="column" bg="gray.800">
         <Center h="100%">
           <VStack spacing={4} textAlign="center" maxW="md">
-            <Text textStyle="page-title" fontWeight="medium">
+            <Text textStyle="section-heading" fontWeight="medium" color="gray.100">
               Welcome to AI Chat
             </Text>
-            <Text textStyle="body">
+            <Text textStyle="body" color="gray.300">
               Select a conversation from the sidebar or create a new one to get started.
             </Text>
           </VStack>
@@ -195,10 +187,10 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
               {messages.length === 0 ? (
                 <Center py={20}>
                   <VStack spacing={3} textAlign="center">
-                    <Text textStyle="section-heading" fontWeight="medium">
+                    <Text textStyle="section-heading" fontWeight="medium" color="gray.100">
                       Start a conversation
                     </Text>
-                    <Text textStyle="body">
+                    <Text textStyle="body" color="gray.300">
                       Ask me anything! I&apos;m here to help.
                     </Text>
                   </VStack>
@@ -213,26 +205,11 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
                 ))
               )}
               
-              {/* Streaming AI response */}
-              <StreamingMessage
-                streamingContent={streamState.streamingContent}
-                streamingThinking={streamState.streamingThinking}
-                botTyping={streamState.isStreaming}
+              {/* Async processing indicator */}
+              <AsyncProcessingIndicator
+                isProcessing={isProcessing}
+                error={asyncError}
               />
-              
-              {/* Error state */}
-              {streamState.error && (
-                <Box>
-                  <Box py={4}>
-                    <Box p={3} bg="red.900" borderRadius="md" border="1px solid" borderColor="red.700">
-                      <Text color="red.200" textStyle="body">
-                        {streamState.error}
-                      </Text>
-                    </Box>
-                  </Box>
-                  <Divider borderColor="gray.700" />
-                </Box>
-              )}
               
               <div ref={messagesEndRef} />
             </VStack>
@@ -250,9 +227,9 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
             value={inputValue}
             onChange={setInputValue}
             onSend={handleSendMessage}
-            onCancel={cancelStream}
-            disabled={sending}
-            isStreaming={streamState.isStreaming}
+            onCancel={handleCancel}
+            disabled={sending || loading}
+            isStreaming={isProcessing}
             placeholder="Ask me anything..."
           />
         </Box>

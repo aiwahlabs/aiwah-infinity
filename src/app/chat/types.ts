@@ -16,6 +16,7 @@ export interface ChatMessage {
   thinking?: string;
   created_at: string;
   metadata: Record<string, unknown>;
+  async_task_id?: number; // For linking to async processing tasks
 }
 
 export interface ChatFilter {

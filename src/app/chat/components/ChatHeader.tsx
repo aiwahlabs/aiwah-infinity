@@ -9,7 +9,6 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { ChatConversation } from '../types';
-import { ModelSelector } from './ModelSelector';
 
 interface ChatHeaderProps {
   conversation: ChatConversation;
@@ -147,14 +146,11 @@ export const ChatHeader = React.memo(function ChatHeader({
       borderColor="gray.600"
       bg="gray.800"
     >
-      <Flex align="center" justify="space-between">
-        <Box flex="1">
-          <EditableTitle
-            value={conversation.title || 'Untitled Conversation'}
-            onSave={handleUpdateTitle}
-          />
-        </Box>
-        <ModelSelector />
+      <Flex align="center">
+        <EditableTitle
+          value={conversation.title || 'Untitled Conversation'}
+          onSave={handleUpdateTitle}
+        />
       </Flex>
     </Box>
   );

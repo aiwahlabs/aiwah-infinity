@@ -16,9 +16,11 @@ import {
   FiCopy,
   FiChevronDown,
   FiChevronUp,
+  FiTrash2,
 } from 'react-icons/fi';
 import { ChatMessage } from '../types';
-import { SimpleMarkdownRenderer } from './SimpleMarkdownRenderer';
+import { MessageStatusIndicator } from './AsyncProcessingIndicator';
+import { useChatContext } from '@/hooks/chat/useChatContext';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -33,6 +35,7 @@ export const MessageBubble = React.memo(function MessageBubble({
 }: MessageBubbleProps) {
   const [showThoughts, setShowThoughts] = useState(false);
   const { onCopy } = useClipboard(message.content);
+  const { deleteMessage } = useChatContext();
   const toast = useToast();
 
   const isUser = message.role === 'user';
@@ -49,6 +52,25 @@ export const MessageBubble = React.memo(function MessageBubble({
     });
   }, [onCopy, toast]);
 
+  const handleDelete = useCallback(async () => {
+    const success = await deleteMessage(message.id);
+    if (success) {
+      toast({
+        title: 'Message deleted',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } else {
+      toast({
+        title: 'Failed to delete message',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  }, [deleteMessage, message.id, toast]);
+
   return (
     <Box>
       {/* Message row */}
@@ -56,9 +78,9 @@ export const MessageBubble = React.memo(function MessageBubble({
         {/* Message header */}
         <Flex justify="space-between" align="center" mb={3}>
           <Text
-            textStyle="card-title"
+            textStyle="caption"
             fontWeight="medium"
-            color={isUser ? "gray.500" : "gray.300"}
+            color={isUser ? "gray.400" : "brand.400"}
           >
             {isUser ? 'You' : 'AI Assistant'}
           </Text>
@@ -73,7 +95,17 @@ export const MessageBubble = React.memo(function MessageBubble({
               size="xs"
               variant="ghost"
               color="gray.500"
+              _hover={{ color: "gray.300" }}
               onClick={handleCopy}
+            />
+            <IconButton
+              aria-label="Delete message"
+              icon={<FiTrash2 />}
+              size="xs"
+              variant="ghost"
+              color="gray.500"
+              _hover={{ color: "error.500" }}
+              onClick={handleDelete}
             />
           </HStack>
         </Flex>
@@ -95,12 +127,12 @@ export const MessageBubble = React.memo(function MessageBubble({
               _hover={{ bg: "gray.600" }}
               transition="background-color 0.2s"
             >
-              <Text color="purple.300" textStyle="caption" fontWeight="medium">
+              <Text color="brand.300" textStyle="caption" fontWeight="medium">
                 Thoughts
               </Text>
               <Box
                 as={showThoughts ? FiChevronUp : FiChevronDown}
-                color="purple.300"
+                color="brand.300"
                 fontSize="12px"
               />
             </Flex>
@@ -127,11 +159,22 @@ export const MessageBubble = React.memo(function MessageBubble({
         )}
 
         {/* Message content */}
-        <Box color={isUser ? "gray.400" : "white"}>
-          <SimpleMarkdownRenderer
-            content={message.content}
-            isStreaming={isStreaming}
-          />
+        <Box color={isUser ? "gray.300" : "gray.100"}>
+          <Text 
+            textStyle="body"
+            whiteSpace="pre-wrap"
+            lineHeight="1.6"
+          >
+            {message.content}
+          </Text>
+          
+          {/* Show processing status for assistant messages with async tasks */}
+          {isAssistant && message.async_task_id && (
+            <MessageStatusIndicator
+              status={message.content === 'AI is processing your message...' ? 'processing' : 'completed'}
+              statusMessage={message.content === 'AI is processing your message...' ? 'Processing your request...' : undefined}
+            />
+          )}
         </Box>
       </Box>
 
