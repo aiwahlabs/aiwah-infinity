@@ -9,14 +9,15 @@ import {
   HStack,
   useClipboard,
   useToast,
-  Divider,
   Collapse,
+  Badge,
 } from '@chakra-ui/react';
 import {
   FiCopy,
   FiChevronDown,
   FiChevronUp,
   FiTrash2,
+  FiZap,
 } from 'react-icons/fi';
 import { ChatMessage } from '../types';
 import { MessageStatusIndicator } from './AsyncProcessingIndicator';
@@ -72,114 +73,130 @@ export const MessageBubble = React.memo(function MessageBubble({
   }, [deleteMessage, message.id, toast]);
 
   return (
-    <Box>
-      {/* Message row */}
-      <Box py={4}>
-        {/* Message header */}
-        <Flex justify="space-between" align="center" mb={3}>
-          <Text
-            textStyle="caption"
-            fontWeight="medium"
-            color={isUser ? "gray.400" : "brand.400"}
+    <Box py={6}>
+      {/* Message header */}
+      <Flex justify="space-between" align="center" mb={4}>
+        <HStack spacing={3}>
+          <Badge
+            variant="outline"
+            colorScheme={isUser ? "gray" : "brand"}
+            fontSize="xs"
+            fontWeight="500"
+            px={2}
+            py={1}
           >
             {isUser ? 'You' : 'AI Assistant'}
-          </Text>
+          </Badge>
           
-          <HStack spacing={2}>
-            <Text textStyle="caption" color="gray.500">
-              {formatTime(message.created_at)}
-            </Text>
-            <IconButton
-              aria-label="Copy message"
-              icon={<FiCopy />}
-              size="xs"
-              variant="ghost"
-              color="gray.500"
-              _hover={{ color: "gray.300" }}
-              onClick={handleCopy}
-            />
-            <IconButton
-              aria-label="Delete message"
-              icon={<FiTrash2 />}
-              size="xs"
-              variant="ghost"
-              color="gray.500"
-              _hover={{ color: "error.500" }}
-              onClick={handleDelete}
-            />
-          </HStack>
-        </Flex>
+          <Text textStyle="caption" color="gray.500">
+            {formatTime(message.created_at)}
+          </Text>
+        </HStack>
+        
+        <HStack spacing={1}>
+          <IconButton
+            aria-label="Copy message"
+            icon={<FiCopy />}
+            size="sm"
+            variant="ghost"
+            color="gray.500"
+            _hover={{ color: "gray.300", bg: "gray.800" }}
+            onClick={handleCopy}
+          />
+          <IconButton
+            aria-label="Delete message"
+            icon={<FiTrash2 />}
+            size="sm"
+            variant="ghost"
+            color="gray.500"
+            _hover={{ color: "red.400", bg: "gray.800" }}
+            onClick={handleDelete}
+          />
+        </HStack>
+      </Flex>
 
-        {/* Thinking content (for assistant messages) */}
-        {hasThinking && (
-          <Box mb={4}>
-            <Flex 
-              align="center" 
-              justify="space-between"
-              cursor="pointer"
-              onClick={() => setShowThoughts(!showThoughts)}
-              py={2}
-              px={3}
-              borderRadius="md"
-              bg="gray.700"
-              border="1px solid"
-              borderColor="gray.600"
-              _hover={{ bg: "gray.600" }}
-              transition="background-color 0.2s"
-            >
-              <Text color="brand.300" textStyle="caption" fontWeight="medium">
-                Thoughts
-              </Text>
+      {/* Thinking content (for assistant messages) */}
+      {hasThinking && (
+        <Box mb={4}>
+          <Box
+            cursor="pointer"
+            onClick={() => setShowThoughts(!showThoughts)}
+            p={3}
+            borderRadius="lg"
+            bg="gray.850"
+            border="1px solid"
+            borderColor="gray.700"
+            _hover={{ bg: "gray.800", borderColor: "gray.600" }}
+            transition="all 0.2s"
+          >
+            <Flex align="center" justify="space-between">
+              <HStack spacing={2}>
+                <Box as={FiZap} color="brand.400" boxSize={4} />
+                <Text color="brand.300" textStyle="caption" fontWeight="500">
+                  AI Thoughts
+                </Text>
+              </HStack>
               <Box
                 as={showThoughts ? FiChevronUp : FiChevronDown}
-                color="brand.300"
-                fontSize="12px"
+                color="brand.400"
+                boxSize={4}
               />
             </Flex>
-            
-            <Collapse in={showThoughts} animateOpacity>
-              <Box
-                bg="gray.800"
-                borderRadius="md"
-                p={3}
-                border="1px solid"
-                borderColor="gray.600"
-                mt={2}
-              >
-                <Text 
-                  textStyle="body"
-                  whiteSpace="pre-wrap"
-                  lineHeight="1.5"
-                >
-                  {message.thinking}
-                </Text>
-              </Box>
-            </Collapse>
           </Box>
-        )}
+          
+          <Collapse in={showThoughts} animateOpacity>
+            <Box
+              bg="gray.850"
+              borderRadius="lg"
+              p={4}
+              mt={2}
+              border="1px solid"
+              borderColor="gray.700"
+            >
+              <Text 
+                textStyle="body"
+                color="gray.300"
+                whiteSpace="pre-wrap"
+                lineHeight="1.6"
+                fontSize="sm"
+              >
+                {message.thinking}
+              </Text>
+            </Box>
+          </Collapse>
+        </Box>
+      )}
 
-        {/* Message content */}
-        <Box color={isUser ? "gray.300" : "gray.100"}>
+      {/* Message content */}
+      <Box>
+        <Box
+          p={4}
+          borderRadius="lg"
+          bg={isUser ? "gray.800" : "gray.850"}
+          border="1px solid"
+          borderColor={isUser ? "gray.700" : "gray.700"}
+          position="relative"
+        >
           <Text 
             textStyle="body"
+            color={isUser ? "gray.200" : "gray.100"}
             whiteSpace="pre-wrap"
-            lineHeight="1.6"
+            lineHeight="1.7"
           >
             {message.content}
           </Text>
           
           {/* Show processing status for assistant messages with async tasks */}
           {isAssistant && message.async_task_id && (
-            <MessageStatusIndicator
-              status={message.content === 'AI is processing your message...' ? 'processing' : 'completed'}
-              statusMessage={message.content === 'AI is processing your message...' ? 'Processing your request...' : undefined}
-            />
+            <Box mt={3}>
+              <MessageStatusIndicator
+                status={message.content === 'AI is processing your message...' ? 'processing' : 'completed'}
+                statusMessage={message.content === 'AI is processing your message...' ? 'Processing your request...' : undefined}
+              />
+            </Box>
           )}
         </Box>
       </Box>
-
-      {/* Separator */}
-      <Divider borderColor="gray.700" />
     </Box>
   );
 }); 

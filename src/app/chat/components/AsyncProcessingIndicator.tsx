@@ -7,7 +7,7 @@ import {
   Flex,
   Spinner,
   Icon,
-  Divider,
+  HStack,
 } from '@chakra-ui/react';
 import { FiClock, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 
@@ -30,42 +30,57 @@ export const AsyncProcessingIndicator = React.memo(function AsyncProcessingIndic
   // Error state
   if (error) {
     return (
-      <Box>
-        <Box py={4}>
-          <Flex align="center" p={3} bg="gray.700" borderRadius="md" border="1px solid" borderColor="error.600">
-            <Icon as={FiAlertCircle} color="error.500" mr={3} />
-            <Text color="error.500" textStyle="body">
-              {error}
-            </Text>
-          </Flex>
+      <Box py={6}>
+        <Box
+          p={4}
+          bg="red.950"
+          borderRadius="lg"
+          border="1px solid"
+          borderColor="red.800"
+        >
+          <HStack spacing={3}>
+            <Icon as={FiAlertCircle} color="red.400" boxSize={5} />
+            <Box>
+              <Text color="red.300" textStyle="body" fontWeight="500">
+                Processing Failed
+              </Text>
+              <Text color="red.400" textStyle="caption" mt={1}>
+                {error}
+              </Text>
+            </Box>
+          </HStack>
         </Box>
-        <Divider borderColor="gray.700" />
       </Box>
     );
   }
 
   // Processing state
   return (
-    <Box>
-      <Box py={4}>
-        <Flex align="center" p={3} bg="gray.700" borderRadius="md" border="1px solid" borderColor="gray.600">
-          <Spinner size="sm" color="brand.400" mr={3} />
-          <Box flex="1">
-            <Flex align="center">
-              <Icon as={FiClock} color="brand.400" mr={2} />
-              <Text color="gray.100" textStyle="body" fontWeight="medium">
-                AI is processing your message
+    <Box py={6}>
+      <Box
+        p={4}
+        bg="gray.850"
+        borderRadius="lg"
+        border="1px solid"
+        borderColor="gray.700"
+      >
+        <HStack spacing={3}>
+          <Spinner size="md" color="brand.400" thickness="3px" />
+          <Box>
+            <HStack spacing={2} mb={1}>
+              <Icon as={FiClock} color="brand.400" boxSize={4} />
+              <Text color="gray.200" textStyle="body" fontWeight="500">
+                AI is thinking...
               </Text>
-            </Flex>
+            </HStack>
             {statusMessage && (
-              <Text color="gray.300" textStyle="caption" mt={1} opacity={0.8}>
+              <Text color="gray.400" textStyle="caption">
                 {statusMessage}
               </Text>
             )}
           </Box>
-        </Flex>
+        </HStack>
       </Box>
-      <Divider borderColor="gray.700" />
     </Box>
   );
 });
@@ -90,11 +105,11 @@ export const MessageStatusIndicator = React.memo(function MessageStatusIndicator
     switch (status) {
       case 'pending':
       case 'processing':
-        return <Spinner size="xs" color="brand.400" />;
+        return <Spinner size="sm" color="brand.400" thickness="2px" />;
       case 'failed':
-        return <Icon as={FiAlertCircle} color="error.500" />;
+        return <Icon as={FiAlertCircle} color="red.400" boxSize={4} />;
       default:
-        return <Icon as={FiClock} color="gray.400" />;
+        return <Icon as={FiClock} color="gray.400" boxSize={4} />;
     }
   };
 
@@ -104,23 +119,37 @@ export const MessageStatusIndicator = React.memo(function MessageStatusIndicator
       case 'processing':
         return 'brand.400';
       case 'failed':
-        return 'error.500';
+        return 'red.400';
       default:
         return 'gray.400';
     }
   };
 
+  const getStatusText = () => {
+    if (statusMessage) return statusMessage;
+    
+    switch (status) {
+      case 'pending':
+        return 'Waiting to start...';
+      case 'processing':
+        return 'Processing...';
+      case 'failed':
+        return 'Failed to process';
+      default:
+        return status;
+    }
+  };
+
   return (
-    <Flex align="center" mt={2} opacity={0.7}>
+    <HStack spacing={2} opacity={0.8}>
       {getStatusIcon()}
       <Text 
         color={getStatusColor()} 
         textStyle="caption" 
-        ml={2}
         fontStyle="italic"
       >
-        {statusMessage || status}
+        {getStatusText()}
       </Text>
-    </Flex>
+    </HStack>
   );
 }); 

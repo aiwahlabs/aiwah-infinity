@@ -72,68 +72,86 @@ export const ChatInput = React.memo(function ChatInput({
   const canSend = value.trim() && !disabled && !isStreaming && value.length <= maxLength;
 
   return (
-    <Flex align="flex-end" gap={3} bg="gray.700" p={4} borderRadius="md" border="1px solid" borderColor="gray.600">
-      {/* Text input */}
-      <Box flex="1">
-        <Textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          resize="none"
-          minH="40px"
-          maxH="200px"
-          bg="gray.800"
-          border="1px solid"
-          borderColor="gray.600"
-          color="gray.100"
-          textStyle="body"
-          lineHeight="1.6"
-          borderRadius="md"
-          _placeholder={{ color: 'gray.400' }}
-          _focus={{
-            outline: 'none',
-            boxShadow: 'none',
-            borderColor: 'brand.400',
-          }}
-          _hover={{
-            borderColor: 'gray.500',
-          }}
-          disabled={disabled}
-        />
-      </Box>
+    <Box
+      bg="gray.800"
+      borderRadius="xl"
+      border="1px solid"
+      borderColor="gray.700"
+      p={4}
+      _focusWithin={{
+        borderColor: "brand.400",
+        boxShadow: "0 0 0 1px var(--chakra-colors-brand-400)"
+      }}
+      transition="all 0.2s"
+    >
+      <Flex align="flex-end" gap={3}>
+        {/* Text input */}
+        <Box flex="1">
+          <Textarea
+            ref={textareaRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            resize="none"
+            minH="40px"
+            maxH="200px"
+            bg="transparent"
+            border="none"
+            color="gray.100"
+            textStyle="body"
+            lineHeight="1.6"
+            _placeholder={{ color: 'gray.400' }}
+            _focus={{
+              outline: 'none',
+              boxShadow: 'none',
+            }}
+            disabled={disabled}
+          />
+        </Box>
 
-      {/* Send/Stop button */}
-      {isStreaming ? (
-        <IconButton
-          aria-label="Stop"
-          icon={<FiStopCircle />}
-          bg="error.500"
-          color="white"
-          variant="solid"
-          size="sm"
-          onClick={onCancel}
-          _hover={{ bg: "error.600" }}
-        />
-      ) : (
-        <IconButton
-          aria-label="Send"
-          icon={<FiSend />}
-          bg="brand.500"
-          color="white"
-          variant="solid"
-          size="sm"
-          onClick={onSend}
-          disabled={!canSend}
-          _hover={{ bg: "brand.600" }}
-          _disabled={{ 
-            bg: "gray.600", 
-            color: "gray.400",
-            cursor: "not-allowed"
-          }}
-        />
-      )}
-    </Flex>
+        {/* Send/Stop button */}
+        {isStreaming ? (
+          <IconButton
+            aria-label="Stop"
+            icon={<FiStopCircle />}
+            bg="red.500"
+            color="white"
+            variant="solid"
+            size="md"
+            borderRadius="lg"
+            onClick={onCancel}
+            _hover={{ bg: "red.600" }}
+            _active={{ bg: "red.700" }}
+          />
+        ) : (
+          <IconButton
+            aria-label="Send"
+            icon={<FiSend />}
+            bg={canSend ? "brand.500" : "gray.600"}
+            color="white"
+            variant="solid"
+            size="md"
+            borderRadius="lg"
+            onClick={onSend}
+            disabled={!canSend}
+            _hover={{ 
+              bg: canSend ? "brand.600" : "gray.600" 
+            }}
+            _active={{ 
+              bg: canSend ? "brand.700" : "gray.600" 
+            }}
+            _disabled={{ 
+              bg: "gray.600", 
+              color: "gray.400",
+              cursor: "not-allowed",
+              _hover: {
+                bg: "gray.600"
+              }
+            }}
+          />
+        )}
+      </Flex>
+    </Box>
   );
 }); 

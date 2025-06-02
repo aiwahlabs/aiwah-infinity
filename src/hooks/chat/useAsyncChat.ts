@@ -36,9 +36,39 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
 
   const supabase = supabaseBrowser();
 
-  // Subscribe to async_tasks realtime updates
+  // Check for existing pending/processing tasks on mount and subscribe to updates
   useEffect(() => {
     if (!conversationId) return;
+
+    // Check for existing pending/processing tasks
+    const checkExistingTasks = async () => {
+      try {
+        const { data: tasks, error } = await supabase
+          .from('async_tasks')
+          .select('id, status')
+          .eq('input_data->>conversation_id', conversationId.toString())
+          .in('status', ['pending', 'processing']);
+
+        if (error) {
+          console.error('Error checking existing tasks:', error);
+          return;
+        }
+
+        if (tasks && tasks.length > 0) {
+          const taskIds = tasks.map(task => task.id);
+          setActiveTasks(new Set(taskIds));
+          setIsProcessing(true);
+        } else {
+          // No active tasks, clear processing state
+          setActiveTasks(new Set());
+          setIsProcessing(false);
+        }
+      } catch (error) {
+        console.error('Error checking existing tasks:', error);
+      }
+    };
+
+    checkExistingTasks();
 
     const channel = supabase
       .channel(`async_tasks_conversation_${conversationId}`)
