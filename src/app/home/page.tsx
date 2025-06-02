@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Heading, Text, Card, CardBody, Icon, Flex, Container, VStack } from '@chakra-ui/react';
+import { Box, Heading, Text, Card, CardBody, Icon, Flex, VStack } from '@chakra-ui/react';
 import { FiFileText, FiMessageCircle } from 'react-icons/fi';
 import Link from 'next/link';
 import { AuthGuard } from '@/components/AuthGuard';

@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, Flex, Skeleton, SkeletonText, VStack, HStack } from '@chakra-ui/react';
+import { Box, Flex, Skeleton, VStack } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 import { AppHeader, BreadcrumbItem } from './AppHeader';
 import { Footer } from './Footer';

@@ -28,7 +28,6 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     messages, 
     loading, 
     updateConversation,
-    createMessage,
     loadMessages 
   } = useChatContext();
   
@@ -246,7 +245,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
                     Start a conversation
                   </Text>
                   <Text textStyle="body" color="gray.400" maxW="md">
-                    Ask me anything! I'm here to help with questions, creative tasks, problem-solving, and much more.
+                    Ask me anything! I&apos;m here to help with questions, creative tasks, problem-solving, and much more.
                   </Text>
                 </VStack>
               </Center>

@@ -29,7 +29,6 @@ export const ConversationSidebar = React.memo(function ConversationSidebar({ onS
   const {
     conversations,
     currentConversation,
-    loading,
     createConversation,
     deleteConversation,
     updateFilter

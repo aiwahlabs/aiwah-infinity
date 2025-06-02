@@ -23,7 +23,7 @@ import {
   Spinner,
   FormControl,
   FormLabel,
-  SimpleGrid
+  SimpleGrid,
 } from '@chakra-ui/react';
 import { FiCheckCircle, FiXCircle, FiTrash2, FiSave, FiFileText, FiInfo } from 'react-icons/fi';
 import { AuthGuard } from '@/components/AuthGuard';
@@ -270,7 +270,7 @@ export default function DocumentDetailPage() {
               <Icon as={FiInfo} boxSize={16} color="red.400" />
               <Heading textStyle="section-heading" color="red.400">Document Not Found</Heading>
               <Text textStyle="body" textAlign="center">
-                The document you're looking for doesn't exist or couldn't be loaded.
+                The document you are looking for does not exist or could not be loaded.
               </Text>
               <Button 
                 colorScheme="teal"

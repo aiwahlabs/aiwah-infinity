@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browser';
-import { ChatMessage } from '@/app/chat/types';
 
 interface AsyncTask {
   id: number;
@@ -80,6 +79,7 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
           table: 'async_tasks',
           filter: `input_data->>conversation_id=eq.${conversationId}`
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async (payload: any) => {
           const task = payload.new as AsyncTask;
           

@@ -32,7 +32,6 @@ interface MessageBubbleProps {
 export const MessageBubble = React.memo(function MessageBubble({
   message,
   formatTime,
-  isStreaming = false,
 }: MessageBubbleProps) {
   const [showThoughts, setShowThoughts] = useState(false);
   const { onCopy } = useClipboard(message.content);

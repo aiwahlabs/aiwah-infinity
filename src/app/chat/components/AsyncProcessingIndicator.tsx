@@ -4,12 +4,11 @@ import React from 'react';
 import {
   Box,
   Text,
-  Flex,
   Spinner,
   Icon,
   HStack,
 } from '@chakra-ui/react';
-import { FiClock, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiClock, FiAlertCircle } from 'react-icons/fi';
 
 interface AsyncProcessingIndicatorProps {
   isProcessing: boolean;

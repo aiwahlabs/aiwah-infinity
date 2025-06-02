@@ -4,20 +4,31 @@ import React from 'react';
 import { Box } from '@chakra-ui/react';
 import { AuthGuard } from '@/components/AuthGuard';
 import { DocumentsTab } from '../components';
-import { useSearchParams } from 'next/navigation';
-import { DocumentStatus } from '@/hooks/documents';
+import { useRouter } from 'next/navigation';
+import { Document } from '@/hooks/documents/types';
 
 export default function DocumentsPage() {
-  const searchParams = useSearchParams();
-  const statusParam = searchParams.get('status') as DocumentStatus | null;
+  const router = useRouter();
+
+  const handleCreateDocument = () => {
+    router.push('/ghostwriter/documents/new');
+  };
+
+  const handleEditDocument = (document: Document) => {
+    router.push(`/ghostwriter/documents/${document.id}`);
+  };
+
+  const handleViewDocument = (document: Document) => {
+    router.push(`/ghostwriter/documents/${document.id}`);
+  };
 
   return (
     <AuthGuard>
       <Box h="100%" overflow="auto" p={8}>
         <DocumentsTab 
-          title="Documents"
-          description="Manage all your content"
-          defaultStatus={statusParam || undefined}
+          onCreateDocument={handleCreateDocument}
+          onEditDocument={handleEditDocument}
+          onViewDocument={handleViewDocument}
         />
       </Box>
     </AuthGuard>
