@@ -28,8 +28,8 @@ export const metadata: Metadata = {
   },
 };
 
-// Add startup logging
-if (typeof window !== 'undefined') {
+// Add startup logging only in debug mode
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_DEBUG_MODE === 'on') {
   console.log('[APP] Client-side initialization started', {
     timestamp: new Date().toISOString(),
     userAgent: navigator.userAgent,
@@ -45,10 +45,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  console.log('[LAYOUT] Rendering root layout', {
-    timestamp: new Date().toISOString(),
-    isServer: typeof window === 'undefined'
-  });
+  if (process.env.NEXT_PUBLIC_DEBUG_MODE === 'on') {
+    console.log('[LAYOUT] Rendering root layout', {
+      timestamp: new Date().toISOString(),
+      isServer: typeof window === 'undefined'
+    });
+  }
 
   return (
     <html lang="en" data-theme="dark" className="chakra-ui-dark" style={{ colorScheme: "dark" }}>
