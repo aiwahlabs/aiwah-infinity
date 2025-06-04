@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browser';
+import { logger } from '@/lib/logger';
 
 interface AsyncTask {
   id: number;
@@ -22,26 +23,42 @@ interface UseAsyncTaskStatusReturn {
  * Hook to fetch and subscribe to the status of a specific async task
  */
 export const useAsyncTaskStatus = (taskId?: number): UseAsyncTaskStatusReturn => {
+  logger.hook('useAsyncTaskStatus', 'Hook called', { taskId });
+  
   const [task, setTask] = useState<AsyncTask | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const supabase = supabaseBrowser();
+  
+  logger.hook('useAsyncTaskStatus', 'State initialized', { 
+    taskId, 
+    hasTask: !!task, 
+    loading, 
+    error 
+  });
 
   useEffect(() => {
+    logger.hook('useAsyncTaskStatus', 'useEffect triggered', { taskId });
+    
     if (!taskId) {
+      logger.hook('useAsyncTaskStatus', 'No taskId, clearing state', { taskId });
       setTask(null);
       setLoading(false);
       setError(null);
       return;
     }
 
+    logger.hook('useAsyncTaskStatus', 'Starting task fetch', { taskId });
+
     // Fetch initial task status
     const fetchTask = async () => {
       try {
+        logger.hook('useAsyncTaskStatus', 'Setting loading to true', { taskId });
         setLoading(true);
         setError(null);
 
+        logger.hook('useAsyncTaskStatus', 'Querying async_tasks table', { taskId });
         const { data, error: fetchError } = await supabase
           .from('async_tasks')
           .select('*')
@@ -49,14 +66,18 @@ export const useAsyncTaskStatus = (taskId?: number): UseAsyncTaskStatusReturn =>
           .single();
 
         if (fetchError) {
+          logger.error('useAsyncTaskStatus', 'Fetch error from Supabase', { taskId, fetchError });
           throw fetchError;
         }
 
+        logger.hook('useAsyncTaskStatus', 'Task data received', { taskId, data });
         setTask(data as AsyncTask);
       } catch (err) {
+        logger.error('useAsyncTaskStatus', 'Error fetching task', { taskId, err });
         console.error('Error fetching task:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch task');
       } finally {
+        logger.hook('useAsyncTaskStatus', 'Setting loading to false', { taskId });
         setLoading(false);
       }
     };
@@ -64,6 +85,7 @@ export const useAsyncTaskStatus = (taskId?: number): UseAsyncTaskStatusReturn =>
     fetchTask();
 
     // Subscribe to real-time updates for this specific task
+    logger.hook('useAsyncTaskStatus', 'Setting up realtime subscription', { taskId });
     const channel = supabase
       .channel(`async_task_${taskId}`)
       .on(
@@ -77,22 +99,30 @@ export const useAsyncTaskStatus = (taskId?: number): UseAsyncTaskStatusReturn =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload: any) => {
           const updatedTask = payload.new as AsyncTask;
+          logger.hook('useAsyncTaskStatus', 'Realtime update received', { taskId, updatedTask });
           console.log('Task status update received:', updatedTask);
           setTask(updatedTask);
         }
       )
       .subscribe();
 
+    logger.hook('useAsyncTaskStatus', 'Realtime subscription created', { taskId, channelName: `async_task_${taskId}` });
+
     return () => {
+      logger.hook('useAsyncTaskStatus', 'Cleaning up realtime subscription', { taskId });
       supabase.removeChannel(channel);
     };
   }, [taskId, supabase]);
 
-  return {
+  const result = {
     task,
     loading,
     error
   };
+  
+  logger.hook('useAsyncTaskStatus', 'Returning result', { taskId, result });
+  
+  return result;
 };
 
 /**

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { ChatConversation, ChatMessage, ChatFilter, CreateConversationData, CreateMessageData } from '../../app/chat/types';
+import { logger } from '@/lib/logger';
 
 interface ChatContextType {
   conversations: ChatConversation[];
@@ -156,21 +157,26 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload: any) => {
+          logger.chat('useChatContext', 'Realtime message update received', payload);
           console.log('Message real-time update:', payload);
           
           if (payload.eventType === 'INSERT') {
             // Add new message
             const newMessage = payload.new as ChatMessage;
+            logger.chat('useChatContext', 'Processing INSERT event', { newMessage });
             setMessages(prev => {
               // Avoid duplicates
               if (prev.some(msg => msg.id === newMessage.id)) {
+                logger.chat('useChatContext', 'Duplicate message, skipping', { messageId: newMessage.id });
                 return prev;
               }
+              logger.chat('useChatContext', 'Adding new message to state', { messageId: newMessage.id, totalMessages: prev.length + 1 });
               return [...prev, newMessage];
             });
           } else if (payload.eventType === 'UPDATE') {
             // Update existing message
             const updatedMessage = payload.new as ChatMessage;
+            logger.chat('useChatContext', 'Processing UPDATE event', { updatedMessage });
             setMessages(prev => 
               prev.map(msg => 
                 msg.id === updatedMessage.id ? updatedMessage : msg
@@ -179,6 +185,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           } else if (payload.eventType === 'DELETE') {
             // Remove deleted message
             const deletedMessage = payload.old as ChatMessage;
+            logger.chat('useChatContext', 'Processing DELETE event', { deletedMessage });
             setMessages(prev => 
               prev.filter(msg => msg.id !== deletedMessage.id)
             );

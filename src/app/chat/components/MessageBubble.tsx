@@ -23,6 +23,7 @@ import { ChatMessage } from '../types';
 import { MessageStatusIndicator } from './AsyncProcessingIndicator';
 import { useChatContext } from '@/hooks/chat/useChatContext';
 import { useAsyncTaskStatus, getTaskStatusDisplay } from '@/hooks/chat/useAsyncTaskStatus';
+import { logger } from '@/lib/logger';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -34,20 +35,46 @@ export const MessageBubble = React.memo(function MessageBubble({
   message,
   formatTime,
 }: MessageBubbleProps) {
+  logger.render('MessageBubble', { 
+    messageId: message.id, 
+    role: message.role, 
+    hasContent: !!message.content,
+    hasAsyncTask: !!message.async_task_id,
+    asyncTaskId: message.async_task_id 
+  });
+
+  logger.hook('MessageBubble', 'useState(showThoughts)', { messageId: message.id });
   const [showThoughts, setShowThoughts] = useState(false);
+  
+  logger.hook('MessageBubble', 'useClipboard', { messageId: message.id, contentLength: message.content?.length });
   const { onCopy } = useClipboard(message.content);
+  
+  logger.hook('MessageBubble', 'useChatContext', { messageId: message.id });
   const { deleteMessage } = useChatContext();
+  
+  logger.hook('MessageBubble', 'useToast', { messageId: message.id });
   const toast = useToast();
 
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
   const hasThinking = isAssistant && message.thinking;
 
-  // Get real-time task status for AI messages with async tasks
-  const { task, loading: taskLoading } = useAsyncTaskStatus(
-    isAssistant && message.async_task_id ? message.async_task_id : undefined
-  );
+  logger.chat('MessageBubble', 'Message classification', {
+    messageId: message.id,
+    isUser,
+    isAssistant,
+    hasThinking,
+    asyncTaskId: message.async_task_id
+  });
 
+  // Get real-time task status for AI messages with async tasks
+  const taskId = isAssistant && message.async_task_id ? message.async_task_id : undefined;
+  logger.hook('MessageBubble', 'useAsyncTaskStatus', { messageId: message.id, taskId });
+  
+  const { task, loading: taskLoading } = useAsyncTaskStatus(taskId);
+
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC - React Rules of Hooks
+  logger.hook('MessageBubble', 'useCallback(handleCopy)', { messageId: message.id });
   const handleCopy = useCallback(() => {
     onCopy();
     toast({
@@ -58,6 +85,7 @@ export const MessageBubble = React.memo(function MessageBubble({
     });
   }, [onCopy, toast]);
 
+  logger.hook('MessageBubble', 'useCallback(handleDelete)', { messageId: message.id });
   const handleDelete = useCallback(async () => {
     const success = await deleteMessage(message.id);
     if (success) {
@@ -76,6 +104,32 @@ export const MessageBubble = React.memo(function MessageBubble({
       });
     }
   }, [deleteMessage, message.id, toast]);
+
+  logger.chat('MessageBubble', 'Task status received', {
+    messageId: message.id,
+    taskId,
+    task,
+    taskLoading,
+    taskStatus: task?.status
+  });
+
+  // Hide empty assistant messages with completed tasks (these are orphaned placeholder messages)
+  // Must check this AFTER all hooks have been called to avoid hooks rule violation
+  const shouldHideMessage = isAssistant && message.async_task_id && !message.content && task && task.status === 'completed';
+  
+  logger.chat('MessageBubble', 'Hide message check', {
+    messageId: message.id,
+    shouldHideMessage,
+    isAssistant,
+    hasAsyncTaskId: !!message.async_task_id,
+    hasContent: !!message.content,
+    taskStatus: task?.status
+  });
+  
+  if (shouldHideMessage) {
+    logger.chat('MessageBubble', 'Hiding message (returning null)', { messageId: message.id });
+    return null;
+  }
 
   return (
     <Box py={6}>
@@ -213,6 +267,8 @@ export const MessageBubble = React.memo(function MessageBubble({
               />
             </Box>
           )}
+
+
 
           {/* Show placeholder when no content and no task info yet */}
           {isAssistant && message.async_task_id && !message.content && !task && !taskLoading && (

@@ -15,6 +15,7 @@ import { useAsyncChat } from '@/hooks/chat/useAsyncChat';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
+import { logger } from '@/lib/logger';
 
 
 interface ChatInterfaceProps {
@@ -250,13 +251,21 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
                 </VStack>
               </Center>
             ) : (
-              messages.map((message: ChatMessage) => (
-                <MessageBubble 
-                  key={message.id} 
-                  message={message} 
-                  formatTime={formatMessageTime}
-                />
-              ))
+              messages.map((message: ChatMessage) => {
+                logger.chat('ChatInterface', 'Rendering message', { 
+                  messageId: message.id, 
+                  role: message.role,
+                  hasContent: !!message.content,
+                  asyncTaskId: message.async_task_id
+                });
+                return (
+                  <MessageBubble 
+                    key={message.id} 
+                    message={message} 
+                    formatTime={formatMessageTime}
+                  />
+                );
+              })
             )}
             
             <div ref={messagesEndRef} />
