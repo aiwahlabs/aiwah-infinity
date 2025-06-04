@@ -153,20 +153,17 @@ export const getTaskStatusDisplay = (task?: AsyncTask | null): string => {
   }
 
   // General status fallbacks
-  switch (task.status) {
-    case 'pending':
-      return 'Task created, waiting to start...';
-    case 'processing':
-      return '⏳ Processing your message...';
-    case 'completed':
-      return '✅ Complete';
-    case 'failed':
-      return '❌ Failed to process';
-    case 'timeout':
-      return '⏰ Request timed out';
-    case 'cancelled':
-      return '⚠️ Cancelled';
-    default:
-      return task.status;
+  if (task.status === 'pending') {
+    return '🔄 Getting ready to process your message...';
+  } else if (task.status === 'processing') {
+    return '🧠 Thinking about your request...';
+  } else if (task.status === 'failed') {
+    return '❌ Failed to process';
+  } else if (task.status === 'timeout') {
+    return '⏰ Request timed out';
+  } else if (task.status === 'cancelled') {
+    return '⚠️ Cancelled';
+  } else {
+    return task.status;
   }
 }; 

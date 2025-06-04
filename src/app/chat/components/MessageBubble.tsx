@@ -21,6 +21,8 @@ import {
 } from 'react-icons/fi';
 import { ChatMessage } from '../types';
 import { useChatContext } from '@/hooks/chat/useChatContext';
+import { useAsyncTaskStatus, getTaskStatusDisplay } from '@/hooks/chat/useAsyncTaskStatus';
+import { MessageStatusIndicator } from './AsyncProcessingIndicator';
 import { logger } from '@/lib/logger';
 
 interface MessageBubbleProps {
@@ -53,19 +55,26 @@ export const MessageBubble = React.memo(function MessageBubble({
   logger.hook('MessageBubble', 'useToast', { messageId: message.id });
   const toast = useToast();
 
+  // Use async task status for AI assistant messages with async tasks
+  logger.hook('MessageBubble', 'useAsyncTaskStatus', { messageId: message.id, asyncTaskId: message.async_task_id });
+  const { task, loading: taskLoading } = useAsyncTaskStatus(message.async_task_id);
+
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
   const hasThinking = isAssistant && message.thinking;
+  const hasActiveTask = isAssistant && task && task.status !== 'completed';
+  const taskStatusMessage = getTaskStatusDisplay(task);
 
   logger.chat('MessageBubble', 'Message classification', {
     messageId: message.id,
     isUser,
     isAssistant,
     hasThinking,
-    asyncTaskId: message.async_task_id
+    asyncTaskId: message.async_task_id,
+    hasActiveTask,
+    taskStatus: task?.status,
+    taskStatusMessage
   });
-
-
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC - React Rules of Hooks
   logger.hook('MessageBubble', 'useCallback(handleCopy)', { messageId: message.id });
@@ -99,8 +108,8 @@ export const MessageBubble = React.memo(function MessageBubble({
     }
   }, [deleteMessage, message.id, toast]);
 
-  // Since we no longer create placeholder messages, we don't need to hide any messages
-  // All messages that exist should be displayed
+  // Show the message - placeholder AI messages will display loading indicators
+  // until the async task completes and fills in the content
 
   return (
     <Box py={6}>
@@ -219,7 +228,23 @@ export const MessageBubble = React.memo(function MessageBubble({
             </Text>
           )}
           
+          {/* Show loading indicator for AI messages without content but with active tasks */}
+          {isAssistant && !message.content && hasActiveTask && (
+            <MessageStatusIndicator 
+              status={task?.status} 
+              statusMessage={taskStatusMessage}
+            />
+          )}
 
+          {/* Show loading indicator for AI messages with content but still processing */}
+          {isAssistant && message.content && hasActiveTask && (
+            <Box mt={3} pt={3} borderTop="1px solid" borderColor="gray.700">
+              <MessageStatusIndicator 
+                status={task?.status} 
+                statusMessage={taskStatusMessage}
+              />
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>

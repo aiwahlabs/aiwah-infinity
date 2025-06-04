@@ -13,7 +13,7 @@ interface AsyncTask {
 }
 
 interface UseAsyncChatReturn {
-  sendMessage: (conversationId: number, message: string) => Promise<void>;
+  sendMessage: (conversationId: number, message: string, onMessagesCreated?: (userMessage: any, aiMessage: any) => void) => Promise<void>;
   isProcessing: boolean;
   error: string | null;
   clearError: () => void;
@@ -30,10 +30,10 @@ interface UseAsyncChatReturn {
  * - Handles error states and provides status feedback
  */
 export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
+  const [activeTasks, setActiveTasks] = useState<Set<number>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTasks, setActiveTasks] = useState<Set<number>>(new Set());
-
+  
   const supabase = supabaseBrowser();
 
   // Check for existing pending/processing tasks on mount and subscribe to updates
@@ -84,16 +84,33 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
         async (payload: any) => {
           const task = payload.new as AsyncTask;
           
-          console.log('Task update received:', task);
+          console.log('Task update received:', {
+            taskId: task.id,
+            status: task.status,
+            currentActiveTasks: Array.from(activeTasks)
+          });
 
           // Update processing state
           if (task.status === 'pending' || task.status === 'processing') {
-            setActiveTasks(prev => new Set(prev).add(task.id));
-            setIsProcessing(true);
-          } else {
             setActiveTasks(prev => {
               const next = new Set(prev);
+              next.add(task.id);
+              console.log('Added task to activeTasks:', { taskId: task.id, newActiveTasks: Array.from(next) });
+              return next;
+            });
+            setIsProcessing(true);
+          } else {
+            // Task is completed, failed, cancelled, or timeout - remove it
+            setActiveTasks(prev => {
+              const next = new Set(prev);
+              const wasPresent = next.has(task.id);
               next.delete(task.id);
+              console.log('Removed task from activeTasks:', { 
+                taskId: task.id, 
+                wasPresent, 
+                taskStatus: task.status,
+                newActiveTasks: Array.from(next) 
+              });
               return next;
             });
           }
@@ -134,20 +151,55 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
       )
       .subscribe();
 
+    // Failsafe: Periodically check for completed tasks that might have been missed
+    const cleanupInterval = setInterval(async () => {
+      if (activeTasks.size > 0) {
+        try {
+          const { data: completedTasks, error } = await supabase
+            .from('async_tasks')
+            .select('id, status')
+            .in('id', Array.from(activeTasks))
+            .in('status', ['completed', 'failed', 'cancelled', 'timeout']);
+
+          if (!error && completedTasks && completedTasks.length > 0) {
+            const completedTaskIds = completedTasks.map(t => t.id);
+            console.log('Cleanup: Found completed tasks to remove:', completedTaskIds);
+            
+            setActiveTasks(prev => {
+              const next = new Set(prev);
+              completedTaskIds.forEach(id => next.delete(id));
+              return next;
+            });
+          }
+        } catch (error) {
+          console.error('Error in task cleanup:', error);
+        }
+      }
+    }, 10000); // Check every 10 seconds
+
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(cleanupInterval);
     };
   }, [conversationId, supabase]);
 
   // Update overall processing state based on active tasks
   useEffect(() => {
-    setIsProcessing(activeTasks.size > 0);
+    const newIsProcessing = activeTasks.size > 0;
+    
+    console.log('Processing state update:', {
+      newIsProcessing,
+      activeTasksCount: activeTasks.size,
+      activeTasks: Array.from(activeTasks)
+    });
+    
+    setIsProcessing(newIsProcessing);
   }, [activeTasks]);
 
   /**
    * Send a message and start async AI processing
    */
-  const sendMessage = useCallback(async (conversationId: number, message: string) => {
+  const sendMessage = useCallback(async (conversationId: number, message: string, onMessagesCreated?: (userMessage: any, aiMessage: any) => void) => {
     if (!message.trim()) return;
 
     setError(null);
@@ -178,6 +230,10 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
       }
 
       console.log('Message sent, task created:', data);
+
+      if (onMessagesCreated) {
+        onMessagesCreated(data.user_message, data.ai_message);
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);

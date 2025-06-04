@@ -1,61 +1,105 @@
 'use client';
 
 import React from 'react';
-import { Box, Flex, Text, HStack } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  Text,
+  HStack,
+  Badge,
+  IconButton,
+} from '@chakra-ui/react';
+import { FiCopy, FiTrash2 } from 'react-icons/fi';
 import { MessageStatusIndicator } from './AsyncProcessingIndicator';
 import { useAsyncTaskStatus, getTaskStatusDisplay } from '@/hooks/chat/useAsyncTaskStatus';
 import { logger } from '@/lib/logger';
 
-interface ActiveTaskIndicatorProps {
+interface LoadingMessageBubbleProps {
   taskId: number;
   conversationId?: number;
+  formatTime: (dateStr: string) => string;
 }
 
 /**
- * Shows the status of an active async task in the chat interface
- * Used when no placeholder message exists for the task
+ * Shows a loading message bubble that looks like a real message
+ * Displays the status of an active async task
  */
-export const ActiveTaskIndicator = React.memo(function ActiveTaskIndicator({
+export const LoadingMessageBubble = React.memo(function LoadingMessageBubble({
   taskId,
-  conversationId
-}: ActiveTaskIndicatorProps) {
-  logger.render('ActiveTaskIndicator', { taskId, conversationId });
+  conversationId,
+  formatTime
+}: LoadingMessageBubbleProps) {
+  logger.render('LoadingMessageBubble', { taskId, conversationId });
   
   const { task, loading } = useAsyncTaskStatus(taskId);
 
   // Don't show if task is completed (AI response message should exist)
   if (task && task.status === 'completed') {
-    logger.chat('ActiveTaskIndicator', 'Task completed, hiding indicator', { taskId });
+    logger.chat('LoadingMessageBubble', 'Task completed, hiding indicator', { taskId });
     return null;
   }
 
   // Don't show if task failed (user should see error separately)
   if (task && (task.status === 'failed' || task.status === 'cancelled' || task.status === 'timeout')) {
-    logger.chat('ActiveTaskIndicator', 'Task failed/cancelled, hiding indicator', { taskId, status: task.status });
+    logger.chat('LoadingMessageBubble', 'Task failed/cancelled, hiding indicator', { taskId, status: task.status });
     return null;
   }
 
   const statusMessage = getTaskStatusDisplay(task);
+  const currentTime = new Date().toISOString();
+
+  logger.chat('LoadingMessageBubble', 'Rendering loading bubble', {
+    taskId,
+    taskStatus: task?.status,
+    statusMessage,
+    loading
+  });
 
   return (
-    <Box py={4}>
-      <Flex justify="flex-start" align="center" mb={4}>
+    <Box py={6}>
+      {/* Message header - styled like AI Assistant */}
+      <Flex justify="space-between" align="center" mb={4}>
         <HStack spacing={3}>
-          <Text 
-            fontSize="xs" 
-            fontWeight="500" 
-            color="brand.400"
-            textTransform="uppercase"
-            letterSpacing="wider"
+          <Badge
+            variant="outline"
+            colorScheme="brand"
+            fontSize="xs"
+            fontWeight="500"
+            px={2}
+            py={1}
           >
             AI Assistant
+          </Badge>
+          
+          <Text textStyle="caption" color="gray.500">
+            {formatTime(currentTime)}
           </Text>
-          <Text fontSize="xs" color="gray.500">
-            Processing...
-          </Text>
+        </HStack>
+        
+        {/* Action buttons (disabled for loading state) */}
+        <HStack spacing={1}>
+          <IconButton
+            aria-label="Copy message"
+            icon={<FiCopy />}
+            size="sm"
+            variant="ghost"
+            color="gray.500"
+            isDisabled
+            opacity={0.3}
+          />
+          <IconButton
+            aria-label="Delete message"
+            icon={<FiTrash2 />}
+            size="sm"
+            variant="ghost"
+            color="gray.500"
+            isDisabled
+            opacity={0.3}
+          />
         </HStack>
       </Flex>
 
+      {/* Message content - styled like assistant message */}
       <Box>
         <Box
           p={4}
@@ -65,6 +109,7 @@ export const ActiveTaskIndicator = React.memo(function ActiveTaskIndicator({
           borderColor="gray.700"
           position="relative"
         >
+          {/* Status indicator inside the message bubble */}
           <MessageStatusIndicator
             status={loading ? 'processing' : (task?.status || 'pending')}
             statusMessage={loading ? 'Loading status...' : statusMessage}
@@ -73,4 +118,7 @@ export const ActiveTaskIndicator = React.memo(function ActiveTaskIndicator({
       </Box>
     </Box>
   );
-}); 
+});
+
+// Keep the old name for backward compatibility, but it's now the LoadingMessageBubble
+export const ActiveTaskIndicator = LoadingMessageBubble; 

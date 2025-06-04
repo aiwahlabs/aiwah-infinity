@@ -15,7 +15,6 @@ import { useAsyncChat } from '@/hooks/chat/useAsyncChat';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
-import { ActiveTaskIndicator } from './ActiveTaskIndicator';
 import { logger } from '@/lib/logger';
 
 
@@ -28,7 +27,8 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     currentConversation, 
     messages, 
     updateConversation,
-    loadMessages 
+    loadMessages,
+    setMessages,
   } = useChatContext();
   
 
@@ -110,7 +110,40 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
 
     try {
       // Send message and trigger async processing
-      await sendAsyncMessage(activeConversation.id, userMessage);
+      await sendAsyncMessage(activeConversation.id, userMessage, (userMsg, aiMsg) => {
+        console.log('💬 Messages received from API, adding to local state immediately:', {
+          userMessageId: userMsg?.id,
+          aiMessageId: aiMsg?.id,
+          hasUserContent: !!userMsg?.content,
+          hasAiContent: !!aiMsg?.content
+        });
+
+        // Immediately add both messages to local state for instant feedback
+        // This ensures they show up in the UI immediately, regardless of real-time subscription timing
+        if (userMsg) {
+          setMessages((prev: ChatMessage[]) => {
+            // Check for duplicates (in case real-time subscription already added it)
+            if (prev.some((msg: ChatMessage) => msg.id === userMsg.id)) {
+              console.log('User message already exists, skipping:', userMsg.id);
+              return prev;
+            }
+            console.log('✅ Adding user message to local state:', userMsg.id);
+            return [...prev, userMsg];
+          });
+        }
+
+        if (aiMsg) {
+          setMessages((prev: ChatMessage[]) => {
+            // Check for duplicates (in case real-time subscription already added it)
+            if (prev.some((msg: ChatMessage) => msg.id === aiMsg.id)) {
+              console.log('AI message already exists, skipping:', aiMsg.id);
+              return prev;
+            }
+            console.log('✅ Adding AI placeholder message to local state:', aiMsg.id);
+            return [...prev, aiMsg];
+          });
+        }
+      });
       
       // Message was sent successfully - the async hook will handle real-time updates
       console.log('Message sent for async processing');
@@ -269,15 +302,6 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
                     />
                   );
                 })}
-                
-                {/* Show active task indicators for pending/processing tasks */}
-                {activeTasks.map((taskId) => (
-                  <ActiveTaskIndicator 
-                    key={`task-${taskId}`}
-                    taskId={taskId}
-                    conversationId={activeConversation.id}
-                  />
-                ))}
               </>
             )}
             

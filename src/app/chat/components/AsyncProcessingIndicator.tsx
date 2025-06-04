@@ -159,6 +159,12 @@ export const MessageStatusIndicator = React.memo(function MessageStatusIndicator
       >
         {getStatusText()}
       </Text>
+      {/* Simple visual indicator for processing */}
+      {(status === 'pending' || status === 'processing') && (
+        <Text color={getStatusColor()} fontSize="lg">
+          ⋯
+        </Text>
+      )}
     </HStack>
   );
 }); 

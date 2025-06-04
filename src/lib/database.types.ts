@@ -21,11 +21,11 @@ export interface Database {
           status_message: string | null
           n8n_execution_id: string | null
           created_by: string | null
-          created_at: string
+          created_at: string | null
           processing_started_at: string | null
           processing_completed_at: string | null
           error_details: Json | null
-          metadata: Json
+          metadata: Json | null
         }
         Insert: {
           id?: number
@@ -38,11 +38,11 @@ export interface Database {
           status_message?: string | null
           n8n_execution_id?: string | null
           created_by?: string | null
-          created_at?: string
+          created_at?: string | null
           processing_started_at?: string | null
           processing_completed_at?: string | null
           error_details?: Json | null
-          metadata?: Json
+          metadata?: Json | null
         }
         Update: {
           id?: number
@@ -55,11 +55,11 @@ export interface Database {
           status_message?: string | null
           n8n_execution_id?: string | null
           created_by?: string | null
-          created_at?: string
+          created_at?: string | null
           processing_started_at?: string | null
           processing_completed_at?: string | null
           error_details?: Json | null
-          metadata?: Json
+          metadata?: Json | null
         }
       }
       chat_conversations: {
@@ -70,7 +70,7 @@ export interface Database {
           created_at: string
           updated_at: string
           is_archived: boolean
-          metadata: Json
+          metadata: Json | null
         }
         Insert: {
           id?: number
@@ -79,7 +79,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
           is_archived?: boolean
-          metadata?: Json
+          metadata?: Json | null
         }
         Update: {
           id?: number
@@ -88,7 +88,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
           is_archived?: boolean
-          metadata?: Json
+          metadata?: Json | null
         }
       }
       chat_messages: {
@@ -99,7 +99,7 @@ export interface Database {
           content: string
           thinking: string | null
           created_at: string
-          metadata: Json
+          metadata: Json | null
           async_task_id: number | null
         }
         Insert: {
@@ -109,7 +109,7 @@ export interface Database {
           content: string
           thinking?: string | null
           created_at?: string
-          metadata?: Json
+          metadata?: Json | null
           async_task_id?: number | null
         }
         Update: {
@@ -119,7 +119,7 @@ export interface Database {
           content?: string
           thinking?: string | null
           created_at?: string
-          metadata?: Json
+          metadata?: Json | null
           async_task_id?: number | null
         }
       }
@@ -226,7 +226,23 @@ export interface Database {
       }
     }
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      get_document_counts_by_status: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          status: string
+          count: number
+        }[]
+      }
+      get_document_counts_by_type: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          type: string
+          count: number
+        }[]
+      }
+    }
     Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 } 

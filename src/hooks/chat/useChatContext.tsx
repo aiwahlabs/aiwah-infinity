@@ -25,6 +25,7 @@ interface ChatContextType {
   setCurrentConversation: (conversation: ChatConversation | null) => void;
   updateFilter: (newFilter: Partial<ChatFilter>) => void;
   refreshConversations: () => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -158,25 +159,52 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload: any) => {
           logger.chat('useChatContext', 'Realtime message update received', payload);
-          console.log('Message real-time update:', payload);
+          console.log('🔄 Message real-time update:', {
+            eventType: payload.eventType,
+            messageId: payload.new?.id,
+            conversationId: payload.new?.conversation_id,
+            role: payload.new?.role,
+            hasContent: !!payload.new?.content,
+            asyncTaskId: payload.new?.async_task_id,
+            timestamp: new Date().toISOString()
+          });
           
           if (payload.eventType === 'INSERT') {
             // Add new message
             const newMessage = payload.new as ChatMessage;
             logger.chat('useChatContext', 'Processing INSERT event', { newMessage });
+            console.log('➕ Adding new message via real-time:', {
+              messageId: newMessage.id,
+              role: newMessage.role,
+              hasContent: !!newMessage.content
+            });
+            
             setMessages(prev => {
               // Avoid duplicates
               if (prev.some(msg => msg.id === newMessage.id)) {
                 logger.chat('useChatContext', 'Duplicate message, skipping', { messageId: newMessage.id });
+                console.log('⚠️ Duplicate message detected, skipping:', newMessage.id);
                 return prev;
               }
               logger.chat('useChatContext', 'Adding new message to state', { messageId: newMessage.id, totalMessages: prev.length + 1 });
+              console.log('✅ Message added to state:', {
+                messageId: newMessage.id,
+                previousCount: prev.length,
+                newCount: prev.length + 1
+              });
               return [...prev, newMessage];
             });
           } else if (payload.eventType === 'UPDATE') {
             // Update existing message
             const updatedMessage = payload.new as ChatMessage;
             logger.chat('useChatContext', 'Processing UPDATE event', { updatedMessage });
+            console.log('📝 Updating message via real-time:', {
+              messageId: updatedMessage.id,
+              role: updatedMessage.role,
+              hasContent: !!updatedMessage.content,
+              asyncTaskId: updatedMessage.async_task_id
+            });
+            
             setMessages(prev => 
               prev.map(msg => 
                 msg.id === updatedMessage.id ? updatedMessage : msg
@@ -186,6 +214,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             // Remove deleted message
             const deletedMessage = payload.old as ChatMessage;
             logger.chat('useChatContext', 'Processing DELETE event', { deletedMessage });
+            console.log('🗑️ Deleting message via real-time:', deletedMessage.id);
+            
             setMessages(prev => 
               prev.filter(msg => msg.id !== deletedMessage.id)
             );
@@ -409,7 +439,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     deleteMessage,
     setCurrentConversation,
     updateFilter,
-    refreshConversations
+    refreshConversations,
+    setMessages
   }), [
     conversations,
     currentConversation,
@@ -427,7 +458,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     deleteMessage,
     setCurrentConversation,
     updateFilter,
-    refreshConversations
+    refreshConversations,
+    setMessages
   ]);
 
   return (
