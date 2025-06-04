@@ -17,6 +17,7 @@ interface UseAsyncChatReturn {
   isProcessing: boolean;
   error: string | null;
   clearError: () => void;
+  activeTasks: number[];
 }
 
 /**
@@ -196,7 +197,8 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
     sendMessage,
     isProcessing,
     error,
-    clearError
+    clearError,
+    activeTasks: Array.from(activeTasks)
   };
 };
 

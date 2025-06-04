@@ -1,17 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { logger } from '@/lib/logger';
+import type { Database } from '@/lib/database.types';
 
-interface AsyncTask {
-  id: number;
-  task_type: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'timeout';
-  current_step?: string;
-  status_message?: string;
-  created_at: string;
-  processing_started_at?: string;
-  processing_completed_at?: string;
-}
+type AsyncTask = Database['public']['Tables']['async_tasks']['Row'];
 
 interface UseAsyncTaskStatusReturn {
   task: AsyncTask | null;
@@ -131,8 +123,14 @@ export const useAsyncTaskStatus = (taskId?: number): UseAsyncTaskStatusReturn =>
 export const getTaskStatusDisplay = (task?: AsyncTask | null): string => {
   if (!task) return '';
 
+  // For completed tasks, don't show the status message (which is often outdated)
+  // Just show completion status or nothing
+  if (task.status === 'completed') {
+    return ''; // Don't show any status for completed tasks
+  }
+
   // Use the status_message from the task if available (from n8n workflow)
-  if (task.status_message) {
+  if (task.status_message && task.status !== 'completed') {
     return task.status_message;
   }
 

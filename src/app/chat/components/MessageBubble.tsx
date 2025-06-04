@@ -20,9 +20,7 @@ import {
   FiZap,
 } from 'react-icons/fi';
 import { ChatMessage } from '../types';
-import { MessageStatusIndicator } from './AsyncProcessingIndicator';
 import { useChatContext } from '@/hooks/chat/useChatContext';
-import { useAsyncTaskStatus, getTaskStatusDisplay } from '@/hooks/chat/useAsyncTaskStatus';
 import { logger } from '@/lib/logger';
 
 interface MessageBubbleProps {
@@ -67,11 +65,7 @@ export const MessageBubble = React.memo(function MessageBubble({
     asyncTaskId: message.async_task_id
   });
 
-  // Get real-time task status for AI messages with async tasks
-  const taskId = isAssistant && message.async_task_id ? message.async_task_id : undefined;
-  logger.hook('MessageBubble', 'useAsyncTaskStatus', { messageId: message.id, taskId });
-  
-  const { task, loading: taskLoading } = useAsyncTaskStatus(taskId);
+
 
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC - React Rules of Hooks
   logger.hook('MessageBubble', 'useCallback(handleCopy)', { messageId: message.id });
@@ -105,31 +99,8 @@ export const MessageBubble = React.memo(function MessageBubble({
     }
   }, [deleteMessage, message.id, toast]);
 
-  logger.chat('MessageBubble', 'Task status received', {
-    messageId: message.id,
-    taskId,
-    task,
-    taskLoading,
-    taskStatus: task?.status
-  });
-
-  // Hide empty assistant messages with completed tasks (these are orphaned placeholder messages)
-  // Must check this AFTER all hooks have been called to avoid hooks rule violation
-  const shouldHideMessage = isAssistant && message.async_task_id && !message.content && task && task.status === 'completed';
-  
-  logger.chat('MessageBubble', 'Hide message check', {
-    messageId: message.id,
-    shouldHideMessage,
-    isAssistant,
-    hasAsyncTaskId: !!message.async_task_id,
-    hasContent: !!message.content,
-    taskStatus: task?.status
-  });
-  
-  if (shouldHideMessage) {
-    logger.chat('MessageBubble', 'Hiding message (returning null)', { messageId: message.id });
-    return null;
-  }
+  // Since we no longer create placeholder messages, we don't need to hide any messages
+  // All messages that exist should be displayed
 
   return (
     <Box py={6}>
@@ -248,37 +219,7 @@ export const MessageBubble = React.memo(function MessageBubble({
             </Text>
           )}
           
-          {/* Show processing status for assistant messages with async tasks */}
-          {isAssistant && message.async_task_id && task && task.status !== 'completed' && (
-            <Box mt={message.content ? 3 : 0}>
-              <MessageStatusIndicator
-                status={task.status}
-                statusMessage={getTaskStatusDisplay(task)}
-              />
-            </Box>
-          )}
 
-          {/* Show loading state while fetching task status */}
-          {isAssistant && message.async_task_id && taskLoading && (
-            <Box mt={message.content ? 3 : 0}>
-              <MessageStatusIndicator
-                status="processing"
-                statusMessage="Loading status..."
-              />
-            </Box>
-          )}
-
-
-
-          {/* Show placeholder when no content and no task info yet */}
-          {isAssistant && message.async_task_id && !message.content && !task && !taskLoading && (
-            <Box>
-              <MessageStatusIndicator
-                status="pending"
-                statusMessage="Starting to process your message..."
-              />
-            </Box>
-          )}
         </Box>
       </Box>
     </Box>

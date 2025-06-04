@@ -48,61 +48,50 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. Create async task for AI response processing
-    const taskResponse = await fetch(`${request.nextUrl.origin}/api/tasks/create`, {
-      method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': request.headers.get('Authorization') || '',
-        'Cookie': request.headers.get('Cookie') || ''
-      },
-      body: JSON.stringify({
-        task_type: 'chat',
-        input_data: {
-          conversation_id,
-          message_id: userMessage.id  // n8n will fetch history and update this message
+    // Add a tiny delay to ensure database commit is flushed before real-time notifications
+    await new Promise(resolve => setTimeout(resolve, 50));
+
+    // Start async task creation in background (non-blocking)
+    // This prevents the user from waiting for AI processing to start
+    (async () => {
+      try {
+        // 2. Create async task for AI response processing
+        const taskResponse = await fetch(`${request.nextUrl.origin}/api/tasks/create`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': request.headers.get('Authorization') || '',
+            'Cookie': request.headers.get('Cookie') || ''
+          },
+          body: JSON.stringify({
+            task_type: 'chat',
+            input_data: {
+              conversation_id,
+              message_id: userMessage.id  // n8n will fetch history and update this message
+            }
+          })
+        });
+
+        if (!taskResponse.ok) {
+          const error = await taskResponse.json();
+          console.error('Failed to create async task:', error);
+          return;
         }
-      })
-    });
 
-    if (!taskResponse.ok) {
-      const error = await taskResponse.json();
-      console.error('Failed to create async task:', error);
-      return NextResponse.json(
-        { error: 'Failed to start AI processing' },
-        { status: 500 }
-      );
-    }
+        const { task_id } = await taskResponse.json();
 
-    const { task_id } = await taskResponse.json();
+        console.log('Background task processing started:', { task_id });
+      } catch (error) {
+        console.error('Background task creation failed:', error);
+      }
+    })();
 
-    // 3. Create placeholder AI message linked to the task
-    const { data: aiMessage, error: aiMessageError } = await supabase
-      .from('chat_messages')
-      .insert({
-        conversation_id,
-        role: 'assistant',
-        content: '',  // Empty content initially - status shown via task
-        async_task_id: task_id
-      })
-      .select()
-      .single();
-
-    if (aiMessageError) {
-      console.error('Failed to create AI message placeholder:', aiMessageError);
-      return NextResponse.json(
-        { error: 'Failed to create AI message' },
-        { status: 500 }
-      );
-    }
-
-    // Return both messages and task info
+    // Return user message immediately for fast UI response
     return NextResponse.json({
       success: true,
       user_message: userMessage,
-      ai_message: aiMessage,
-      task_id,
-      status: 'processing'
+      status: 'sent',
+      message: 'AI processing started in background'
     });
 
   } catch (error) {

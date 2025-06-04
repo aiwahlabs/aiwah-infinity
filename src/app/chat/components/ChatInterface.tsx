@@ -15,6 +15,7 @@ import { useAsyncChat } from '@/hooks/chat/useAsyncChat';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
+import { ActiveTaskIndicator } from './ActiveTaskIndicator';
 import { logger } from '@/lib/logger';
 
 
@@ -40,6 +41,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     isProcessing,
     error: asyncError,
     clearError,
+    activeTasks,
   } = useAsyncChat(activeConversation?.id);
   
   const [inputValue, setInputValue] = useState('');
@@ -251,21 +253,32 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
                 </VStack>
               </Center>
             ) : (
-              messages.map((message: ChatMessage) => {
-                logger.chat('ChatInterface', 'Rendering message', { 
-                  messageId: message.id, 
-                  role: message.role,
-                  hasContent: !!message.content,
-                  asyncTaskId: message.async_task_id
-                });
-                return (
-                  <MessageBubble 
-                    key={message.id} 
-                    message={message} 
-                    formatTime={formatMessageTime}
+              <>
+                {messages.map((message: ChatMessage) => {
+                  logger.chat('ChatInterface', 'Rendering message', { 
+                    messageId: message.id, 
+                    role: message.role,
+                    hasContent: !!message.content,
+                    asyncTaskId: message.async_task_id
+                  });
+                  return (
+                    <MessageBubble 
+                      key={message.id} 
+                      message={message} 
+                      formatTime={formatMessageTime}
+                    />
+                  );
+                })}
+                
+                {/* Show active task indicators for pending/processing tasks */}
+                {activeTasks.map((taskId) => (
+                  <ActiveTaskIndicator 
+                    key={`task-${taskId}`}
+                    taskId={taskId}
+                    conversationId={activeConversation.id}
                   />
-                );
-              })
+                ))}
+              </>
             )}
             
             <div ref={messagesEndRef} />
