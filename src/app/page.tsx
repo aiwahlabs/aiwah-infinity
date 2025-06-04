@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@saas-ui/auth';
 import { AuthGuard } from '@/components/AuthGuard';
@@ -10,7 +10,15 @@ import {
   Text, 
   Spinner, 
   Image,
-  Center
+  Center,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  Button,
+  Collapse,
+  HStack,
+  Badge
 } from '@chakra-ui/react';
 import { keyframes } from '@emotion/react';
 
@@ -20,16 +28,132 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
+interface LoadingState {
+  stage: 'initializing' | 'auth-loading' | 'auth-ready' | 'redirecting' | 'error' | 'timeout';
+  error: string | null;
+  details: string[];
+  startTime: number;
+}
+
 export default function Home() {
   const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [loadingState, setLoadingState] = useState<LoadingState>({
+    stage: 'initializing',
+    error: null,
+    details: [`${new Date().toLocaleTimeString()}: Starting initialization`],
+    startTime: Date.now()
+  });
+  const [showDetails, setShowDetails] = useState(false);
+
+  const addDetail = (detail: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setLoadingState(prev => ({
+      ...prev,
+      details: [...prev.details, `${timestamp}: ${detail}`]
+    }));
+  };
+
+  const updateStage = (stage: LoadingState['stage'], detail?: string) => {
+    console.log(`[PAGE] Moving to stage: ${stage}`, detail);
+    setLoadingState(prev => ({
+      ...prev,
+      stage,
+      details: detail ? [...prev.details, `${new Date().toLocaleTimeString()}: ${detail}`] : prev.details
+    }));
+  };
 
   useEffect(() => {
-    // Redirect authenticated users to home
-    if (!isLoading && isAuthenticated) {
-      router.push('/home');
+    let timeoutId: NodeJS.Timeout;
+
+    // Set a timeout for the entire loading process
+    timeoutId = setTimeout(() => {
+      setLoadingState(prev => ({
+        ...prev,
+        stage: 'timeout',
+        error: 'Page initialization timed out after 20 seconds. Please check your network connection and try again.',
+        details: [...prev.details, `${new Date().toLocaleTimeString()}: TIMEOUT - Initialization took too long`]
+      }));
+    }, 20000);
+
+    // Log auth state changes
+    console.log('[PAGE] Auth state:', { isAuthenticated, isLoading, hasUser: !!user });
+    
+    if (isLoading) {
+      updateStage('auth-loading', 'Waiting for authentication state');
+      addDetail(`Auth loading: ${isLoading}, Authenticated: ${isAuthenticated}, User: ${user ? 'present' : 'none'}`);
+    } else {
+      updateStage('auth-ready', 'Authentication state resolved');
+      addDetail(`Auth resolved - Authenticated: ${isAuthenticated}, User: ${user?.email || 'none'}`);
+      
+      // Redirect authenticated users to home
+      if (isAuthenticated) {
+        updateStage('redirecting', 'Redirecting authenticated user to home');
+        addDetail('Redirecting to /home');
+        router.push('/home');
+      } else {
+        addDetail('User not authenticated, staying on landing page');
+      }
     }
-  }, [isAuthenticated, isLoading, router]);
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isAuthenticated, isLoading, router, user]);
+
+  // Calculate elapsed time
+  const elapsedTime = Math.floor((Date.now() - loadingState.startTime) / 1000);
+
+  // Handle error and timeout states
+  if (loadingState.stage === 'error' || loadingState.stage === 'timeout') {
+    return (
+      <Box height="100vh" bg="gray.925" p={8}>
+        <Center height="100%">
+          <VStack spacing={6} maxW="lg" textAlign="center">
+            <Alert status="error" borderRadius="lg">
+              <AlertIcon />
+              <Box textAlign="left">
+                <AlertTitle>Loading Error</AlertTitle>
+                <AlertDescription>{loadingState.error}</AlertDescription>
+              </Box>
+            </Alert>
+
+            <Button
+              colorScheme="teal"
+              onClick={() => window.location.reload()}
+            >
+              Reload Page
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowDetails(!showDetails)}
+            >
+              {showDetails ? 'Hide' : 'Show'} Debug Details
+            </Button>
+
+            <Collapse in={showDetails}>
+              <Box w="full" bg="gray.800" p={4} borderRadius="md" maxH="300px" overflowY="auto">
+                <Text fontSize="sm" fontWeight="medium" color="gray.300" mb={2}>
+                  Debug Log:
+                </Text>
+                <VStack align="start" spacing={1}>
+                  {loadingState.details.map((detail, index) => (
+                    <Text key={index} fontSize="xs" color="gray.400" fontFamily="mono">
+                      {detail}
+                    </Text>
+                  ))}
+                </VStack>
+              </Box>
+            </Collapse>
+          </VStack>
+        </Center>
+      </Box>
+    );
+  }
 
   return (
     <AuthGuard requireAuth={false}>
@@ -97,7 +221,7 @@ export default function Home() {
               </Text>
             </VStack>
 
-            {/* Loading Indicator */}
+            {/* Enhanced Loading Indicator */}
             <VStack spacing={4} pt={4}>
               <Spinner 
                 size="md"
@@ -106,15 +230,65 @@ export default function Home() {
                 speed="0.8s"
               />
               
-              <Text 
-                textStyle="caption"
-                color="gray.500"
-                fontSize="sm"
-                fontWeight="medium"
-              >
-                Initializing...
-              </Text>
+              <VStack spacing={2}>
+                <HStack spacing={2} align="center">
+                  <Text 
+                    textStyle="caption"
+                    color="gray.500"
+                    fontSize="sm"
+                    fontWeight="medium"
+                  >
+                    {loadingState.stage === 'initializing' && 'Initializing...'}
+                    {loadingState.stage === 'auth-loading' && 'Loading authentication...'}
+                    {loadingState.stage === 'auth-ready' && 'Authentication ready'}
+                    {loadingState.stage === 'redirecting' && 'Redirecting...'}
+                  </Text>
+                  <Badge colorScheme="gray" variant="subtle" fontSize="xs">
+                    {elapsedTime}s
+                  </Badge>
+                </HStack>
+
+                {/* Stage indicator */}
+                <Text fontSize="xs" color="gray.600">
+                  Stage: {loadingState.stage.replace('-', ' ').toUpperCase()}
+                </Text>
+              </VStack>
             </VStack>
+
+            {/* Debug toggle for development */}
+            {process.env.NODE_ENV === 'development' && (
+              <Button
+                variant="ghost"
+                size="xs"
+                color="gray.600"
+                onClick={() => setShowDetails(!showDetails)}
+              >
+                Debug Info
+              </Button>
+            )}
+
+            {/* Debug details */}
+            <Collapse in={showDetails}>
+              <Box 
+                w="full" 
+                bg="gray.800" 
+                p={3} 
+                borderRadius="md" 
+                maxH="200px" 
+                overflowY="auto"
+                fontSize="xs"
+                fontFamily="mono"
+              >
+                <Text color="gray.300" mb={1} fontWeight="medium">
+                  Debug Log:
+                </Text>
+                {loadingState.details.map((detail, index) => (
+                  <Text key={index} color="gray.500">
+                    {detail}
+                  </Text>
+                ))}
+              </Box>
+            </Collapse>
           </VStack>
         </Center>
       </Box>

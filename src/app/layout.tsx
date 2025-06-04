@@ -28,11 +28,28 @@ export const metadata: Metadata = {
   },
 };
 
+// Add startup logging
+if (typeof window !== 'undefined') {
+  console.log('[APP] Client-side initialization started', {
+    timestamp: new Date().toISOString(),
+    userAgent: navigator.userAgent,
+    url: window.location.href,
+    hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    environment: process.env.NODE_ENV
+  });
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  console.log('[LAYOUT] Rendering root layout', {
+    timestamp: new Date().toISOString(),
+    isServer: typeof window === 'undefined'
+  });
+
   return (
     <html lang="en" data-theme="dark" className="chakra-ui-dark" style={{ colorScheme: "dark" }}>
       <body
