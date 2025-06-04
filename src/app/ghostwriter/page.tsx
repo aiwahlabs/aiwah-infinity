@@ -12,14 +12,9 @@ import {
   VStack, 
   HStack, 
   Button, 
-  Stat,
-  StatLabel,
-  StatNumber,
-  StatHelpText,
   useColorModeValue,
   Skeleton,
-  Center,
-  Spinner
+  Center
 } from '@chakra-ui/react';
 import { 
   FiFileText, 

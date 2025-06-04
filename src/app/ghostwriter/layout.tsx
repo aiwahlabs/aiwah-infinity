@@ -3,8 +3,9 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { AppLayout } from '@/components/AppLayout';
-import { FiFileText, FiHome, FiEdit3, FiCheckCircle, FiPlusCircle } from 'react-icons/fi';
+import { FiFileText, FiHome, FiEdit3, FiPlusCircle } from 'react-icons/fi';
 import { DocumentsProvider } from '@/hooks/documents';
+import { AuthGuard } from '@/components/AuthGuard';
 
 export default function GhostwriterLayout({
   children,
@@ -69,14 +70,16 @@ export default function GhostwriterLayout({
   };
 
   return (
-    <DocumentsProvider>
-      <AppLayout 
-        appName="Ghostwriter" 
-        appIcon={FiFileText} 
-        breadcrumbs={getBreadcrumbs()}
-      >
-        {children}
-      </AppLayout>
-    </DocumentsProvider>
+    <AuthGuard>
+      <DocumentsProvider>
+        <AppLayout 
+          appName="Ghostwriter" 
+          appIcon={FiFileText} 
+          breadcrumbs={getBreadcrumbs()}
+        >
+          {children}
+        </AppLayout>
+      </DocumentsProvider>
+    </AuthGuard>
   );
 } 

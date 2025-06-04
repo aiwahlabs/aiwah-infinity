@@ -7,9 +7,9 @@ import {
   Flex,
   Input,
   useToast,
+  Container,
 } from '@chakra-ui/react';
 import { ChatConversation } from '../types';
-import { ModelSelector } from './ModelSelector';
 
 interface ChatHeaderProps {
   conversation: ChatConversation;
@@ -69,46 +69,46 @@ function EditableTitle({
         onChange={(e) => setEditValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={handleSave}
-        fontSize="14px"
-        lineHeight="1.4"
-        fontWeight="medium"
-        color="white"
-        bg="transparent"
-        border="none"
+        textStyle="body"
+        fontWeight="500"
+        color="gray.100"
+        bg="gray.800"
+        border="1px solid"
+        borderColor="gray.600"
         _focus={{ 
-          outline: "none",
-          boxShadow: "none"
+          borderColor: "brand.400",
+          boxShadow: "0 0 0 1px var(--chakra-colors-brand-400)"
         }}
         _hover={{
-          bg: "transparent"
+          borderColor: "gray.500"
         }}
-        px={2}
-        py={1}
+        px={3}
+        py={2}
         borderRadius="md"
         flex="1"
-        minH="auto"
-        h="auto"
+        maxW="400px"
       />
     );
   }
 
   return (
     <Text
-      fontSize="14px"
-      lineHeight="1.4"
-      fontWeight="medium"
-      color="white"
-      py={1}
-      px={2}
+      textStyle="body"
+      fontWeight="500"
+      color="gray.100"
+      py={2}
+      px={3}
       borderRadius="md"
       _hover={{ 
-        bg: "gray.700",
-        color: "gray.100"
+        bg: "gray.800",
+        color: "gray.50"
       }}
       cursor="pointer"
       display="inline-block"
-      maxW="fit-content"
+      maxW="400px"
+      noOfLines={1}
       onClick={() => setIsEditing(true)}
+      transition="all 0.2s"
     >
       {value || 'Untitled Conversation'}
     </Text>
@@ -142,20 +142,23 @@ export const ChatHeader = React.memo(function ChatHeader({
 
   return (
     <Box
-      p={4}
-      borderBottom="1px"
-      borderColor="gray.600"
-      bg="gray.800"
+      bg="gray.850"
+      borderBottom="1px solid"
+      borderColor="gray.800"
+      py={4}
+      flexShrink={0}
     >
-      <Flex align="center" justify="space-between">
-        <Box flex="1">
+      <Container maxW="4xl">
+        <Flex align="center" justify="space-between">
           <EditableTitle
             value={conversation.title || 'Untitled Conversation'}
             onSave={handleUpdateTitle}
           />
-        </Box>
-        <ModelSelector />
-      </Flex>
+          <Text textStyle="caption" color="gray.500">
+            AI Assistant
+          </Text>
+        </Flex>
+      </Container>
     </Box>
   );
 }); 

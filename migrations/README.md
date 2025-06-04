@@ -1,26 +1,36 @@
 # Database Migrations
 
-This directory contains SQL migration files for setting up the chat functionality.
+This directory contains SQL migration files for setting up the chat functionality and async task system.
+
+## Migration Overview
+
+- **001_create_chat_tables.sql** - Original chat tables (conversations, messages)
+- **002_create_async_tasks_table.sql** - Generic async task system for n8n workflows
+- **003_link_chat_messages_to_tasks.sql** - Links chat messages to async processing tasks
 
 ## Setup Instructions
 
-### 1. Run the Chat Tables Migration
+### 1. Run All Migrations
 
-To set up the chat functionality, you need to run the SQL migration in your Supabase database:
+To set up the complete system, run these migrations in order:
 
 1. Go to your Supabase Dashboard
 2. Navigate to the SQL Editor
-3. Copy and paste the contents of `001_create_chat_tables.sql`
-4. Run the SQL script
+3. Run each migration file in sequence:
+   - `001_create_chat_tables.sql`
+   - `002_create_async_tasks_table.sql` 
+   - `003_link_chat_messages_to_tasks.sql`
 
 ### 2. Verify the Setup
 
-After running the migration, you should have:
+After running all migrations, you should have:
 
 - `chat_conversations` table with proper RLS policies
-- `chat_messages` table with proper RLS policies
+- `chat_messages` table with proper RLS policies (now with `async_task_id`)
+- `async_tasks` table for generic workflow processing
 - Indexes for performance optimization
 - Automatic `updated_at` timestamp updates
+- Realtime enabled on `async_tasks` for live status updates
 
 ### 3. Test the Setup
 
@@ -47,7 +57,26 @@ You can test the setup by:
 - `conversation_id` (BIGINT, references chat_conversations)
 - `role` (TEXT, 'user' or 'assistant')
 - `content` (TEXT)
+- `thinking` (TEXT)
 - `created_at` (TIMESTAMPTZ)
+- `metadata` (JSONB)
+- `async_task_id` (BIGINT, references async_tasks) *NEW*
+
+### async_tasks *(NEW - for n8n workflows)*
+- `id` (BIGSERIAL PRIMARY KEY)
+- `task_type` (VARCHAR, e.g. 'chat', 'email')
+- `workflow_id` (VARCHAR, n8n workflow reference)
+- `input_data` (JSONB, workflow input)
+- `output_data` (JSONB, workflow results)
+- `status` (VARCHAR, 'pending'|'processing'|'completed'|'failed'|'timeout')
+- `current_step` (VARCHAR, workflow step name)
+- `status_message` (TEXT, human-readable status)
+- `n8n_execution_id` (VARCHAR, n8n tracking)
+- `created_by` (UUID, references auth.users)
+- `created_at` (TIMESTAMPTZ)
+- `processing_started_at` (TIMESTAMPTZ)
+- `processing_completed_at` (TIMESTAMPTZ)
+- `error_details` (JSONB)
 - `metadata` (JSONB)
 
 ## Security

@@ -7,14 +7,14 @@ import {
   Center,
   useToast,
   Text,
-  Divider,
+  Container,
 } from '@chakra-ui/react';
 import { ChatMessage, ChatConversation } from '../types';
 import { useChatContext } from '@/hooks/chat/useChatContext';
-import { useChatStream } from '../hooks/useChatStream';
+import { useAsyncChat } from '@/hooks/chat/useAsyncChat';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
-import { StreamingMessage } from './StreamingMessage';
+import { AsyncProcessingIndicator } from './AsyncProcessingIndicator';
 import { ChatInput } from './ChatInput';
 
 
@@ -26,21 +26,21 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
   const { 
     currentConversation, 
     messages, 
-    loading, 
     updateConversation,
-    createMessage,
     loadMessages 
   } = useChatContext();
   
-  const {
-    streamState,
-    sendMessage,
-    cancelStream,
-    resetStream,
-  } = useChatStream();
+
   
   // Use currentConversation from context with fallback to prop
   const activeConversation = currentConversation || conversation;
+  
+  const {
+    sendMessage: sendAsyncMessage,
+    isProcessing,
+    error: asyncError,
+    clearError,
+  } = useAsyncChat(activeConversation?.id);
   
   const [inputValue, setInputValue] = useState('');
   const [sending, setSending] = useState(false);
@@ -51,14 +51,27 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
   useEffect(() => {
     if (activeConversation?.id) {
       loadMessages(activeConversation.id);
-      resetStream();
     }
-  }, [activeConversation?.id, loadMessages, resetStream]);
+  }, [activeConversation?.id, loadMessages]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive or processing state changes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamState.streamingContent, streamState.streamingThinking]);
+  }, [messages, isProcessing]);
+
+  // Show error toast when async error occurs
+  useEffect(() => {
+    if (asyncError) {
+      toast({
+        title: 'Error processing message',
+        description: asyncError,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        onCloseComplete: clearError,
+      });
+    }
+  }, [asyncError, toast, clearError]);
 
   // Format message timestamp with relative time
   const formatMessageTime = useCallback((dateStr: string) => {
@@ -85,56 +98,29 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     }
   }, []);
 
-  // Handle sending messages
+  // Handle sending messages with async processing
   const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim() || sending || streamState.isStreaming || !activeConversation) return;
+    if (!inputValue.trim() || sending || isProcessing || !activeConversation) return;
 
     const userMessage = inputValue.trim();
     setInputValue('');
     setSending(true);
 
     try {
-      // Add user message to database
-      const userMessageData = await createMessage({
-        conversation_id: activeConversation.id,
-        role: 'user',
-        content: userMessage,
-      });
-
-      if (!userMessageData) {
-        throw new Error('Failed to create user message');
-      }
-
-      // Get all messages for context (including the new user message)
-      const allMessages = [...messages, userMessageData];
+      // Send message and trigger async processing
+      await sendAsyncMessage(activeConversation.id, userMessage);
       
-      // Send message with streaming
-      await sendMessage(allMessages, {
-        onComplete: async (finalContent: string, finalThinking?: string) => {
-          // Save the complete AI response to database
-          if (finalContent.trim()) {
-            await createMessage({
-              conversation_id: activeConversation.id,
-              role: 'assistant',
-              content: finalContent,
-              thinking: finalThinking || undefined,
-            });
-          }
-        },
-        onError: (error: string) => {
-          toast({
-            title: 'Error sending message',
-            description: error,
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-          });
-        }
-      });
+      // Message was sent successfully - the async hook will handle real-time updates
+      console.log('Message sent for async processing');
+      
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Restore input value on error so user doesn't lose their message
+      setInputValue(userMessage);
+      
       toast({
-        title: 'Error sending message',
+        title: 'Failed to send message',
         description: error instanceof Error ? error.message : 'Please try again',
         status: 'error',
         duration: 5000,
@@ -143,7 +129,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     } finally {
       setSending(false);
     }
-  }, [inputValue, sending, streamState.isStreaming, activeConversation, createMessage, messages, sendMessage, toast]);
+  }, [inputValue, sending, isProcessing, activeConversation, sendAsyncMessage, toast]);
 
   // Handle updating conversation title
   const handleUpdateTitle = useCallback(async (newTitle: string) => {
@@ -151,19 +137,80 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     await updateConversation(activeConversation.id, { title: newTitle });
   }, [activeConversation, updateConversation]);
 
+  // Handle canceling processing (placeholder for future enhancement)
+  const handleCancel = useCallback(() => {
+    // TODO: Implement task cancellation via API if needed
+    console.log('Cancel processing requested');
+  }, []);
+
   if (!activeConversation) {
     return (
-      <Box h="100%" display="flex" flexDirection="column" bg="gray.800">
-        <Center h="100%">
-          <VStack spacing={4} textAlign="center" maxW="md">
-            <Text textStyle="page-title" fontWeight="medium">
-              Welcome to AI Chat
+      <Box 
+        h="100%" 
+        bg="gray.900"
+        display="flex" 
+        flexDirection="column"
+      >
+        {/* Empty header space to match layout */}
+        <Box
+          bg="gray.850"
+          borderBottom="1px solid"
+          borderColor="gray.800"
+          py={4}
+          flexShrink={0}
+        >
+          <Container maxW="4xl">
+            <Text textStyle="body" color="gray.500" fontWeight="500">
+              AI Chat
             </Text>
-            <Text textStyle="body">
-              Select a conversation from the sidebar or create a new one to get started.
-            </Text>
-          </VStack>
-        </Center>
+          </Container>
+        </Box>
+
+        {/* Welcome content - matches message area structure */}
+        <Box 
+          flex="1" 
+          overflowY="auto" 
+          overflowX="hidden"
+          bg="gray.900"
+          minH={0}
+        >
+          <Container maxW="4xl" py={6}>
+            <Center py={20}>
+              <VStack spacing={6} textAlign="center" maxW="lg">
+                <Text textStyle="page-title" color="gray.100" fontWeight="600">
+                  Welcome to AI Chat
+                </Text>
+                <Text textStyle="body" color="gray.400" lineHeight="1.6">
+                  Select a conversation from the sidebar or create a new one to get started with your AI assistant.
+                </Text>
+              </VStack>
+            </Center>
+          </Container>
+        </Box>
+
+        {/* Empty input area space to match layout */}
+        <Box 
+          bg="gray.850"
+          borderTop="1px solid"
+          borderColor="gray.800"
+          p={4}
+          flexShrink={0}
+        >
+          <Container maxW="4xl">
+            <Box
+              bg="gray.800"
+              borderRadius="xl"
+              border="1px solid"
+              borderColor="gray.700"
+              p={4}
+              opacity={0.5}
+            >
+              <Text textStyle="body" color="gray.500">
+                Select a conversation to start chatting...
+              </Text>
+            </Box>
+          </Container>
+        </Box>
       </Box>
     );
   }
@@ -171,9 +218,9 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
   return (
     <Box 
       h="100%" 
+      bg="gray.900"
       display="flex" 
-      flexDirection="column" 
-      bg="gray.800"
+      flexDirection="column"
     >
       {/* Header - Fixed at top */}
       <ChatHeader 
@@ -186,76 +233,63 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
         flex="1" 
         overflowY="auto" 
         overflowX="hidden"
-        bg="gray.800"
+        bg="gray.900"
         minH={0}
       >
-        <Box p={4} maxW="4xl" mx="auto">
-            <VStack spacing={0} align="stretch">
-              {/* Messages */}
-              {messages.length === 0 ? (
-                <Center py={20}>
-                  <VStack spacing={3} textAlign="center">
-                    <Text textStyle="section-heading" fontWeight="medium">
-                      Start a conversation
-                    </Text>
-                    <Text textStyle="body">
-                      Ask me anything! I&apos;m here to help.
-                    </Text>
-                  </VStack>
-                </Center>
-              ) : (
-                messages.map((message: ChatMessage) => (
-                  <MessageBubble 
-                    key={message.id} 
-                    message={message} 
-                    formatTime={formatMessageTime}
-                  />
-                ))
-              )}
-              
-              {/* Streaming AI response */}
-              <StreamingMessage
-                streamingContent={streamState.streamingContent}
-                streamingThinking={streamState.streamingThinking}
-                botTyping={streamState.isStreaming}
-              />
-              
-              {/* Error state */}
-              {streamState.error && (
-                <Box>
-                  <Box py={4}>
-                    <Box p={3} bg="red.900" borderRadius="md" border="1px solid" borderColor="red.700">
-                      <Text color="red.200" textStyle="body">
-                        {streamState.error}
-                      </Text>
-                    </Box>
-                  </Box>
-                  <Divider borderColor="gray.700" />
-                </Box>
-              )}
-              
-              <div ref={messagesEndRef} />
-            </VStack>
-        </Box>
+        <Container maxW="4xl" py={6}>
+          <VStack spacing={0} align="stretch">
+            {/* Messages */}
+            {messages.length === 0 ? (
+              <Center py={20}>
+                <VStack spacing={4} textAlign="center">
+                  <Text textStyle="section-heading" color="gray.200" fontWeight="500">
+                    Start a conversation
+                  </Text>
+                  <Text textStyle="body" color="gray.400" maxW="md">
+                    Ask me anything! I&apos;m here to help with questions, creative tasks, problem-solving, and much more.
+                  </Text>
+                </VStack>
+              </Center>
+            ) : (
+              messages.map((message: ChatMessage) => (
+                <MessageBubble 
+                  key={message.id} 
+                  message={message} 
+                  formatTime={formatMessageTime}
+                />
+              ))
+            )}
+            
+            {/* Async processing indicator */}
+            <AsyncProcessingIndicator
+              isProcessing={isProcessing}
+              error={asyncError}
+            />
+            
+            <div ref={messagesEndRef} />
+          </VStack>
+        </Container>
       </Box>
 
       {/* Input Area - Fixed at bottom */}
       <Box 
-        p={4} 
-        bg="gray.800"
+        bg="gray.850"
+        borderTop="1px solid"
+        borderColor="gray.800"
+        p={4}
         flexShrink={0}
       >
-        <Box maxW="4xl" mx="auto">
+        <Container maxW="4xl">
           <ChatInput
             value={inputValue}
             onChange={setInputValue}
             onSend={handleSendMessage}
-            onCancel={cancelStream}
+            onCancel={handleCancel}
             disabled={sending}
-            isStreaming={streamState.isStreaming}
+            isStreaming={isProcessing}
             placeholder="Ask me anything..."
           />
-        </Box>
+        </Container>
       </Box>
     </Box>
   );
