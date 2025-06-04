@@ -26,10 +26,11 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
   const { 
     currentConversation, 
     messages, 
-    loading, 
     updateConversation,
     loadMessages 
   } = useChatContext();
+  
+
   
   // Use currentConversation from context with fallback to prop
   const activeConversation = currentConversation || conversation;
@@ -284,7 +285,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
             onChange={setInputValue}
             onSend={handleSendMessage}
             onCancel={handleCancel}
-            disabled={sending || loading}
+            disabled={sending}
             isStreaming={isProcessing}
             placeholder="Ask me anything..."
           />
