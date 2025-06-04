@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       .insert({
         conversation_id,
         role: 'assistant',
-        content: 'AI is processing your message...',  // Placeholder content
+        content: '',  // Empty content initially - status shown via task
         async_task_id: task_id
       })
       .select()

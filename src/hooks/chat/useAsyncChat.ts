@@ -200,31 +200,4 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
   };
 };
 
-/**
- * Get status display for async processing
- */
-export const getTaskStatusDisplay = (task?: AsyncTask): string => {
-  if (!task) return '';
-
-  if (task.status_message) {
-    return task.status_message;
-  }
-
-  // Fallback status messages
-  switch (task.status) {
-    case 'pending':
-      return 'Waiting to start...';
-    case 'processing':
-      return task.current_step || 'Processing your message...';
-    case 'completed':
-      return 'Complete';
-    case 'failed':
-      return 'Failed to process';
-    case 'timeout':
-      return 'Request timed out';
-    case 'cancelled':
-      return 'Cancelled';
-    default:
-      return task.status;
-  }
-}; 
+ 

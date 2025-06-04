@@ -22,6 +22,7 @@ import {
 import { ChatMessage } from '../types';
 import { MessageStatusIndicator } from './AsyncProcessingIndicator';
 import { useChatContext } from '@/hooks/chat/useChatContext';
+import { useAsyncTaskStatus, getTaskStatusDisplay } from '@/hooks/chat/useAsyncTaskStatus';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -41,6 +42,11 @@ export const MessageBubble = React.memo(function MessageBubble({
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
   const hasThinking = isAssistant && message.thinking;
+
+  // Get real-time task status for AI messages with async tasks
+  const { task, loading: taskLoading } = useAsyncTaskStatus(
+    isAssistant && message.async_task_id ? message.async_task_id : undefined
+  );
 
   const handleCopy = useCallback(() => {
     onCopy();
@@ -176,21 +182,44 @@ export const MessageBubble = React.memo(function MessageBubble({
           borderColor={isUser ? "gray.700" : "gray.700"}
           position="relative"
         >
-          <Text 
-            textStyle="body"
-            color={isUser ? "gray.200" : "gray.100"}
-            whiteSpace="pre-wrap"
-            lineHeight="1.7"
-          >
-            {message.content}
-          </Text>
+          {/* Show content only if message has actual content */}
+          {message.content && (
+            <Text 
+              textStyle="body"
+              color={isUser ? "gray.200" : "gray.100"}
+              whiteSpace="pre-wrap"
+              lineHeight="1.7"
+            >
+              {message.content}
+            </Text>
+          )}
           
           {/* Show processing status for assistant messages with async tasks */}
-          {isAssistant && message.async_task_id && (
-            <Box mt={3}>
+          {isAssistant && message.async_task_id && task && task.status !== 'completed' && (
+            <Box mt={message.content ? 3 : 0}>
               <MessageStatusIndicator
-                status={message.content === 'AI is processing your message...' ? 'processing' : 'completed'}
-                statusMessage={message.content === 'AI is processing your message...' ? 'Processing your request...' : undefined}
+                status={task.status}
+                statusMessage={getTaskStatusDisplay(task)}
+              />
+            </Box>
+          )}
+
+          {/* Show loading state while fetching task status */}
+          {isAssistant && message.async_task_id && taskLoading && (
+            <Box mt={message.content ? 3 : 0}>
+              <MessageStatusIndicator
+                status="processing"
+                statusMessage="Loading status..."
+              />
+            </Box>
+          )}
+
+          {/* Show placeholder when no content and no task info yet */}
+          {isAssistant && message.async_task_id && !message.content && !task && !taskLoading && (
+            <Box>
+              <MessageStatusIndicator
+                status="pending"
+                statusMessage="Starting to process your message..."
               />
             </Box>
           )}

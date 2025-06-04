@@ -140,6 +140,58 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [supabase]);
 
+  // Subscribe to real-time message updates for the current conversation
+  useEffect(() => {
+    if (!currentConversation?.id) return;
+
+    const messagesChannel = supabase
+      .channel(`chat_messages_${currentConversation.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `conversation_id=eq.${currentConversation.id}`
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: any) => {
+          console.log('Message real-time update:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            // Add new message
+            const newMessage = payload.new as ChatMessage;
+            setMessages(prev => {
+              // Avoid duplicates
+              if (prev.some(msg => msg.id === newMessage.id)) {
+                return prev;
+              }
+              return [...prev, newMessage];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            // Update existing message
+            const updatedMessage = payload.new as ChatMessage;
+            setMessages(prev => 
+              prev.map(msg => 
+                msg.id === updatedMessage.id ? updatedMessage : msg
+              )
+            );
+          } else if (payload.eventType === 'DELETE') {
+            // Remove deleted message
+            const deletedMessage = payload.old as ChatMessage;
+            setMessages(prev => 
+              prev.filter(msg => msg.id !== deletedMessage.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+    };
+  }, [currentConversation?.id, supabase]);
+
   const createConversation = useCallback(async (data: CreateConversationData): Promise<ChatConversation | null> => {
     try {
       setError(null);

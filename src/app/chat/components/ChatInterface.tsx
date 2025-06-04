@@ -14,7 +14,6 @@ import { useChatContext } from '@/hooks/chat/useChatContext';
 import { useAsyncChat } from '@/hooks/chat/useAsyncChat';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
-import { AsyncProcessingIndicator } from './AsyncProcessingIndicator';
 import { ChatInput } from './ChatInput';
 
 
@@ -259,12 +258,6 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
                 />
               ))
             )}
-            
-            {/* Async processing indicator */}
-            <AsyncProcessingIndicator
-              isProcessing={isProcessing}
-              error={asyncError}
-            />
             
             <div ref={messagesEndRef} />
           </VStack>
