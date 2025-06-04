@@ -5,12 +5,7 @@ import {
   Box,
   Flex,
   Textarea,
-  IconButton,
 } from '@chakra-ui/react';
-import {
-  FiSend,
-  FiStopCircle,
-} from 'react-icons/fi';
 
 interface ChatInputProps {
   value: string;
@@ -31,7 +26,6 @@ export const ChatInput = React.memo(function ChatInput({
   disabled = false,
   isStreaming = false,
   placeholder = "Type your message...",
-  maxLength = 4000,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -69,7 +63,7 @@ export const ChatInput = React.memo(function ChatInput({
     }
   }, [value, disabled, isStreaming, onSend, onCancel]);
 
-  const canSend = value.trim() && !disabled && !isStreaming && value.length <= maxLength;
+
 
   return (
     <Box

@@ -15,8 +15,31 @@ import { useAsyncChat } from '@/hooks/chat/useAsyncChat';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
-import { logger } from '@/lib/logger';
 
+// Format message timestamp with relative time - outside component to prevent re-renders
+const formatMessageTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffInMinutes = (now.getTime() - date.getTime()) / (1000 * 60);
+  const diffInHours = diffInMinutes / 60;
+  const diffInDays = diffInHours / 24;
+  
+  if (diffInMinutes < 1) {
+    return 'Just now';
+  } else if (diffInMinutes < 60) {
+    return `${Math.floor(diffInMinutes)}m ago`;
+  } else if (diffInHours < 24) {
+    return `${Math.floor(diffInHours)}h ago`;
+  } else if (diffInDays < 7) {
+    return `${Math.floor(diffInDays)}d ago`;
+  } else {
+    return date.toLocaleDateString([], { 
+      month: 'short', 
+      day: 'numeric',
+      year: diffInDays > 365 ? 'numeric' : undefined 
+    });
+  }
+};
 
 interface ChatInterfaceProps {
   conversation: ChatConversation | null;
@@ -41,7 +64,6 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     isProcessing,
     error: asyncError,
     clearError,
-    activeTasks,
   } = useAsyncChat(activeConversation?.id);
   
   const [inputValue, setInputValue] = useState('');
@@ -75,31 +97,6 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     }
   }, [asyncError, toast, clearError]);
 
-  // Format message timestamp with relative time
-  const formatMessageTime = useCallback((dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffInMinutes = (now.getTime() - date.getTime()) / (1000 * 60);
-    const diffInHours = diffInMinutes / 60;
-    const diffInDays = diffInHours / 24;
-    
-    if (diffInMinutes < 1) {
-      return 'Just now';
-    } else if (diffInMinutes < 60) {
-      return `${Math.floor(diffInMinutes)}m ago`;
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
-    } else if (diffInDays < 7) {
-      return `${Math.floor(diffInDays)}d ago`;
-    } else {
-      return date.toLocaleDateString([], { 
-        month: 'short', 
-        day: 'numeric',
-        year: diffInDays > 365 ? 'numeric' : undefined 
-      });
-    }
-  }, []);
-
   // Handle sending messages with async processing
   const handleSendMessage = useCallback(async () => {
     if (!inputValue.trim() || sending || isProcessing || !activeConversation) return;
@@ -111,36 +108,40 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     try {
       // Send message and trigger async processing
       await sendAsyncMessage(activeConversation.id, userMessage, (userMsg, aiMsg) => {
+        // Type guard to check if the messages have the expected properties
+        const userMessage = userMsg as ChatMessage;
+        const aiMessage = aiMsg as ChatMessage;
+        
         console.log('💬 Messages received from API, adding to local state immediately:', {
-          userMessageId: userMsg?.id,
-          aiMessageId: aiMsg?.id,
-          hasUserContent: !!userMsg?.content,
-          hasAiContent: !!aiMsg?.content
+          userMessageId: userMessage?.id,
+          aiMessageId: aiMessage?.id,
+          hasUserContent: !!userMessage?.content,
+          hasAiContent: !!aiMessage?.content
         });
 
         // Immediately add both messages to local state for instant feedback
         // This ensures they show up in the UI immediately, regardless of real-time subscription timing
-        if (userMsg) {
+        if (userMessage) {
           setMessages((prev: ChatMessage[]) => {
             // Check for duplicates (in case real-time subscription already added it)
-            if (prev.some((msg: ChatMessage) => msg.id === userMsg.id)) {
-              console.log('User message already exists, skipping:', userMsg.id);
+            if (prev.some((msg: ChatMessage) => msg.id === userMessage.id)) {
+              console.log('User message already exists, skipping:', userMessage.id);
               return prev;
             }
-            console.log('✅ Adding user message to local state:', userMsg.id);
-            return [...prev, userMsg];
+            console.log('✅ Adding user message to local state:', userMessage.id);
+            return [...prev, userMessage];
           });
         }
 
-        if (aiMsg) {
+        if (aiMessage) {
           setMessages((prev: ChatMessage[]) => {
             // Check for duplicates (in case real-time subscription already added it)
-            if (prev.some((msg: ChatMessage) => msg.id === aiMsg.id)) {
-              console.log('AI message already exists, skipping:', aiMsg.id);
+            if (prev.some((msg: ChatMessage) => msg.id === aiMessage.id)) {
+              console.log('AI message already exists, skipping:', aiMessage.id);
               return prev;
             }
-            console.log('✅ Adding AI placeholder message to local state:', aiMsg.id);
-            return [...prev, aiMsg];
+            console.log('✅ Adding AI placeholder message to local state:', aiMessage.id);
+            return [...prev, aiMessage];
           });
         }
       });
@@ -164,7 +165,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     } finally {
       setSending(false);
     }
-  }, [inputValue, sending, isProcessing, activeConversation, sendAsyncMessage, toast]);
+  }, [inputValue, sending, isProcessing, activeConversation, sendAsyncMessage, toast, setMessages]);
 
   // Handle updating conversation title
   const handleUpdateTitle = useCallback(async (newTitle: string) => {
@@ -287,21 +288,13 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
               </Center>
             ) : (
               <>
-                {messages.map((message: ChatMessage) => {
-                  logger.chat('ChatInterface', 'Rendering message', { 
-                    messageId: message.id, 
-                    role: message.role,
-                    hasContent: !!message.content,
-                    asyncTaskId: message.async_task_id
-                  });
-                  return (
-                    <MessageBubble 
-                      key={message.id} 
-                      message={message} 
-                      formatTime={formatMessageTime}
-                    />
-                  );
-                })}
+                {messages.map((message: ChatMessage) => (
+                  <MessageBubble 
+                    key={message.id} 
+                    message={message} 
+                    formatTime={formatMessageTime}
+                  />
+                ))}
               </>
             )}
             

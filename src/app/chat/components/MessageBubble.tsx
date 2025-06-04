@@ -23,7 +23,6 @@ import { ChatMessage } from '../types';
 import { useChatContext } from '@/hooks/chat/useChatContext';
 import { useAsyncTaskStatus, getTaskStatusDisplay } from '@/hooks/chat/useAsyncTaskStatus';
 import { MessageStatusIndicator } from './AsyncProcessingIndicator';
-import { logger } from '@/lib/logger';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -35,29 +34,13 @@ export const MessageBubble = React.memo(function MessageBubble({
   message,
   formatTime,
 }: MessageBubbleProps) {
-  logger.render('MessageBubble', { 
-    messageId: message.id, 
-    role: message.role, 
-    hasContent: !!message.content,
-    hasAsyncTask: !!message.async_task_id,
-    asyncTaskId: message.async_task_id 
-  });
-
-  logger.hook('MessageBubble', 'useState(showThoughts)', { messageId: message.id });
   const [showThoughts, setShowThoughts] = useState(false);
-  
-  logger.hook('MessageBubble', 'useClipboard', { messageId: message.id, contentLength: message.content?.length });
   const { onCopy } = useClipboard(message.content);
-  
-  logger.hook('MessageBubble', 'useChatContext', { messageId: message.id });
   const { deleteMessage } = useChatContext();
-  
-  logger.hook('MessageBubble', 'useToast', { messageId: message.id });
   const toast = useToast();
 
   // Use async task status for AI assistant messages with async tasks
-  logger.hook('MessageBubble', 'useAsyncTaskStatus', { messageId: message.id, asyncTaskId: message.async_task_id });
-  const { task, loading: taskLoading } = useAsyncTaskStatus(message.async_task_id);
+  const { task } = useAsyncTaskStatus(message.async_task_id);
 
   const isUser = message.role === 'user';
   const isAssistant = message.role === 'assistant';
@@ -65,19 +48,6 @@ export const MessageBubble = React.memo(function MessageBubble({
   const hasActiveTask = isAssistant && task && task.status !== 'completed';
   const taskStatusMessage = getTaskStatusDisplay(task);
 
-  logger.chat('MessageBubble', 'Message classification', {
-    messageId: message.id,
-    isUser,
-    isAssistant,
-    hasThinking,
-    asyncTaskId: message.async_task_id,
-    hasActiveTask,
-    taskStatus: task?.status,
-    taskStatusMessage
-  });
-
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL LOGIC - React Rules of Hooks
-  logger.hook('MessageBubble', 'useCallback(handleCopy)', { messageId: message.id });
   const handleCopy = useCallback(() => {
     onCopy();
     toast({
@@ -88,7 +58,6 @@ export const MessageBubble = React.memo(function MessageBubble({
     });
   }, [onCopy, toast]);
 
-  logger.hook('MessageBubble', 'useCallback(handleDelete)', { messageId: message.id });
   const handleDelete = useCallback(async () => {
     const success = await deleteMessage(message.id);
     if (success) {

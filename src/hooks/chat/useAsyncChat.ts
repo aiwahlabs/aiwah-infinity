@@ -13,7 +13,7 @@ interface AsyncTask {
 }
 
 interface UseAsyncChatReturn {
-  sendMessage: (conversationId: number, message: string, onMessagesCreated?: (userMessage: any, aiMessage: any) => void) => Promise<void>;
+  sendMessage: (conversationId: number, message: string, onMessagesCreated?: (userMessage: unknown, aiMessage: unknown) => void) => Promise<void>;
   isProcessing: boolean;
   error: string | null;
   clearError: () => void;
@@ -181,7 +181,7 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
       supabase.removeChannel(channel);
       clearInterval(cleanupInterval);
     };
-  }, [conversationId, supabase]);
+  }, [conversationId, supabase, activeTasks]);
 
   // Update overall processing state based on active tasks
   useEffect(() => {
@@ -199,7 +199,7 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
   /**
    * Send a message and start async AI processing
    */
-  const sendMessage = useCallback(async (conversationId: number, message: string, onMessagesCreated?: (userMessage: any, aiMessage: any) => void) => {
+  const sendMessage = useCallback(async (conversationId: number, message: string, onMessagesCreated?: (userMessage: unknown, aiMessage: unknown) => void) => {
     if (!message.trim()) return;
 
     setError(null);
