@@ -84,6 +84,11 @@ aiwah-infinity/
 - `npm run db:start` - Start Supabase local development
 - `npm run db:gen` - Generate TypeScript types from Supabase
 - `npm run db:mig` - Create a new migration and reset the database
+## Testing
+
+- `npm test` - Run all tests once
+- `npm run test:watch` - Run tests in watch mode
+
 
 ## Deployment
 
