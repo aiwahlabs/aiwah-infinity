@@ -58,7 +58,7 @@ export const AsyncProcessingIndicator = React.memo(function AsyncProcessingIndic
     <Box py={6}>
       <Box
         p={4}
-        bg="gray.850"
+        bg="gray.800"
         borderRadius="lg"
         border="1px solid"
         borderColor="gray.700"

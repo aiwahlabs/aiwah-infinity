@@ -65,6 +65,8 @@ export const ChatInput = React.memo(function ChatInput({
 
 
 
+
+
   return (
     <Box
       bg="gray.800"

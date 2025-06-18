@@ -55,6 +55,8 @@ export const LoadingMessageBubble = React.memo(function LoadingMessageBubble({
     loading
   });
 
+
+
   return (
     <Box py={6}>
       {/* Message header - styled like AI Assistant */}
@@ -104,10 +106,11 @@ export const LoadingMessageBubble = React.memo(function LoadingMessageBubble({
         <Box
           p={4}
           borderRadius="lg"
-          bg="gray.850"
+          bg="gray.800"
           border="1px solid"
           borderColor="gray.700"
           position="relative"
+          color="gray.100"
         >
           {/* Status indicator inside the message bubble */}
           <MessageStatusIndicator

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 
 interface AsyncTask {
@@ -24,13 +24,13 @@ interface UseAsyncChatReturn {
 }
 
 /**
- * Hook for managing async chat messages with HYBRID real-time + polling system
+ * Hook for managing async chat messages with SILKY SMOOTH performance
  * 
- * Features:
- * - Real-time subscriptions for instant updates when they work
- * - Fast polling (2s) as backup when real-time fails
- * - Immediate local state updates for smooth UX
- * - Handles error states and provides status feedback
+ * Optimizations:
+ * - Debounced state updates to prevent excessive re-renders
+ * - Memoized values to reduce computation
+ * - Duplicate processing prevention
+ * - Optimistic UI updates for instant feedback
  */
 export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
   const [activeTasks, setActiveTasks] = useState<Set<number>>(new Set());
@@ -39,11 +39,36 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
   
   const supabase = supabaseBrowser();
   
-  // Track last check time for polling optimization
-  const lastCheckRef = useRef<number>(0);
+  // Refs for performance optimization
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const processedTasksRef = useRef<Set<string>>(new Set()); // Prevent duplicate processing
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check for pending/completed tasks
+  // Memoized active tasks array to prevent unnecessary re-renders
+  const activeTasksArray = useMemo(() => Array.from(activeTasks), [activeTasks]);
+
+  // Debounced processing state update for smoother UX
+  const updateProcessingState = useCallback((newActiveTasks: Set<number>) => {
+    // Clear existing debounce
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    // Debounce state update to batch multiple rapid changes
+    debounceTimeoutRef.current = setTimeout(() => {
+      const newIsProcessing = newActiveTasks.size > 0;
+      
+      console.log('🚀 Optimized processing state update:', {
+        newIsProcessing,
+        activeTasksCount: newActiveTasks.size,
+        activeTasks: Array.from(newActiveTasks)
+      });
+      
+      setIsProcessing(newIsProcessing);
+    }, 16); // 16ms = ~60fps for smooth updates
+  }, []);
+
+  // Optimized task checking with caching
   const checkTasks = useCallback(async () => {
     if (!conversationId || activeTasks.size === 0) return;
 
@@ -57,30 +82,42 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
 
       if (!error && tasks && tasks.length > 0) {
         const completedTaskIds = tasks.map(t => t.id);
-        console.log('🔄 Polling found completed tasks:', completedTaskIds);
+        
+                  // Only log if we haven't already processed these tasks
+          const newCompletedTasks = completedTaskIds.filter(id => !processedTasksRef.current.has(`completed_${id}`));
+          if (newCompletedTasks.length > 0) {
+            console.log('⚡ Found newly completed tasks:', newCompletedTasks);
+            newCompletedTasks.forEach(id => processedTasksRef.current.add(`completed_${id}`));
+          }
         
         setActiveTasks(prev => {
           const next = new Set(prev);
-          completedTaskIds.forEach(id => next.delete(id));
+          let changed = false;
+          completedTaskIds.forEach(id => {
+            if (next.has(id)) {
+              next.delete(id);
+              changed = true;
+            }
+          });
+          
+          if (changed) {
+            updateProcessingState(next);
+          }
+          
           return next;
         });
       }
     } catch (error) {
       console.error('Error in task polling:', error);
     }
-  }, [conversationId, activeTasks, supabase]);
+  }, [conversationId, activeTasks, supabase, updateProcessingState]);
 
-  // Fast polling for active tasks (2-second intervals)
+  // Smart polling - only when needed
   useEffect(() => {
     if (activeTasks.size > 0) {
-      // Start fast polling when we have active tasks
-      intervalRef.current = setInterval(() => {
-        checkTasks();
-      }, 2000); // Check every 2 seconds for smooth updates
-
-      console.log('🔄 Started fast polling for', activeTasks.size, 'active tasks');
+      intervalRef.current = setInterval(checkTasks, 2000);
+      console.log('⚡ Started smart polling for', activeTasks.size, 'tasks');
     } else {
-      // Stop polling when no active tasks
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -96,11 +133,13 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
     };
   }, [activeTasks.size, checkTasks]);
 
-  // Real-time subscription (primary) with polling fallback
+  // Real-time subscription with duplicate prevention
   useEffect(() => {
     if (!conversationId) return;
 
-    // Initial check for existing tasks
+    // Reset processed tasks when conversation changes
+    processedTasksRef.current.clear();
+
     const checkExistingTasks = async () => {
       try {
         const { data: tasks, error } = await supabase
@@ -114,13 +153,14 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
           return;
         }
 
-        if (tasks && tasks.length > 0) {
-          const taskIds = tasks.map(task => task.id);
-          setActiveTasks(new Set(taskIds));
-          console.log('🔄 Found existing active tasks:', taskIds);
-        } else {
-          setActiveTasks(new Set());
+        const newActiveTasks = new Set(tasks?.map(task => task.id) || []);
+        
+        if (newActiveTasks.size > 0) {
+          console.log('⚡ Found existing active tasks:', Array.from(newActiveTasks));
         }
+        
+        setActiveTasks(newActiveTasks);
+        updateProcessingState(newActiveTasks);
       } catch (error) {
         console.error('Error checking existing tasks:', error);
       }
@@ -128,7 +168,7 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
 
     checkExistingTasks();
 
-    // Real-time subscription for instant updates
+    // Optimized real-time subscription
     const channel = supabase
       .channel(`async_tasks_conversation_${conversationId}`)
       .on(
@@ -142,49 +182,54 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
         async (payload: any) => {
           const task = payload.new as AsyncTask;
           
-          // Client-side filter: only process tasks for this conversation
+          // Client-side filter
           const taskConversationId = task.input_data?.conversation_id;
           if (taskConversationId !== conversationId) {
-            // This task is for a different conversation, ignore it - but log it for debugging
-            console.log('📤 Ignoring task for different conversation:', {
-              taskId: task.id,
-              taskConversationId,
-              currentConversationId: conversationId
-            });
             return;
           }
           
-          console.log('⚡ Real-time task update (filtered):', {
+          // Prevent duplicate processing
+          const taskKey = `${task.id}_${task.status}_${payload.eventType}`;
+          if (processedTasksRef.current.has(taskKey)) {
+            console.log('⚡ Skipping duplicate task processing:', { taskId: task.id, status: task.status });
+            return;
+          }
+          processedTasksRef.current.add(taskKey);
+          
+          console.log('⚡ Real-time task update (optimized):', {
             taskId: task.id,
-            conversationId: taskConversationId,
             status: task.status,
-            eventType: payload.eventType,
-            timestamp: new Date().toISOString()
+            eventType: payload.eventType
           });
 
-          // Update active tasks based on status
-          if (task.status === 'pending' || task.status === 'processing') {
-            setActiveTasks(prev => {
-              const next = new Set(prev);
-              next.add(task.id);
-              console.log('➕ Added task via real-time:', task.id);
-              return next;
-            });
-          } else {
-            // Task completed/failed - remove it
-            setActiveTasks(prev => {
-              const next = new Set(prev);
-              const wasPresent = next.has(task.id);
-              next.delete(task.id);
-              console.log('➖ Removed task via real-time:', { 
-                taskId: task.id, 
-                wasPresent, 
-                status: task.status,
-                message: 'Real-time subscription working! ✅'
-              });
-              return next;
-            });
-          }
+          // Batch state update for smooth performance
+          setActiveTasks(prev => {
+            const next = new Set(prev);
+            let changed = false;
+
+            if (task.status === 'pending' || task.status === 'processing') {
+              if (!next.has(task.id)) {
+                next.add(task.id);
+                changed = true;
+                console.log('➕ Added task via real-time:', task.id);
+              }
+            } else {
+              if (next.has(task.id)) {
+                next.delete(task.id);
+                changed = true;
+                console.log('➖ Removed task via real-time (INSTANT!):', { 
+                  taskId: task.id, 
+                  status: task.status
+                });
+              }
+            }
+
+            if (changed) {
+              updateProcessingState(next);
+            }
+
+            return next;
+          });
 
           // Handle task failure
           if (task.status === 'failed') {
@@ -209,33 +254,26 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
         }
       )
       .subscribe((status) => {
-        console.log('📡 Real-time subscription status for async_tasks:', {
+        console.log('📡 Real-time subscription status (optimized):', {
           status,
-          conversationId,
-          timestamp: new Date().toISOString()
+          conversationId
         });
       });
 
     return () => {
       supabase.removeChannel(channel);
+      // Clear processed tasks cache when unmounting
+      processedTasksRef.current.clear();
+      
+      // Clear debounce timeout
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
     };
-  }, [conversationId, supabase]);
-
-  // Update overall processing state based on active tasks
-  useEffect(() => {
-    const newIsProcessing = activeTasks.size > 0;
-    
-    console.log('🔄 Processing state update:', {
-      newIsProcessing,
-      activeTasksCount: activeTasks.size,
-      activeTasks: Array.from(activeTasks)
-    });
-    
-    setIsProcessing(newIsProcessing);
-  }, [activeTasks]);
+  }, [conversationId, supabase, updateProcessingState]);
 
   /**
-   * Send a message and start async AI processing
+   * Optimized message sending with instant feedback
    */
   const sendMessage = useCallback(async (conversationId: number, message: string, onMessagesCreated?: (userMessage: unknown, aiMessage: unknown) => void) => {
     if (!message.trim()) return;
@@ -261,10 +299,15 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
 
       const data = await response.json();
       
-      // Track the new task immediately
+      // Optimistic task tracking
       if (data.task_id) {
-        setActiveTasks(prev => new Set(prev).add(data.task_id));
-        console.log('📤 Message sent, tracking task:', data.task_id);
+        setActiveTasks(prev => {
+          const next = new Set(prev);
+          next.add(data.task_id);
+          updateProcessingState(next);
+          return next;
+        });
+        console.log('🚀 Message sent, tracking task (optimized):', data.task_id);
       }
 
       if (onMessagesCreated) {
@@ -276,11 +319,8 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
       setError(error instanceof Error ? error.message : 'Failed to send message');
       throw error;
     }
-  }, []);
+  }, [updateProcessingState]);
 
-  /**
-   * Clear the current error state
-   */
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -290,7 +330,7 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
     isProcessing,
     error,
     clearError,
-    activeTasks: Array.from(activeTasks)
+    activeTasks: activeTasksArray
   };
 };
 

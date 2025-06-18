@@ -1,75 +1,111 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useMemo } from 'react';
 import {
   Box,
   Flex,
   Text,
-  IconButton,
   HStack,
-  useClipboard,
-  useToast,
-  Collapse,
   Badge,
+  IconButton,
+  VStack,
+  useToast,
 } from '@chakra-ui/react';
-import {
-  FiCopy,
-  FiChevronDown,
-  FiChevronUp,
-  FiTrash2,
-  FiZap,
-} from 'react-icons/fi';
-import { ChatMessage } from '../types';
-import { useChatContext } from '@/hooks/chat/useChatContext';
-import { useAsyncTaskStatus, getTaskStatusDisplay } from '@/hooks/chat/useAsyncTaskStatus';
+import { FiCopy, FiTrash2 } from 'react-icons/fi';
+import { SimpleMarkdownRenderer } from './SimpleMarkdownRenderer';
 import { MessageStatusIndicator } from './AsyncProcessingIndicator';
+import { useAsyncTaskStatus, getTaskStatusDisplay } from '@/hooks/chat/useAsyncTaskStatus';
+import { useChatContext } from '@/hooks/chat/useChatContext';
+import { ChatMessage } from '../types';
 
 interface MessageBubbleProps {
   message: ChatMessage;
-  formatTime: (dateStr: string) => string;
   isStreaming?: boolean;
+  formatTime: (dateStr: string) => string;
 }
 
-export const MessageBubble = React.memo(function MessageBubble({
+/**
+ * Optimized MessageBubble with React.memo for better performance
+ * Only re-renders when message content, streaming state, or formatTime changes
+ */
+export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubble({
   message,
-  formatTime,
-}: MessageBubbleProps) {
-  const [showThoughts, setShowThoughts] = useState(false);
-  const { onCopy } = useClipboard(message.content);
+  isStreaming = false,
+  formatTime
+}) {
   const { deleteMessage } = useChatContext();
   const toast = useToast();
+  
+  // Memoize computed values to prevent recalculation
+  const isUser = useMemo(() => message.role === 'user', [message.role]);
+  const isAssistant = useMemo(() => message.role === 'assistant', [message.role]);
+  const hasContent = useMemo(() => !!message.content?.trim(), [message.content]);
+  const formattedTime = useMemo(() => formatTime(message.created_at), [formatTime, message.created_at]);
+  
+  // Get real-time task status for assistant messages with async tasks
+  const { task, loading: taskLoading } = useAsyncTaskStatus(
+    isAssistant && message.async_task_id ? message.async_task_id : undefined
+  );
+  
+  // Get live status message from n8n workflow
+  const liveStatusMessage = useMemo(() => {
+    if (!task) return '';
+    return getTaskStatusDisplay(task);
+  }, [task]);
+  
+  // Memoize styles to prevent recalculation
+  const bubbleStyles = useMemo(() => ({
+    bg: isUser ? 'gray.700' : 'gray.800',
+    color: isUser ? 'gray.100' : 'gray.100',
+    borderRadius: 'lg',
+    px: 4,
+    py: 3,
+    maxWidth: '85%',
+    wordBreak: 'break-word' as const,
+    position: 'relative' as const,
+    border: '1px solid',
+    borderColor: isUser ? 'gray.600' : 'gray.700',
+    // Smooth transition for color changes
+    transition: 'all 0.2s ease-in-out',
+    // Subtle highlight for user messages
+    ...(isUser && {
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+    }),
+  }), [isUser]);
 
-  // Use async task status for AI assistant messages with async tasks
-  const { task } = useAsyncTaskStatus(message.async_task_id);
+  const containerStyles = useMemo(() => ({
+    width: '100%',
+    justifyContent: isUser ? 'flex-end' : 'flex-start',
+    mb: 3
+  }), [isUser]);
 
-  const isUser = message.role === 'user';
-  const isAssistant = message.role === 'assistant';
-  const hasThinking = isAssistant && message.thinking;
-  const hasActiveTask = isAssistant && task && task.status !== 'completed';
-  const taskStatusMessage = getTaskStatusDisplay(task);
+  // Copy to clipboard functionality
+  const handleCopy = React.useCallback(async () => {
+    if (message.content) {
+      try {
+        await navigator.clipboard.writeText(message.content);
+        // Could add a toast notification here
+      } catch (error) {
+        console.error('Failed to copy message:', error);
+      }
+    }
+  }, [message.content]);
 
-  const handleCopy = useCallback(() => {
-    onCopy();
-    toast({
-      title: 'Message copied',
-      status: 'success',
-      duration: 2000,
-      isClosable: true,
-    });
-  }, [onCopy, toast]);
-
-  const handleDelete = useCallback(async () => {
-    const success = await deleteMessage(message.id);
-    if (success) {
+  // Delete message functionality
+  const handleDelete = React.useCallback(async () => {
+    try {
+      await deleteMessage(message.id);
       toast({
         title: 'Message deleted',
-        status: 'success',
+        status: 'info',
         duration: 2000,
         isClosable: true,
       });
-    } else {
+    } catch (error) {
+      console.error('Failed to delete message:', error);
       toast({
         title: 'Failed to delete message',
+        description: 'Please try again',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -77,145 +113,94 @@ export const MessageBubble = React.memo(function MessageBubble({
     }
   }, [deleteMessage, message.id, toast]);
 
-  // Show the message - placeholder AI messages will display loading indicators
-  // until the async task completes and fills in the content
+  // Only show status indicator for assistant messages that are processing
+  const showStatusIndicator = useMemo(() => 
+    isAssistant && (!hasContent || isStreaming) && message.async_task_id, 
+    [isAssistant, hasContent, isStreaming, message.async_task_id]
+  );
+  
+  // Determine the status and message to show
+  const statusToShow = useMemo(() => {
+    if (taskLoading) return 'processing';
+    if (task?.status) return task.status;
+    return isStreaming ? 'processing' : 'pending';
+  }, [taskLoading, task?.status, isStreaming]);
+  
+  const statusMessageToShow = useMemo(() => {
+    if (liveStatusMessage) return liveStatusMessage;
+    return isStreaming ? 'AI is thinking...' : 'Preparing response...';
+  }, [liveStatusMessage, isStreaming]);
+
+  // Don't render bubble if there's no content and no status to show
+  const shouldRender = useMemo(() => {
+    return hasContent || showStatusIndicator || isStreaming;
+  }, [hasContent, showStatusIndicator, isStreaming]);
+
+  if (!shouldRender) {
+    return null;
+  }
 
   return (
-    <Box py={6}>
-      {/* Message header */}
-      <Flex justify="space-between" align="center" mb={4}>
-        <HStack spacing={3}>
-          <Badge
-            variant="outline"
-            colorScheme={isUser ? "gray" : "brand"}
-            fontSize="xs"
-            fontWeight="500"
-            px={2}
-            py={1}
-          >
-            {isUser ? 'You' : 'AI Assistant'}
-          </Badge>
-          
-          <Text textStyle="caption" color="gray.500">
-            {formatTime(message.created_at)}
-          </Text>
-        </HStack>
-        
-        <HStack spacing={1}>
-          <IconButton
-            aria-label="Copy message"
-            icon={<FiCopy />}
-            size="sm"
-            variant="ghost"
-            color="gray.500"
-            _hover={{ color: "gray.300", bg: "gray.800" }}
-            onClick={handleCopy}
-          />
-          <IconButton
-            aria-label="Delete message"
-            icon={<FiTrash2 />}
-            size="sm"
-            variant="ghost"
-            color="gray.500"
-            _hover={{ color: "red.400", bg: "gray.800" }}
-            onClick={handleDelete}
-          />
-        </HStack>
-      </Flex>
-
-      {/* Thinking content (for assistant messages) */}
-      {hasThinking && (
-        <Box mb={4}>
-          <Box
-            cursor="pointer"
-            onClick={() => setShowThoughts(!showThoughts)}
-            p={3}
-            borderRadius="lg"
-            bg="gray.850"
-            border="1px solid"
-            borderColor="gray.700"
-            _hover={{ bg: "gray.800", borderColor: "gray.600" }}
-            transition="all 0.2s"
-          >
-            <Flex align="center" justify="space-between">
-              <HStack spacing={2}>
-                <Box as={FiZap} color="brand.400" boxSize={4} />
-                <Text color="brand.300" textStyle="caption" fontWeight="500">
-                  AI Thoughts
-                </Text>
-              </HStack>
-              <Box
-                as={showThoughts ? FiChevronUp : FiChevronDown}
-                color="brand.400"
-                boxSize={4}
-              />
-            </Flex>
-          </Box>
-          
-          <Collapse in={showThoughts} animateOpacity>
-            <Box
-              bg="gray.850"
-              borderRadius="lg"
-              p={4}
-              mt={2}
-              border="1px solid"
-              borderColor="gray.700"
-            >
-              <Text 
-                textStyle="body"
-                color="gray.300"
-                whiteSpace="pre-wrap"
-                lineHeight="1.6"
-                fontSize="sm"
-              >
-                {message.thinking}
-              </Text>
-            </Box>
-          </Collapse>
-        </Box>
-      )}
-
-      {/* Message content */}
-      <Box>
-        <Box
-          p={4}
-          borderRadius="lg"
-          bg={isUser ? "gray.800" : "gray.850"}
-          border="1px solid"
-          borderColor={isUser ? "gray.700" : "gray.700"}
-          position="relative"
-        >
-          {/* Show content only if message has actual content */}
-          {message.content && (
-            <Text 
-              textStyle="body"
-              color={isUser ? "gray.200" : "gray.100"}
-              whiteSpace="pre-wrap"
-              lineHeight="1.7"
-            >
-              {message.content}
-            </Text>
-          )}
-          
-          {/* Show loading indicator for AI messages without content but with active tasks */}
-          {isAssistant && !message.content && hasActiveTask && (
+    <Flex {...containerStyles}>
+      <VStack align={isUser ? 'flex-end' : 'flex-start'} spacing={1} maxWidth="85%">
+        {/* Message Bubble */}
+        <Box {...bubbleStyles}>
+          {hasContent ? (
+            <SimpleMarkdownRenderer content={message.content} />
+          ) : (
             <MessageStatusIndicator 
-              status={task?.status} 
-              statusMessage={taskStatusMessage}
+              status={statusToShow}
+              statusMessage={statusMessageToShow}
             />
           )}
-
-          {/* Show loading indicator for AI messages with content but still processing */}
-          {isAssistant && message.content && hasActiveTask && (
-            <Box mt={3} pt={3} borderTop="1px solid" borderColor="gray.700">
-              <MessageStatusIndicator 
-                status={task?.status} 
-                statusMessage={taskStatusMessage}
-              />
-            </Box>
-          )}
         </Box>
-      </Box>
-    </Box>
+
+        {/* Message Metadata */}
+        <HStack spacing={2} opacity={0.7} fontSize="xs">
+          <Text color="gray.400">{formattedTime}</Text>
+          
+          {/* Action Buttons - Only show on hover for cleaner UI */}
+          {hasContent && (
+            <HStack spacing={1} className="message-actions" opacity={0.7}>
+              <IconButton
+                aria-label="Copy message"
+                icon={<FiCopy />}
+                size="xs"
+                variant="ghost"
+                color={isUser ? 'gray.300' : 'gray.400'}
+                onClick={handleCopy}
+                _hover={{ opacity: 1, color: isUser ? 'gray.100' : 'gray.200' }}
+              />
+              <IconButton
+                aria-label="Delete message"
+                icon={<FiTrash2 />}
+                size="xs"
+                variant="ghost"
+                color={isUser ? 'gray.300' : 'gray.400'}
+                onClick={handleDelete}
+                _hover={{ opacity: 1, color: 'red.400' }}
+              />
+            </HStack>
+          )}
+
+          {/* Thinking badge for AI messages */}
+          {message.thinking && (
+            <Badge size="sm" colorScheme="purple" variant="outline">
+              Thinking
+            </Badge>
+          )}
+        </HStack>
+      </VStack>
+    </Flex>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison function for memo optimization
+  return (
+    prevProps.message.id === nextProps.message.id &&
+    prevProps.message.content === nextProps.message.content &&
+    prevProps.message.async_task_id === nextProps.message.async_task_id &&
+    prevProps.message.created_at === nextProps.message.created_at &&
+    prevProps.isStreaming === nextProps.isStreaming &&
+    prevProps.formatTime === nextProps.formatTime
   );
 }); 
