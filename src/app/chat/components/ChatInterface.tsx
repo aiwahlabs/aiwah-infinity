@@ -64,6 +64,7 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     isProcessing,
     error: asyncError,
     clearError,
+    activeTasks,
   } = useAsyncChat(activeConversation?.id);
   
   const [inputValue, setInputValue] = useState('');
@@ -71,9 +72,21 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
 
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('🎯 ChatInterface state update:', {
+      conversationId: activeConversation?.id,
+      messagesCount: messages.length,
+      isProcessing,
+      activeTasks,
+      hasAsyncError: !!asyncError
+    });
+  }, [activeConversation?.id, messages.length, isProcessing, activeTasks, asyncError]);
+
   // Load messages when conversation changes
   useEffect(() => {
     if (activeConversation?.id) {
+      console.log('📥 Loading messages for conversation:', activeConversation.id);
       loadMessages(activeConversation.id);
     }
   }, [activeConversation?.id, loadMessages]);

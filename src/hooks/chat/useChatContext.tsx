@@ -146,6 +146,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!currentConversation?.id) return;
 
+    console.log('🔗 Setting up real-time subscription for conversation:', currentConversation.id);
+
     const messagesChannel = supabase
       .channel(`chat_messages_${currentConversation.id}`)
       .on(
@@ -159,12 +161,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload: any) => {
           logger.chat('useChatContext', 'Realtime message update received', payload);
-          console.log('🔄 Message real-time update:', {
+          console.log('⚡ Message real-time update received:', {
             eventType: payload.eventType,
             messageId: payload.new?.id,
             conversationId: payload.new?.conversation_id,
             role: payload.new?.role,
             hasContent: !!payload.new?.content,
+            contentLength: payload.new?.content?.length || 0,
             asyncTaskId: payload.new?.async_task_id,
             timestamp: new Date().toISOString()
           });
@@ -198,18 +201,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             // Update existing message
             const updatedMessage = payload.new as ChatMessage;
             logger.chat('useChatContext', 'Processing UPDATE event', { updatedMessage });
-            console.log('📝 Updating message via real-time:', {
+            console.log('🔄 Updating message via real-time:', {
               messageId: updatedMessage.id,
               role: updatedMessage.role,
               hasContent: !!updatedMessage.content,
-              asyncTaskId: updatedMessage.async_task_id
+              contentLength: updatedMessage.content?.length || 0,
+              asyncTaskId: updatedMessage.async_task_id,
+              isAIMessage: updatedMessage.role === 'assistant'
             });
             
-            setMessages(prev => 
-              prev.map(msg => 
+            setMessages(prev => {
+              const updated = prev.map(msg => 
                 msg.id === updatedMessage.id ? updatedMessage : msg
-              )
-            );
+              );
+              console.log('✅ Message state updated for message:', updatedMessage.id);
+              return updated;
+            });
           } else if (payload.eventType === 'DELETE') {
             // Remove deleted message
             const deletedMessage = payload.old as ChatMessage;
@@ -222,9 +229,12 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Real-time subscription status:', status);
+      });
 
     return () => {
+      console.log('🔌 Cleaning up real-time subscription for conversation:', currentConversation.id);
       supabase.removeChannel(messagesChannel);
     };
   }, [currentConversation?.id, supabase]);
