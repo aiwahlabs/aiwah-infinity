@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
+// Component with AI reasoning display
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   Flex,
@@ -10,8 +11,10 @@ import {
   IconButton,
   VStack,
   useToast,
+  Collapse,
+  Button,
 } from '@chakra-ui/react';
-import { FiCopy, FiTrash2 } from 'react-icons/fi';
+import { FiCopy, FiTrash2, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { SimpleMarkdownRenderer } from './SimpleMarkdownRenderer';
 import { MessageStatusIndicator } from './AsyncProcessingIndicator';
 import { useAsyncTaskStatus, getTaskStatusDisplay } from '@/hooks/chat/useAsyncTaskStatus';
@@ -35,11 +38,13 @@ export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubb
 }) {
   const { deleteMessage } = useChatContext();
   const toast = useToast();
+  const [isThinkingOpen, setIsThinkingOpen] = useState(false);
   
   // Memoize computed values to prevent recalculation
   const isUser = useMemo(() => message.role === 'user', [message.role]);
   const isAssistant = useMemo(() => message.role === 'assistant', [message.role]);
   const hasContent = useMemo(() => !!message.content?.trim(), [message.content]);
+  const hasThinking = useMemo(() => !!message.thinking?.trim(), [message.thinking]);
   const formattedTime = useMemo(() => formatTime(message.created_at), [formatTime, message.created_at]);
   
   // Get real-time task status for assistant messages with async tasks
@@ -200,6 +205,49 @@ export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubb
           )}
         </Box>
 
+        {/* AI Thinking Section */}
+        {isAssistant && hasThinking && (
+          <VStack align="flex-start" spacing={2} width="100%" maxWidth="85%">
+            <Button
+              size="xs"
+              variant="ghost"
+              onClick={() => setIsThinkingOpen(!isThinkingOpen)}
+              rightIcon={isThinkingOpen ? <FiChevronUp /> : <FiChevronDown />}
+              color="gray.400"
+              _hover={{ color: 'gray.300' }}
+            >
+              {isThinkingOpen ? 'Hide' : 'Show'} AI reasoning
+            </Button>
+            <Collapse in={isThinkingOpen} animateOpacity>
+              <Box
+                bg="gray.900"
+                borderRadius="md"
+                p={3}
+                border="1px solid"
+                borderColor="gray.700"
+                fontSize="xs"
+                color="gray.400"
+                maxHeight="200px"
+                overflowY="auto"
+                css={{
+                  '&::-webkit-scrollbar': {
+                    width: '4px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: 'transparent',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#4A5568',
+                    borderRadius: '2px',
+                  },
+                }}
+              >
+                <Text whiteSpace="pre-wrap">{message.thinking}</Text>
+              </Box>
+            </Collapse>
+          </VStack>
+        )}
+
         {/* Message Metadata */}
         <HStack spacing={2} opacity={0.7}>
           <Text textStyle="caption" color="gray.500">
@@ -226,6 +274,7 @@ export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubb
   return (
     prevProps.message.id === nextProps.message.id &&
     prevProps.message.content === nextProps.message.content &&
+    prevProps.message.thinking === nextProps.message.thinking &&
     prevProps.message.async_task_id === nextProps.message.async_task_id &&
     prevProps.message.created_at === nextProps.message.created_at &&
     prevProps.isStreaming === nextProps.isStreaming &&

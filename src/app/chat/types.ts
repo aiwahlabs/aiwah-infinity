@@ -13,6 +13,7 @@ export interface ChatMessage {
   conversation_id: number;
   role: 'user' | 'assistant' | 'system';
   content: string;
+  thinking: string | null;
   created_at: string;
   metadata?: {
     model?: string;
