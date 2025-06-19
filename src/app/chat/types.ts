@@ -13,10 +13,15 @@ export interface ChatMessage {
   conversation_id: number;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  thinking?: string;
   created_at: string;
-  metadata: Record<string, unknown>;
-  async_task_id?: number; // For linking to async processing tasks
+  metadata?: {
+    model?: string;
+    tokens?: number;
+    cost?: number;
+    status_message?: string;
+    [key: string]: unknown;
+  };
+  async_task_id?: number;
 }
 
 export interface ChatFilter {
@@ -34,6 +39,16 @@ export interface CreateMessageData {
   conversation_id: number;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  thinking?: string;
   metadata?: Record<string, unknown>;
+}
+
+export interface ChatResponse {
+  content: string;
+  model: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  cost?: number;
 } 

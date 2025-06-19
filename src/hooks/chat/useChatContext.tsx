@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { ChatConversation, ChatMessage, ChatFilter, CreateConversationData, CreateMessageData } from '../../app/chat/types';
 import { logger } from '@/lib/logger';
@@ -43,7 +43,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   });
 
   const supabase = useMemo(() => supabaseBrowser(), []);
-
+  
   const loadConversations = useCallback(async () => {
     try {
       console.log('Loading conversations...');
@@ -147,7 +147,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     if (!currentConversation?.id) return;
 
     console.log('🔗 Setting up real-time subscription for conversation:', currentConversation.id);
-
+    
     const messagesChannel = supabase
       .channel(`chat_messages_${currentConversation.id}`)
       .on(
@@ -161,7 +161,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload: any) => {
           logger.chat('useChatContext', 'Realtime message update received', payload);
-          console.log('⚡ Message real-time update received:', {
+          console.log('📡 REAL-TIME: Message received:', {
             eventType: payload.eventType,
             messageId: payload.new?.id,
             conversationId: payload.new?.conversation_id,
@@ -169,6 +169,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             hasContent: !!payload.new?.content,
             contentLength: payload.new?.content?.length || 0,
             asyncTaskId: payload.new?.async_task_id,
+            statusMessage: payload.new?.metadata?.status_message,
             timestamp: new Date().toISOString()
           });
           
@@ -176,22 +177,29 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             // Add new message
             const newMessage = payload.new as ChatMessage;
             logger.chat('useChatContext', 'Processing INSERT event', { newMessage });
-            console.log('➕ Adding new message via real-time:', {
+            console.log('📡 REAL-TIME INSERT: Processing new message:', {
               messageId: newMessage.id,
               role: newMessage.role,
-              hasContent: !!newMessage.content
+              hasContent: !!newMessage.content,
+              statusMessage: newMessage.metadata?.status_message
             });
             
             setMessages(prev => {
               // Avoid duplicates
-              if (prev.some(msg => msg.id === newMessage.id)) {
+              const existingIndex = prev.findIndex(msg => msg.id === newMessage.id);
+              if (existingIndex !== -1) {
                 logger.chat('useChatContext', 'Duplicate message, skipping', { messageId: newMessage.id });
-                console.log('⚠️ Duplicate message detected, skipping:', newMessage.id);
+                console.log('⚠️ REAL-TIME INSERT: Duplicate message detected, skipping:', {
+                  messageId: newMessage.id,
+                  existingMessage: { id: prev[existingIndex].id, role: prev[existingIndex].role }
+                });
                 return prev;
               }
+              
               logger.chat('useChatContext', 'Adding new message to state', { messageId: newMessage.id, totalMessages: prev.length + 1 });
-              console.log('✅ Message added to state:', {
+              console.log('✅ REAL-TIME INSERT: Adding new message to state:', {
                 messageId: newMessage.id,
+                role: newMessage.role,
                 previousCount: prev.length,
                 newCount: prev.length + 1
               });
@@ -201,31 +209,56 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             // Update existing message
             const updatedMessage = payload.new as ChatMessage;
             logger.chat('useChatContext', 'Processing UPDATE event', { updatedMessage });
-            console.log('🔄 Updating message via real-time:', {
+            console.log('📡 REAL-TIME UPDATE: Processing message update:', {
               messageId: updatedMessage.id,
               role: updatedMessage.role,
               hasContent: !!updatedMessage.content,
               contentLength: updatedMessage.content?.length || 0,
+              statusMessage: updatedMessage.metadata?.status_message,
               asyncTaskId: updatedMessage.async_task_id,
               isAIMessage: updatedMessage.role === 'assistant'
             });
             
             setMessages(prev => {
+              const messageIndex = prev.findIndex(msg => msg.id === updatedMessage.id);
+              
+              if (messageIndex === -1) {
+                console.log('⚠️ REAL-TIME UPDATE: Message not found for update, adding as new:', {
+                  messageId: updatedMessage.id,
+                  currentMessages: prev.map(m => ({ id: m.id, role: m.role }))
+                });
+                return [...prev, updatedMessage];
+              }
+              
               const updated = prev.map(msg => 
                 msg.id === updatedMessage.id ? updatedMessage : msg
               );
-              console.log('✅ Message state updated for message:', updatedMessage.id);
+              console.log('✅ REAL-TIME UPDATE: Updated message in state:', {
+                messageId: updatedMessage.id,
+                index: messageIndex,
+                updatedContent: !!updatedMessage.content,
+                updatedStatusMessage: updatedMessage.metadata?.status_message
+              });
               return updated;
             });
           } else if (payload.eventType === 'DELETE') {
             // Remove deleted message
             const deletedMessage = payload.old as ChatMessage;
             logger.chat('useChatContext', 'Processing DELETE event', { deletedMessage });
-            console.log('🗑️ Deleting message via real-time:', deletedMessage.id);
+            console.log('📡 REAL-TIME DELETE: Deleting message:', {
+              messageId: deletedMessage.id,
+              role: deletedMessage.role
+            });
             
-            setMessages(prev => 
-              prev.filter(msg => msg.id !== deletedMessage.id)
-            );
+            setMessages(prev => {
+              const filtered = prev.filter(msg => msg.id !== deletedMessage.id);
+              console.log('✅ REAL-TIME DELETE: Message removed from state:', {
+                deletedId: deletedMessage.id,
+                previousCount: prev.length,
+                newCount: filtered.length
+              });
+              return filtered;
+            });
           }
         }
       )

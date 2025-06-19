@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Database commit should be immediate for optimistic UI updates
+    // Database commit should be immediate for real-time UI updates
 
     // 2. Create placeholder AI message first (before creating the task)
     // This way we can include the message_id in the task input_data from the start
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
           content: '', // Empty content - will be filled by n8n workflow
           metadata: { 
             placeholder: true,
-            pending_task: true
+            status_message: 'AIII is thinking' // Match n8n workflow status
           }
         })
         .select()

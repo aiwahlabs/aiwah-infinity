@@ -17,7 +17,6 @@ import { useAsyncChat } from '@/hooks/chat/useAsyncChat';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
-import { ActiveTaskIndicator } from './ActiveTaskIndicator';
 
 // Format message timestamp with relative time - outside component to prevent re-renders
 const formatMessageTime = (dateStr: string) => {
@@ -49,13 +48,13 @@ interface ChatInterfaceProps {
 }
 
 /**
- * Optimized ChatInterface with silky smooth performance
+ * Simplified ChatInterface with clean architecture
  * 
- * Performance optimizations:
- * - Memoized message rendering
- * - Debounced scroll-to-bottom
- * - Reduced re-render frequency
- * - Optimistic UI updates
+ * Features:
+ * - Real-time message updates via Supabase subscriptions
+ * - Simple message sending without optimistic updates
+ * - Smooth scrolling and responsive design
+ * - Clean error handling
  */
 export const ChatInterface = React.memo(function ChatInterface({ conversation }: ChatInterfaceProps) {
   const { 
@@ -63,7 +62,6 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     messages, 
     updateConversation,
     loadMessages,
-    setMessages,
   } = useChatContext();
   
   // Use currentConversation from context with fallback to prop
@@ -105,14 +103,13 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
   // Optimized debug logging (reduced frequency)
   const debugLogRef = useRef<number>(0);
   useEffect(() => {
-    // Only log every 5th state change to reduce console spam
-    if (debugLogRef.current % 5 === 0) {
-      console.log('🚀 ChatInterface state (optimized):', {
+    // Only log every 10th state change to reduce console spam
+    if (debugLogRef.current % 10 === 0) {
+      console.log('💬 ChatInterface state:', {
         conversationId,
         messagesCount,
         isProcessing,
-        activeTasks: activeTasks.length,
-        hasAsyncError
+        activeTasks: activeTasks.length
       });
     }
     debugLogRef.current++;
@@ -147,102 +144,23 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     }
   }, [asyncError, toast, clearError]);
 
-  // Optimized message sending with instant feedback
+  // Simplified message sending - no optimistic updates
   const handleSendMessage = useCallback(async () => {
     if (!inputValue.trim() || sending || isProcessing || !activeConversation) return;
 
     const userMessage = inputValue.trim();
-    const tempUserId = `temp-user-${Date.now()}`; // String-based temporary ID
-    const tempAiId = `temp-ai-${Date.now()}`; // String-based temporary ID
     
     setInputValue('');
     setSending(true);
 
-    // 🚀 INSTANT OPTIMISTIC UI UPDATES
-    // Add user message immediately
-    const optimisticUserMessage: ChatMessage = {
-      id: tempUserId as any, // Will be replaced with real number ID
-      conversation_id: activeConversation.id,
-      role: 'user',
-      content: userMessage,
-      created_at: new Date().toISOString(),
-      metadata: { optimistic: true, tempId: tempUserId }
-    };
-
-    // Add AI "thinking" message immediately
-    const optimisticAiMessage: ChatMessage = {
-      id: tempAiId as any, // Will be replaced with real number ID
-      conversation_id: activeConversation.id,
-      role: 'assistant',
-      content: '', // Empty content but will show "Thinking..." status
-      created_at: new Date().toISOString(),
-      metadata: { 
-        optimistic: true, 
-        thinking: true,
-        status_message: 'Thinking...',
-        tempId: tempAiId
-      }
-    };
-
-    // Update UI instantly
-    setMessages((prev: ChatMessage[]) => [...prev, optimisticUserMessage, optimisticAiMessage]);
-
     try {
-      // Send message and trigger async processing
-      await sendAsyncMessage(activeConversation.id, userMessage, (userMsg, aiMsg) => {
-        // Type guard to check if the messages have the expected properties
-        const userMessage = userMsg as ChatMessage;
-        const aiMessage = aiMsg as ChatMessage;
-        
-        console.log('🚀 Messages received from API (optimized):', {
-          userMessageId: userMessage?.id,
-          aiMessageId: aiMessage?.id,
-          hasUserContent: !!userMessage?.content,
-          hasAiContent: !!aiMessage?.content
-        });
-
-        // Replace optimistic messages with real ones
-        setMessages((prev: ChatMessage[]) => {
-          let updated = [...prev];
-          
-          // Replace optimistic user message with real one
-          if (userMessage) {
-            const tempUserIndex = updated.findIndex(msg => msg.metadata?.tempId === tempUserId);
-            if (tempUserIndex !== -1) {
-              updated[tempUserIndex] = userMessage;
-              console.log('✅ Replaced optimistic user message with real one:', userMessage.id);
-            }
-          }
-
-          // Replace optimistic AI message with real one, preserving thinking state
-          if (aiMessage) {
-            const tempAiIndex = updated.findIndex(msg => msg.metadata?.tempId === tempAiId);
-            if (tempAiIndex !== -1) {
-              updated[tempAiIndex] = {
-                ...aiMessage,
-                metadata: { 
-                  ...aiMessage.metadata,
-                  thinking: true,
-                  status_message: 'Thinking...' // Keep thinking status until n8n updates
-                }
-              };
-              console.log('✅ Replaced optimistic AI message with real one:', aiMessage.id);
-            }
-          }
-
-          return updated;
-        });
-      });
+      // Just send the message - let real-time handle UI updates
+      await sendAsyncMessage(activeConversation.id, userMessage);
       
-      console.log('🚀 Message sent for async processing (optimized)');
+      console.log('✅ Message sent successfully');
       
     } catch (error) {
       console.error('Error sending message:', error);
-      
-      // Remove optimistic messages on error
-      setMessages((prev: ChatMessage[]) => 
-        prev.filter(msg => msg.metadata?.tempId !== tempUserId && msg.metadata?.tempId !== tempAiId)
-      );
       
       // Restore input value on error so user doesn't lose their message
       setInputValue(userMessage);
@@ -257,72 +175,15 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     } finally {
       setSending(false);
     }
-  }, [inputValue, sending, isProcessing, activeConversation, sendAsyncMessage, setMessages, toast]);
+  }, [inputValue, sending, isProcessing, activeConversation, sendAsyncMessage, toast]);
 
-  // Memoized message list to prevent unnecessary re-renders
+  // Simplified message list - no more deduplication needed
   const messageList = useMemo(() => {
-    // Deduplicate messages and ensure proper keys
-    const uniqueMessages = messages.reduce((acc: ChatMessage[], message) => {
-      // Check if message already exists (by ID or tempId)
-      const exists = acc.some(existingMsg => {
-        // Same ID
-        if (existingMsg.id === message.id) return true;
-        // Same tempId in metadata
-        if (existingMsg.metadata?.tempId && existingMsg.metadata.tempId === message.metadata?.tempId) return true;
-        return false;
-      });
-      
-      if (!exists) {
-        acc.push(message);
-      }
-      
-      return acc;
-    }, []);
-
-    return uniqueMessages.map((message, index) => {
-      // Create a stable key that works for both temp and real IDs
-      const messageKey = String(message.metadata?.tempId || `msg-${message.id}-${index}`);
-      
-      return (
-        <MessageBubble
-          key={messageKey}
-          message={message}
-          isStreaming={false}
-          formatTime={(dateStr: string) => {
-            const date = new Date(dateStr);
-            const now = new Date();
-            const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-            
-            if (diffInSeconds < 60) return 'Just now';
-            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-            return date.toLocaleDateString();
-          }}
-        />
-      );
-    });
-  }, [messages]);
-
-  // Memoized active task indicators - only show if no AI message with content exists for this task
-  const activeTaskIndicators = useMemo(() => {
-    if (!activeConversation?.id) return null;
-    
-    // Filter out tasks that already have AI messages with content
-    const tasksToShow = activeTasks.filter(taskId => {
-      const aiMessageWithTask = messages.find(msg => 
-        msg.role === 'assistant' && 
-        msg.async_task_id === taskId && 
-        msg.content && 
-        msg.content.trim().length > 0
-      );
-      return !aiMessageWithTask;
-    });
-    
-    return tasksToShow.map((taskId) => (
-      <ActiveTaskIndicator
-        key={taskId}
-        taskId={taskId}
-        conversationId={activeConversation.id}
+    return messages.map((message, index) => (
+      <MessageBubble
+        key={message.id}
+        message={message}
+        isStreaming={false}
         formatTime={(dateStr: string) => {
           const date = new Date(dateStr);
           const now = new Date();
@@ -330,11 +191,12 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
           
           if (diffInSeconds < 60) return 'Just now';
           if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+          if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
           return date.toLocaleDateString();
         }}
       />
     ));
-  }, [activeTasks, activeConversation?.id, messages]);
+  }, [messages]);
 
   // Handle Enter key press
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {

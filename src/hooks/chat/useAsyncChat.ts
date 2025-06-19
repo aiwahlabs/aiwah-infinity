@@ -16,7 +16,7 @@ interface AsyncTask {
 }
 
 interface UseAsyncChatReturn {
-  sendMessage: (conversationId: number, message: string, onMessagesCreated?: (userMessage: unknown, aiMessage: unknown) => void) => Promise<void>;
+  sendMessage: (conversationId: number, message: string) => Promise<void>;
   isProcessing: boolean;
   error: string | null;
   clearError: () => void;
@@ -24,13 +24,13 @@ interface UseAsyncChatReturn {
 }
 
 /**
- * Hook for managing async chat messages with SILKY SMOOTH performance
+ * Hook for managing async chat processing with real-time updates
  * 
- * Optimizations:
- * - Debounced state updates to prevent excessive re-renders
- * - Memoized values to reduce computation
- * - Duplicate processing prevention
- * - Optimistic UI updates for instant feedback
+ * Features:
+ * - Tracks active async tasks for processing state
+ * - Real-time subscription for task status updates
+ * - Smart polling as fallback for reliability
+ * - Simple message sending without optimistic updates
  */
 export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
   const [activeTasks, setActiveTasks] = useState<Set<number>>(new Set());
@@ -273,9 +273,9 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
   }, [conversationId, supabase, updateProcessingState]);
 
   /**
-   * Optimized message sending with instant feedback
+   * Simplified message sending - no optimistic updates
    */
-  const sendMessage = useCallback(async (conversationId: number, message: string, onMessagesCreated?: (userMessage: unknown, aiMessage: unknown) => void) => {
+  const sendMessage = useCallback(async (conversationId: number, message: string) => {
     if (!message.trim()) return;
 
     setError(null);
@@ -299,7 +299,7 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
 
       const data = await response.json();
       
-      // Optimistic task tracking
+      // Track the task for processing state
       if (data.task_id) {
         setActiveTasks(prev => {
           const next = new Set(prev);
@@ -307,11 +307,7 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
           updateProcessingState(next);
           return next;
         });
-        console.log('🚀 Message sent, tracking task (optimized):', data.task_id);
-      }
-
-      if (onMessagesCreated) {
-        onMessagesCreated(data.user_message, data.ai_message);
+        console.log('✅ Message sent, tracking task:', data.task_id);
       }
 
     } catch (error) {

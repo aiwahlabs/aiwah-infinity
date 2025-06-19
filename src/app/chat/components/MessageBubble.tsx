@@ -156,41 +156,30 @@ export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubb
   }, [taskLoading, task?.status, isStreaming]);
   
   const statusMessageToShow = useMemo(() => {
+    // Use live status from n8n workflow if available
     if (liveStatusMessage) return liveStatusMessage;
+    
+    // Check for status message in metadata
+    if (message.metadata?.status_message) {
+      return message.metadata.status_message as string;
+    }
+    
+    // Default messages
+    if (isAssistant && !hasContent) {
+      return 'Processing...';
+    }
+    
     return isStreaming ? 'AI is thinking...' : 'Preparing response...';
-  }, [liveStatusMessage, isStreaming]);
+  }, [liveStatusMessage, message.metadata?.status_message, isAssistant, hasContent, isStreaming]);
 
   // Don't render bubble if there's no content and no status to show
   const shouldRender = useMemo(() => {
     // Always render if there's content
     if (hasContent) return true;
     
-    // Render if it's an AI message with thinking status (optimistic or real)
-    if (isAssistant && (message.metadata?.thinking || message.metadata?.status_message)) {
-      return true;
-    }
-    
     // Render if showing status indicator or streaming
     return showStatusIndicator || isStreaming;
-  }, [hasContent, isAssistant, message.metadata?.thinking, message.metadata?.status_message, showStatusIndicator, isStreaming]);
-
-  // Determine what status message to show for thinking state
-  const thinkingStatusMessage = useMemo(() => {
-    // Check for optimistic thinking state first
-    if (message.metadata?.thinking && message.metadata?.status_message) {
-      return message.metadata.status_message as string;
-    }
-    
-    // Fall back to live status from n8n
-    if (liveStatusMessage) return liveStatusMessage;
-    
-    // Default thinking message
-    if (isAssistant && !hasContent) {
-      return 'Thinking...';
-    }
-    
-    return isStreaming ? 'AI is thinking...' : 'Preparing response...';
-  }, [message.metadata?.thinking, message.metadata?.status_message, liveStatusMessage, isAssistant, hasContent, isStreaming]);
+  }, [hasContent, showStatusIndicator, isStreaming]);
 
   if (!shouldRender) {
     return null;
@@ -206,45 +195,28 @@ export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubb
           ) : (
             <MessageStatusIndicator 
               status={statusToShow}
-              statusMessage={thinkingStatusMessage}
+              statusMessage={statusMessageToShow}
             />
           )}
         </Box>
 
         {/* Message Metadata */}
-        <HStack spacing={2} opacity={0.7} fontSize="xs">
-          <Text color="gray.400">{formattedTime}</Text>
+        <HStack spacing={2} opacity={0.7}>
+          <Text textStyle="caption" color="gray.500">
+            {formattedTime}
+          </Text>
           
-          {/* Action Buttons - Only show on hover for cleaner UI */}
-          {hasContent && (
-            <HStack spacing={1} className="message-actions" opacity={0.7}>
-              <IconButton
-                aria-label="Copy message"
-                icon={<FiCopy />}
-                size="xs"
-                variant="ghost"
-                color={isUser ? 'gray.300' : 'gray.400'}
-                onClick={handleCopy}
-                _hover={{ opacity: 1, color: isUser ? 'gray.100' : 'gray.200' }}
-              />
-              <IconButton
-                aria-label="Delete message"
-                icon={<FiTrash2 />}
-                size="xs"
-                variant="ghost"
-                color={isUser ? 'gray.300' : 'gray.400'}
-                onClick={handleDelete}
-                _hover={{ opacity: 1, color: 'red.400' }}
-              />
-            </HStack>
-          )}
-
-          {/* Thinking badge for AI messages */}
-          {message.thinking && (
-            <Badge size="sm" colorScheme="purple" variant="outline">
-              Thinking
-            </Badge>
-          )}
+          {/* Role badge for clarity */}
+          <Badge
+            variant="outline"
+            colorScheme={isUser ? "gray" : "brand"}
+            fontSize="xs"
+            fontWeight="500"
+            px={2}
+            py={1}
+          >
+            {isUser ? 'You' : 'AI Assistant'}
+          </Badge>
         </HStack>
       </VStack>
     </Flex>
@@ -258,7 +230,6 @@ export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubb
     prevProps.message.created_at === nextProps.message.created_at &&
     prevProps.isStreaming === nextProps.isStreaming &&
     prevProps.formatTime === nextProps.formatTime &&
-    prevProps.message.metadata?.thinking === nextProps.message.metadata?.thinking &&
     prevProps.message.metadata?.status_message === nextProps.message.metadata?.status_message
   );
 }); 
