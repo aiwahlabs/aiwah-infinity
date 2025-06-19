@@ -152,8 +152,40 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     if (!inputValue.trim() || sending || isProcessing || !activeConversation) return;
 
     const userMessage = inputValue.trim();
+    const tempUserId = `temp-user-${Date.now()}`; // String-based temporary ID
+    const tempAiId = `temp-ai-${Date.now()}`; // String-based temporary ID
+    
     setInputValue('');
     setSending(true);
+
+    // 🚀 INSTANT OPTIMISTIC UI UPDATES
+    // Add user message immediately
+    const optimisticUserMessage: ChatMessage = {
+      id: tempUserId as any, // Will be replaced with real number ID
+      conversation_id: activeConversation.id,
+      role: 'user',
+      content: userMessage,
+      created_at: new Date().toISOString(),
+      metadata: { optimistic: true, tempId: tempUserId }
+    };
+
+    // Add AI "thinking" message immediately
+    const optimisticAiMessage: ChatMessage = {
+      id: tempAiId as any, // Will be replaced with real number ID
+      conversation_id: activeConversation.id,
+      role: 'assistant',
+      content: '', // Empty content but will show "Thinking..." status
+      created_at: new Date().toISOString(),
+      metadata: { 
+        optimistic: true, 
+        thinking: true,
+        status_message: 'Thinking...',
+        tempId: tempAiId
+      }
+    };
+
+    // Update UI instantly
+    setMessages((prev: ChatMessage[]) => [...prev, optimisticUserMessage, optimisticAiMessage]);
 
     try {
       // Send message and trigger async processing
@@ -169,30 +201,48 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
           hasAiContent: !!aiMessage?.content
         });
 
-        // Optimistic UI updates with duplicate prevention
-        if (userMessage) {
-          setMessages((prev: ChatMessage[]) => {
-            if (prev.some((msg: ChatMessage) => msg.id === userMessage.id)) {
-              return prev; // Skip if already exists
+        // Replace optimistic messages with real ones
+        setMessages((prev: ChatMessage[]) => {
+          let updated = [...prev];
+          
+          // Replace optimistic user message with real one
+          if (userMessage) {
+            const tempUserIndex = updated.findIndex(msg => msg.metadata?.tempId === tempUserId);
+            if (tempUserIndex !== -1) {
+              updated[tempUserIndex] = userMessage;
+              console.log('✅ Replaced optimistic user message with real one:', userMessage.id);
             }
-            return [...prev, userMessage];
-          });
-        }
+          }
 
-        if (aiMessage) {
-          setMessages((prev: ChatMessage[]) => {
-            if (prev.some((msg: ChatMessage) => msg.id === aiMessage.id)) {
-              return prev; // Skip if already exists
+          // Replace optimistic AI message with real one, preserving thinking state
+          if (aiMessage) {
+            const tempAiIndex = updated.findIndex(msg => msg.metadata?.tempId === tempAiId);
+            if (tempAiIndex !== -1) {
+              updated[tempAiIndex] = {
+                ...aiMessage,
+                metadata: { 
+                  ...aiMessage.metadata,
+                  thinking: true,
+                  status_message: 'Thinking...' // Keep thinking status until n8n updates
+                }
+              };
+              console.log('✅ Replaced optimistic AI message with real one:', aiMessage.id);
             }
-            return [...prev, aiMessage];
-          });
-        }
+          }
+
+          return updated;
+        });
       });
       
       console.log('🚀 Message sent for async processing (optimized)');
       
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Remove optimistic messages on error
+      setMessages((prev: ChatMessage[]) => 
+        prev.filter(msg => msg.metadata?.tempId !== tempUserId && msg.metadata?.tempId !== tempAiId)
+      );
       
       // Restore input value on error so user doesn't lose their message
       setInputValue(userMessage);
@@ -211,23 +261,46 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
 
   // Memoized message list to prevent unnecessary re-renders
   const messageList = useMemo(() => {
-    return messages.map((message) => (
-      <MessageBubble
-        key={message.id}
-        message={message}
-        isStreaming={false}
-        formatTime={(dateStr: string) => {
-          const date = new Date(dateStr);
-          const now = new Date();
-          const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-          
-          if (diffInSeconds < 60) return 'Just now';
-          if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-          if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-          return date.toLocaleDateString();
-        }}
-      />
-    ));
+    // Deduplicate messages and ensure proper keys
+    const uniqueMessages = messages.reduce((acc: ChatMessage[], message) => {
+      // Check if message already exists (by ID or tempId)
+      const exists = acc.some(existingMsg => {
+        // Same ID
+        if (existingMsg.id === message.id) return true;
+        // Same tempId in metadata
+        if (existingMsg.metadata?.tempId && existingMsg.metadata.tempId === message.metadata?.tempId) return true;
+        return false;
+      });
+      
+      if (!exists) {
+        acc.push(message);
+      }
+      
+      return acc;
+    }, []);
+
+    return uniqueMessages.map((message, index) => {
+      // Create a stable key that works for both temp and real IDs
+      const messageKey = String(message.metadata?.tempId || `msg-${message.id}-${index}`);
+      
+      return (
+        <MessageBubble
+          key={messageKey}
+          message={message}
+          isStreaming={false}
+          formatTime={(dateStr: string) => {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return date.toLocaleDateString();
+          }}
+        />
+      );
+    });
   }, [messages]);
 
   // Memoized active task indicators - only show if no AI message with content exists for this task

@@ -13,7 +13,7 @@ interface UseAsyncTaskStatusReturn {
 /**
  * Hook to fetch and subscribe to the status of a specific async task
  */
-export const useAsyncTaskStatus = (taskId?: number): UseAsyncTaskStatusReturn => {
+export const useAsyncTaskStatus = (taskId?: number | string): UseAsyncTaskStatusReturn => {
   const [task, setTask] = useState<AsyncTask | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +21,8 @@ export const useAsyncTaskStatus = (taskId?: number): UseAsyncTaskStatusReturn =>
   const supabase = supabaseBrowser();
 
   useEffect(() => {
-    if (!taskId) {
+    // Don't fetch if no taskId or if it's a temporary string ID
+    if (!taskId || typeof taskId === 'string') {
       setTask(null);
       setLoading(false);
       setError(null);

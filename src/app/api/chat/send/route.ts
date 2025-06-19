@@ -48,8 +48,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Add a tiny delay to ensure database commit is flushed before real-time notifications
-    await new Promise(resolve => setTimeout(resolve, 50));
+    // Database commit should be immediate for optimistic UI updates
 
     // 2. Create placeholder AI message first (before creating the task)
     // This way we can include the message_id in the task input_data from the start

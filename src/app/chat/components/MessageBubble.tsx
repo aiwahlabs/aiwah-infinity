@@ -54,24 +54,53 @@ export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubb
   }, [task]);
   
   // Memoize styles to prevent recalculation
-  const bubbleStyles = useMemo(() => ({
-    bg: isUser ? 'gray.700' : 'gray.800',
-    color: isUser ? 'gray.100' : 'gray.100',
-    borderRadius: 'lg',
-    px: 4,
-    py: 3,
-    maxWidth: '85%',
-    wordBreak: 'break-word' as const,
-    position: 'relative' as const,
-    border: '1px solid',
-    borderColor: isUser ? 'gray.600' : 'gray.700',
-    // Smooth transition for color changes
-    transition: 'all 0.2s ease-in-out',
-    // Subtle highlight for user messages
-    ...(isUser && {
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-    }),
-  }), [isUser]);
+  const bubbleStyles = useMemo(() => {
+    // Arrow size in px
+    const arrow = 8;
+
+    const baseStyles = {
+      bg: isUser ? 'gray.700' : 'gray.800',
+      color: isUser ? 'gray.100' : 'gray.100',
+      borderRadius: 'lg',
+      px: 4,
+      py: 3,
+      maxWidth: '85%',
+      wordBreak: 'break-word' as const,
+      position: 'relative' as const,
+      border: '1px solid',
+      borderColor: isUser ? 'gray.600' : 'gray.700',
+      // Smooth transition for color changes
+      transition: 'all 0.2s ease-in-out',
+      // Subtle highlight for user messages
+      ...(isUser && {
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+      }),
+      // Bubble arrow using ::after pseudo-element
+      _after: {
+        content: '""',
+        position: 'absolute',
+        top: '16px',
+        width: 0,
+        height: 0,
+        borderStyle: 'solid',
+        borderWidth: `${arrow}px`,
+        borderColor: 'transparent',
+        ...(isUser
+          ? {
+              // Arrow on the right for user messages
+              borderLeftColor: isUser ? 'gray.700' : 'gray.800',
+              right: `-${arrow}px`,
+            }
+          : {
+              // Arrow on the left for assistant messages
+              borderRightColor: isUser ? 'gray.700' : 'gray.800',
+              left: `-${arrow}px`,
+            }),
+      },
+    } as const;
+
+    return baseStyles;
+  }, [isUser]);
 
   const containerStyles = useMemo(() => ({
     width: '100%',
@@ -133,8 +162,35 @@ export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubb
 
   // Don't render bubble if there's no content and no status to show
   const shouldRender = useMemo(() => {
-    return hasContent || showStatusIndicator || isStreaming;
-  }, [hasContent, showStatusIndicator, isStreaming]);
+    // Always render if there's content
+    if (hasContent) return true;
+    
+    // Render if it's an AI message with thinking status (optimistic or real)
+    if (isAssistant && (message.metadata?.thinking || message.metadata?.status_message)) {
+      return true;
+    }
+    
+    // Render if showing status indicator or streaming
+    return showStatusIndicator || isStreaming;
+  }, [hasContent, isAssistant, message.metadata?.thinking, message.metadata?.status_message, showStatusIndicator, isStreaming]);
+
+  // Determine what status message to show for thinking state
+  const thinkingStatusMessage = useMemo(() => {
+    // Check for optimistic thinking state first
+    if (message.metadata?.thinking && message.metadata?.status_message) {
+      return message.metadata.status_message as string;
+    }
+    
+    // Fall back to live status from n8n
+    if (liveStatusMessage) return liveStatusMessage;
+    
+    // Default thinking message
+    if (isAssistant && !hasContent) {
+      return 'Thinking...';
+    }
+    
+    return isStreaming ? 'AI is thinking...' : 'Preparing response...';
+  }, [message.metadata?.thinking, message.metadata?.status_message, liveStatusMessage, isAssistant, hasContent, isStreaming]);
 
   if (!shouldRender) {
     return null;
@@ -150,7 +206,7 @@ export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubb
           ) : (
             <MessageStatusIndicator 
               status={statusToShow}
-              statusMessage={statusMessageToShow}
+              statusMessage={thinkingStatusMessage}
             />
           )}
         </Box>
@@ -201,6 +257,8 @@ export const MessageBubble = React.memo<MessageBubbleProps>(function MessageBubb
     prevProps.message.async_task_id === nextProps.message.async_task_id &&
     prevProps.message.created_at === nextProps.message.created_at &&
     prevProps.isStreaming === nextProps.isStreaming &&
-    prevProps.formatTime === nextProps.formatTime
+    prevProps.formatTime === nextProps.formatTime &&
+    prevProps.message.metadata?.thinking === nextProps.message.metadata?.thinking &&
+    prevProps.message.metadata?.status_message === nextProps.message.metadata?.status_message
   );
 }); 
