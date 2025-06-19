@@ -58,7 +58,7 @@ export const AsyncProcessingIndicator = React.memo(function AsyncProcessingIndic
     <Box py={6}>
       <Box
         p={4}
-        bg="gray.850"
+        bg="gray.800"
         borderRadius="lg"
         border="1px solid"
         borderColor="gray.700"
@@ -88,7 +88,7 @@ export const AsyncProcessingIndicator = React.memo(function AsyncProcessingIndic
  * Simple status indicator for message bubbles
  */
 interface MessageStatusIndicatorProps {
-  status?: 'pending' | 'processing' | 'completed' | 'failed';
+  status?: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled' | 'timeout';
   statusMessage?: string;
 }
 
@@ -107,6 +107,9 @@ export const MessageStatusIndicator = React.memo(function MessageStatusIndicator
         return <Spinner size="sm" color="brand.400" thickness="2px" />;
       case 'failed':
         return <Icon as={FiAlertCircle} color="red.400" boxSize={4} />;
+      case 'cancelled':
+      case 'timeout':
+        return <Icon as={FiAlertCircle} color="orange.400" boxSize={4} />;
       default:
         return <Icon as={FiClock} color="gray.400" boxSize={4} />;
     }
@@ -119,6 +122,9 @@ export const MessageStatusIndicator = React.memo(function MessageStatusIndicator
         return 'brand.400';
       case 'failed':
         return 'red.400';
+      case 'cancelled':
+      case 'timeout':
+        return 'orange.400';
       default:
         return 'gray.400';
     }
@@ -134,6 +140,10 @@ export const MessageStatusIndicator = React.memo(function MessageStatusIndicator
         return 'Processing...';
       case 'failed':
         return 'Failed to process';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'timeout':
+        return 'Request timed out';
       default:
         return status;
     }
@@ -149,6 +159,12 @@ export const MessageStatusIndicator = React.memo(function MessageStatusIndicator
       >
         {getStatusText()}
       </Text>
+      {/* Simple visual indicator for processing */}
+      {(status === 'pending' || status === 'processing') && (
+        <Text color={getStatusColor()} fontSize="lg">
+          ⋯
+        </Text>
+      )}
     </HStack>
   );
 }); 

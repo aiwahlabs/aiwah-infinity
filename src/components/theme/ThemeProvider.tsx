@@ -3,7 +3,6 @@
 import React, { ReactNode, useEffect } from 'react';
 import { SaasProvider } from '@saas-ui/react';
 import { 
-  ColorModeScript, 
   ChakraProvider, 
   useColorMode
 } from '@chakra-ui/react';
@@ -22,15 +21,12 @@ function ForceDarkMode({ children }: { children: ReactNode }) {
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   return (
-    <>
-      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-      <ChakraProvider theme={theme} resetCSS>
-        <ForceDarkMode>
-          <SaasProvider theme={theme}>
-            {children}
-          </SaasProvider>
-        </ForceDarkMode>
-      </ChakraProvider>
-    </>
+    <ChakraProvider theme={theme} resetCSS>
+      <ForceDarkMode>
+        <SaasProvider theme={theme}>
+          {children}
+        </SaasProvider>
+      </ForceDarkMode>
+    </ChakraProvider>
   );
 } 

@@ -5,12 +5,7 @@ import {
   Box,
   Flex,
   Textarea,
-  IconButton,
 } from '@chakra-ui/react';
-import {
-  FiSend,
-  FiStopCircle,
-} from 'react-icons/fi';
 
 interface ChatInputProps {
   value: string;
@@ -31,7 +26,6 @@ export const ChatInput = React.memo(function ChatInput({
   disabled = false,
   isStreaming = false,
   placeholder = "Type your message...",
-  maxLength = 4000,
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -69,7 +63,9 @@ export const ChatInput = React.memo(function ChatInput({
     }
   }, [value, disabled, isStreaming, onSend, onCancel]);
 
-  const canSend = value.trim() && !disabled && !isStreaming && value.length <= maxLength;
+
+
+
 
   return (
     <Box
@@ -109,48 +105,6 @@ export const ChatInput = React.memo(function ChatInput({
             disabled={disabled}
           />
         </Box>
-
-        {/* Send/Stop button */}
-        {isStreaming ? (
-          <IconButton
-            aria-label="Stop"
-            icon={<FiStopCircle />}
-            bg="red.500"
-            color="white"
-            variant="solid"
-            size="md"
-            borderRadius="lg"
-            onClick={onCancel}
-            _hover={{ bg: "red.600" }}
-            _active={{ bg: "red.700" }}
-          />
-        ) : (
-          <IconButton
-            aria-label="Send"
-            icon={<FiSend />}
-            bg={canSend ? "brand.500" : "gray.600"}
-            color="white"
-            variant="solid"
-            size="md"
-            borderRadius="lg"
-            onClick={onSend}
-            disabled={!canSend}
-            _hover={{ 
-              bg: canSend ? "brand.600" : "gray.600" 
-            }}
-            _active={{ 
-              bg: canSend ? "brand.700" : "gray.600" 
-            }}
-            _disabled={{ 
-              bg: "gray.600", 
-              color: "gray.400",
-              cursor: "not-allowed",
-              _hover: {
-                bg: "gray.600"
-              }
-            }}
-          />
-        )}
       </Flex>
     </Box>
   );

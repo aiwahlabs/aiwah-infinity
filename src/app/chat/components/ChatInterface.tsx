@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useRef, useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
   Box,
   VStack,
@@ -8,29 +8,63 @@ import {
   useToast,
   Text,
   Container,
+  HStack,
+  Flex,
 } from '@chakra-ui/react';
 import { ChatMessage, ChatConversation } from '../types';
 import { useChatContext } from '@/hooks/chat/useChatContext';
 import { useAsyncChat } from '@/hooks/chat/useAsyncChat';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
-import { AsyncProcessingIndicator } from './AsyncProcessingIndicator';
 import { ChatInput } from './ChatInput';
+import { ActiveTaskIndicator } from './ActiveTaskIndicator';
 
+// Format message timestamp with relative time - outside component to prevent re-renders
+const formatMessageTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffInMinutes = (now.getTime() - date.getTime()) / (1000 * 60);
+  const diffInHours = diffInMinutes / 60;
+  const diffInDays = diffInHours / 24;
+  
+  if (diffInMinutes < 1) {
+    return 'Just now';
+  } else if (diffInMinutes < 60) {
+    return `${Math.floor(diffInMinutes)}m ago`;
+  } else if (diffInHours < 24) {
+    return `${Math.floor(diffInHours)}h ago`;
+  } else if (diffInDays < 7) {
+    return `${Math.floor(diffInDays)}d ago`;
+  } else {
+    return date.toLocaleDateString([], { 
+      month: 'short', 
+      day: 'numeric',
+      year: diffInDays > 365 ? 'numeric' : undefined 
+    });
+  }
+};
 
 interface ChatInterfaceProps {
   conversation: ChatConversation | null;
 }
 
+/**
+ * Optimized ChatInterface with silky smooth performance
+ * 
+ * Performance optimizations:
+ * - Memoized message rendering
+ * - Debounced scroll-to-bottom
+ * - Reduced re-render frequency
+ * - Optimistic UI updates
+ */
 export const ChatInterface = React.memo(function ChatInterface({ conversation }: ChatInterfaceProps) {
   const { 
     currentConversation, 
     messages, 
     updateConversation,
-    loadMessages 
+    loadMessages,
+    setMessages,
   } = useChatContext();
-  
-
   
   // Use currentConversation from context with fallback to prop
   const activeConversation = currentConversation || conversation;
@@ -40,24 +74,64 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     isProcessing,
     error: asyncError,
     clearError,
+    activeTasks,
   } = useAsyncChat(activeConversation?.id);
   
   const [inputValue, setInputValue] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const toast = useToast();
+
+  // Memoized values to prevent unnecessary re-renders
+  const conversationId = useMemo(() => activeConversation?.id, [activeConversation?.id]);
+  const messagesCount = useMemo(() => messages.length, [messages.length]);
+  const hasAsyncError = useMemo(() => !!asyncError, [asyncError]);
+
+  // Debounced scroll-to-bottom for smooth scrolling
+  const scrollToBottom = useCallback(() => {
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    scrollTimeoutRef.current = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }, 50); // Small delay for smooth batching
+  }, []);
+
+  // Optimized debug logging (reduced frequency)
+  const debugLogRef = useRef<number>(0);
+  useEffect(() => {
+    // Only log every 5th state change to reduce console spam
+    if (debugLogRef.current % 5 === 0) {
+      console.log('🚀 ChatInterface state (optimized):', {
+        conversationId,
+        messagesCount,
+        isProcessing,
+        activeTasks: activeTasks.length,
+        hasAsyncError
+      });
+    }
+    debugLogRef.current++;
+  }, [conversationId, messagesCount, isProcessing, activeTasks.length, hasAsyncError]);
 
   // Load messages when conversation changes
   useEffect(() => {
     if (activeConversation?.id) {
+      console.log('📥 Loading messages for conversation:', activeConversation.id);
       loadMessages(activeConversation.id);
     }
   }, [activeConversation?.id, loadMessages]);
 
-  // Auto-scroll to bottom when new messages arrive or processing state changes
+  // Smooth scroll when new messages arrive
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isProcessing]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages.length, scrollToBottom]);
 
   // Show error toast when async error occurs
   useEffect(() => {
@@ -73,48 +147,102 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     }
   }, [asyncError, toast, clearError]);
 
-  // Format message timestamp with relative time
-  const formatMessageTime = useCallback((dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffInMinutes = (now.getTime() - date.getTime()) / (1000 * 60);
-    const diffInHours = diffInMinutes / 60;
-    const diffInDays = diffInHours / 24;
-    
-    if (diffInMinutes < 1) {
-      return 'Just now';
-    } else if (diffInMinutes < 60) {
-      return `${Math.floor(diffInMinutes)}m ago`;
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
-    } else if (diffInDays < 7) {
-      return `${Math.floor(diffInDays)}d ago`;
-    } else {
-      return date.toLocaleDateString([], { 
-        month: 'short', 
-        day: 'numeric',
-        year: diffInDays > 365 ? 'numeric' : undefined 
-      });
-    }
-  }, []);
-
-  // Handle sending messages with async processing
+  // Optimized message sending with instant feedback
   const handleSendMessage = useCallback(async () => {
     if (!inputValue.trim() || sending || isProcessing || !activeConversation) return;
 
     const userMessage = inputValue.trim();
+    const tempUserId = `temp-user-${Date.now()}`; // String-based temporary ID
+    const tempAiId = `temp-ai-${Date.now()}`; // String-based temporary ID
+    
     setInputValue('');
     setSending(true);
 
+    // 🚀 INSTANT OPTIMISTIC UI UPDATES
+    // Add user message immediately
+    const optimisticUserMessage: ChatMessage = {
+      id: tempUserId as any, // Will be replaced with real number ID
+      conversation_id: activeConversation.id,
+      role: 'user',
+      content: userMessage,
+      created_at: new Date().toISOString(),
+      metadata: { optimistic: true, tempId: tempUserId }
+    };
+
+    // Add AI "thinking" message immediately
+    const optimisticAiMessage: ChatMessage = {
+      id: tempAiId as any, // Will be replaced with real number ID
+      conversation_id: activeConversation.id,
+      role: 'assistant',
+      content: '', // Empty content but will show "Thinking..." status
+      created_at: new Date().toISOString(),
+      metadata: { 
+        optimistic: true, 
+        thinking: true,
+        status_message: 'Thinking...',
+        tempId: tempAiId
+      }
+    };
+
+    // Update UI instantly
+    setMessages((prev: ChatMessage[]) => [...prev, optimisticUserMessage, optimisticAiMessage]);
+
     try {
       // Send message and trigger async processing
-      await sendAsyncMessage(activeConversation.id, userMessage);
+      await sendAsyncMessage(activeConversation.id, userMessage, (userMsg, aiMsg) => {
+        // Type guard to check if the messages have the expected properties
+        const userMessage = userMsg as ChatMessage;
+        const aiMessage = aiMsg as ChatMessage;
+        
+        console.log('🚀 Messages received from API (optimized):', {
+          userMessageId: userMessage?.id,
+          aiMessageId: aiMessage?.id,
+          hasUserContent: !!userMessage?.content,
+          hasAiContent: !!aiMessage?.content
+        });
+
+        // Replace optimistic messages with real ones
+        setMessages((prev: ChatMessage[]) => {
+          let updated = [...prev];
+          
+          // Replace optimistic user message with real one
+          if (userMessage) {
+            const tempUserIndex = updated.findIndex(msg => msg.metadata?.tempId === tempUserId);
+            if (tempUserIndex !== -1) {
+              updated[tempUserIndex] = userMessage;
+              console.log('✅ Replaced optimistic user message with real one:', userMessage.id);
+            }
+          }
+
+          // Replace optimistic AI message with real one, preserving thinking state
+          if (aiMessage) {
+            const tempAiIndex = updated.findIndex(msg => msg.metadata?.tempId === tempAiId);
+            if (tempAiIndex !== -1) {
+              updated[tempAiIndex] = {
+                ...aiMessage,
+                metadata: { 
+                  ...aiMessage.metadata,
+                  thinking: true,
+                  status_message: 'Thinking...' // Keep thinking status until n8n updates
+                }
+              };
+              console.log('✅ Replaced optimistic AI message with real one:', aiMessage.id);
+            }
+          }
+
+          return updated;
+        });
+      });
       
-      // Message was sent successfully - the async hook will handle real-time updates
-      console.log('Message sent for async processing');
+      console.log('🚀 Message sent for async processing (optimized)');
       
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Remove optimistic messages on error
+      setMessages((prev: ChatMessage[]) => 
+        prev.filter(msg => msg.metadata?.tempId !== tempUserId && msg.metadata?.tempId !== tempAiId)
+      );
       
       // Restore input value on error so user doesn't lose their message
       setInputValue(userMessage);
@@ -129,19 +257,92 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     } finally {
       setSending(false);
     }
-  }, [inputValue, sending, isProcessing, activeConversation, sendAsyncMessage, toast]);
+  }, [inputValue, sending, isProcessing, activeConversation, sendAsyncMessage, setMessages, toast]);
 
-  // Handle updating conversation title
-  const handleUpdateTitle = useCallback(async (newTitle: string) => {
-    if (!activeConversation) return;
-    await updateConversation(activeConversation.id, { title: newTitle });
-  }, [activeConversation, updateConversation]);
+  // Memoized message list to prevent unnecessary re-renders
+  const messageList = useMemo(() => {
+    // Deduplicate messages and ensure proper keys
+    const uniqueMessages = messages.reduce((acc: ChatMessage[], message) => {
+      // Check if message already exists (by ID or tempId)
+      const exists = acc.some(existingMsg => {
+        // Same ID
+        if (existingMsg.id === message.id) return true;
+        // Same tempId in metadata
+        if (existingMsg.metadata?.tempId && existingMsg.metadata.tempId === message.metadata?.tempId) return true;
+        return false;
+      });
+      
+      if (!exists) {
+        acc.push(message);
+      }
+      
+      return acc;
+    }, []);
 
-  // Handle canceling processing (placeholder for future enhancement)
-  const handleCancel = useCallback(() => {
-    // TODO: Implement task cancellation via API if needed
-    console.log('Cancel processing requested');
-  }, []);
+    return uniqueMessages.map((message, index) => {
+      // Create a stable key that works for both temp and real IDs
+      const messageKey = String(message.metadata?.tempId || `msg-${message.id}-${index}`);
+      
+      return (
+        <MessageBubble
+          key={messageKey}
+          message={message}
+          isStreaming={false}
+          formatTime={(dateStr: string) => {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+            
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return date.toLocaleDateString();
+          }}
+        />
+      );
+    });
+  }, [messages]);
+
+  // Memoized active task indicators - only show if no AI message with content exists for this task
+  const activeTaskIndicators = useMemo(() => {
+    if (!activeConversation?.id) return null;
+    
+    // Filter out tasks that already have AI messages with content
+    const tasksToShow = activeTasks.filter(taskId => {
+      const aiMessageWithTask = messages.find(msg => 
+        msg.role === 'assistant' && 
+        msg.async_task_id === taskId && 
+        msg.content && 
+        msg.content.trim().length > 0
+      );
+      return !aiMessageWithTask;
+    });
+    
+    return tasksToShow.map((taskId) => (
+      <ActiveTaskIndicator
+        key={taskId}
+        taskId={taskId}
+        conversationId={activeConversation.id}
+        formatTime={(dateStr: string) => {
+          const date = new Date(dateStr);
+          const now = new Date();
+          const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+          
+          if (diffInSeconds < 60) return 'Just now';
+          if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+          return date.toLocaleDateString();
+        }}
+      />
+    ));
+  }, [activeTasks, activeConversation?.id, messages]);
+
+  // Handle Enter key press
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  }, [handleSendMessage]);
 
   if (!activeConversation) {
     return (
@@ -216,81 +417,66 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
   }
 
   return (
-    <Box 
-      h="100%" 
-      bg="gray.900"
-      display="flex" 
-      flexDirection="column"
-    >
-      {/* Header - Fixed at top */}
+        <Flex direction="column" height="100%" bg="gray.900">
+      {/* Chat Header */}
       <ChatHeader 
         conversation={activeConversation}
-        onUpdateTitle={handleUpdateTitle}
+        onUpdateTitle={async (newTitle) => {
+          await updateConversation(activeConversation.id, { title: newTitle });
+        }}
       />
 
-      {/* Messages Area - Scrollable middle section */}
+      {/* Messages Area - Optimized */}
       <Box 
-        flex="1" 
+        flex={1} 
         overflowY="auto" 
-        overflowX="hidden"
+        px={4} 
+        py={4}
         bg="gray.900"
-        minH={0}
+        css={{
+          '&::-webkit-scrollbar': {
+            width: '6px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#2D3748',
+            borderRadius: '3px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#4A5568',
+            borderRadius: '3px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: '#718096',
+          },
+        }}
       >
-        <Container maxW="4xl" py={6}>
-          <VStack spacing={0} align="stretch">
-            {/* Messages */}
-            {messages.length === 0 ? (
-              <Center py={20}>
-                <VStack spacing={4} textAlign="center">
-                  <Text textStyle="section-heading" color="gray.200" fontWeight="500">
-                    Start a conversation
-                  </Text>
-                  <Text textStyle="body" color="gray.400" maxW="md">
-                    Ask me anything! I&apos;m here to help with questions, creative tasks, problem-solving, and much more.
-                  </Text>
-                </VStack>
-              </Center>
-            ) : (
-              messages.map((message: ChatMessage) => (
-                <MessageBubble 
-                  key={message.id} 
-                  message={message} 
-                  formatTime={formatMessageTime}
-                />
-              ))
-            )}
-            
-            {/* Async processing indicator */}
-            <AsyncProcessingIndicator
-              isProcessing={isProcessing}
-              error={asyncError}
-            />
-            
-            <div ref={messagesEndRef} />
-          </VStack>
-        </Container>
+        <VStack spacing={4} align="stretch">
+          {messageList}
+          <div ref={messagesEndRef} />
+        </VStack>
       </Box>
 
-      {/* Input Area - Fixed at bottom */}
+      {/* Chat Input - Fixed at bottom */}
       <Box 
+        p={4} 
+        borderTop="1px solid" 
+        borderColor="gray.700" 
         bg="gray.850"
-        borderTop="1px solid"
-        borderColor="gray.800"
-        p={4}
-        flexShrink={0}
       >
-        <Container maxW="4xl">
-          <ChatInput
-            value={inputValue}
-            onChange={setInputValue}
-            onSend={handleSendMessage}
-            onCancel={handleCancel}
-            disabled={sending}
-            isStreaming={isProcessing}
-            placeholder="Ask me anything..."
-          />
-        </Container>
-      </Box>
-    </Box>
+         <ChatInput
+           value={inputValue}
+           onChange={setInputValue}
+           onSend={handleSendMessage}
+           disabled={sending || isProcessing}
+           placeholder={
+             isProcessing 
+               ? "AI is responding..." 
+               : sending 
+                 ? "Sending..." 
+                 : "Type your message..."
+           }
+         />
+       </Box>
+    </Flex>
   );
 }); 

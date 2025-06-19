@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         input_data,
         created_by: user.id,
         status: 'pending',
-        status_message: 'Task created, waiting to start...'
+        status_message: 'Thinking.....'
       })
       .select()
       .single();

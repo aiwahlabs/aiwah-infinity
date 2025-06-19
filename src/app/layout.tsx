@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { ClientOnly } from "@/components/ClientOnlyProvider";
 import { ResponsiveWarning } from "@/components/ResponsiveWarning";
 import { NavigationLoadingProvider } from "@/components/NavigationLoadingProvider";
+import { ColorModeScript } from "@chakra-ui/react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,7 +35,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="dark" className="chakra-ui-dark" style={{ colorScheme: "dark" }}>
+    <html lang="en" data-theme="dark" style={{ colorScheme: "dark" }}>
+      <head>
+        <ColorModeScript initialColorMode="dark" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-900 text-white`}
       >

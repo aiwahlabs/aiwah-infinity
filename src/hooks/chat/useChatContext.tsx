@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { supabaseBrowser } from '@/lib/supabase/browser';
 import { ChatConversation, ChatMessage, ChatFilter, CreateConversationData, CreateMessageData } from '../../app/chat/types';
+import { logger } from '@/lib/logger';
 
 interface ChatContextType {
   conversations: ChatConversation[];
@@ -24,6 +25,7 @@ interface ChatContextType {
   setCurrentConversation: (conversation: ChatConversation | null) => void;
   updateFilter: (newFilter: Partial<ChatFilter>) => void;
   refreshConversations: () => Promise<void>;
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -139,6 +141,103 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       console.error('Error loading messages:', err);
     }
   }, [supabase]);
+
+  // Subscribe to real-time message updates for the current conversation
+  useEffect(() => {
+    if (!currentConversation?.id) return;
+
+    console.log('🔗 Setting up real-time subscription for conversation:', currentConversation.id);
+
+    const messagesChannel = supabase
+      .channel(`chat_messages_${currentConversation.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `conversation_id=eq.${currentConversation.id}`
+        },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: any) => {
+          logger.chat('useChatContext', 'Realtime message update received', payload);
+          console.log('⚡ Message real-time update received:', {
+            eventType: payload.eventType,
+            messageId: payload.new?.id,
+            conversationId: payload.new?.conversation_id,
+            role: payload.new?.role,
+            hasContent: !!payload.new?.content,
+            contentLength: payload.new?.content?.length || 0,
+            asyncTaskId: payload.new?.async_task_id,
+            timestamp: new Date().toISOString()
+          });
+          
+          if (payload.eventType === 'INSERT') {
+            // Add new message
+            const newMessage = payload.new as ChatMessage;
+            logger.chat('useChatContext', 'Processing INSERT event', { newMessage });
+            console.log('➕ Adding new message via real-time:', {
+              messageId: newMessage.id,
+              role: newMessage.role,
+              hasContent: !!newMessage.content
+            });
+            
+            setMessages(prev => {
+              // Avoid duplicates
+              if (prev.some(msg => msg.id === newMessage.id)) {
+                logger.chat('useChatContext', 'Duplicate message, skipping', { messageId: newMessage.id });
+                console.log('⚠️ Duplicate message detected, skipping:', newMessage.id);
+                return prev;
+              }
+              logger.chat('useChatContext', 'Adding new message to state', { messageId: newMessage.id, totalMessages: prev.length + 1 });
+              console.log('✅ Message added to state:', {
+                messageId: newMessage.id,
+                previousCount: prev.length,
+                newCount: prev.length + 1
+              });
+              return [...prev, newMessage];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            // Update existing message
+            const updatedMessage = payload.new as ChatMessage;
+            logger.chat('useChatContext', 'Processing UPDATE event', { updatedMessage });
+            console.log('🔄 Updating message via real-time:', {
+              messageId: updatedMessage.id,
+              role: updatedMessage.role,
+              hasContent: !!updatedMessage.content,
+              contentLength: updatedMessage.content?.length || 0,
+              asyncTaskId: updatedMessage.async_task_id,
+              isAIMessage: updatedMessage.role === 'assistant'
+            });
+            
+            setMessages(prev => {
+              const updated = prev.map(msg => 
+                msg.id === updatedMessage.id ? updatedMessage : msg
+              );
+              console.log('✅ Message state updated for message:', updatedMessage.id);
+              return updated;
+            });
+          } else if (payload.eventType === 'DELETE') {
+            // Remove deleted message
+            const deletedMessage = payload.old as ChatMessage;
+            logger.chat('useChatContext', 'Processing DELETE event', { deletedMessage });
+            console.log('🗑️ Deleting message via real-time:', deletedMessage.id);
+            
+            setMessages(prev => 
+              prev.filter(msg => msg.id !== deletedMessage.id)
+            );
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 Real-time subscription status:', status);
+      });
+
+    return () => {
+      console.log('🔌 Cleaning up real-time subscription for conversation:', currentConversation.id);
+      supabase.removeChannel(messagesChannel);
+    };
+  }, [currentConversation?.id, supabase]);
 
   const createConversation = useCallback(async (data: CreateConversationData): Promise<ChatConversation | null> => {
     try {
@@ -350,7 +449,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     deleteMessage,
     setCurrentConversation,
     updateFilter,
-    refreshConversations
+    refreshConversations,
+    setMessages
   }), [
     conversations,
     currentConversation,
@@ -368,7 +468,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     deleteMessage,
     setCurrentConversation,
     updateFilter,
-    refreshConversations
+    refreshConversations,
+    setMessages
   ]);
 
   return (
