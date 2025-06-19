@@ -17,6 +17,7 @@ import { useAsyncChat } from '@/hooks/chat/useAsyncChat';
 import { ChatHeader } from './ChatHeader';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
+import { AsyncProcessingIndicator } from './AsyncProcessingIndicator';
 
 // Format message timestamp with relative time - outside component to prevent re-renders
 const formatMessageTime = (dateStr: string) => {
@@ -87,17 +88,20 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
   const hasAsyncError = useMemo(() => !!asyncError, [asyncError]);
 
   // Debounced scroll-to-bottom for smooth scrolling
-  const scrollToBottom = useCallback(() => {
+  const scrollToBottom = useCallback((immediate = false) => {
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
+    
+    // Use shorter delay for immediate states (loading, processing)
+    const delay = immediate ? 10 : 50;
     
     scrollTimeoutRef.current = setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ 
         behavior: 'smooth',
         block: 'end'
       });
-    }, 50); // Small delay for smooth batching
+    }, delay);
   }, []);
 
   // Optimized debug logging (reduced frequency)
@@ -123,12 +127,46 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
     }
   }, [activeConversation?.id, loadMessages]);
 
-  // Smooth scroll when new messages arrive
+  // Enhanced auto-scroll - trigger on ANY content or state change
   useEffect(() => {
-    if (messages.length > 0) {
-      scrollToBottom();
+    // Scroll to bottom whenever:
+    // 1. New messages arrive (messages.length changes)
+    // 2. Processing state changes (loading/AI processing indicators)
+    // 3. Error states appear
+    // 4. Any visual content changes that might affect chat height
+    
+    // Use immediate scroll for loading/processing states for better UX
+    const isImmediateState = isProcessing || sending || !!asyncError;
+    scrollToBottom(isImmediateState);
+    
+    // Only log significant state changes to avoid console spam
+    if (isImmediateState || messages.length === 1) {
+      console.log('🔄 Auto-scroll:', { 
+        reason: isProcessing ? 'processing' : sending ? 'sending' : asyncError ? 'error' : 'messages',
+        immediate: isImmediateState 
+      });
     }
-  }, [messages.length, scrollToBottom]);
+  }, [
+    messages.length,      // New messages
+    isProcessing,         // AI processing state
+    sending,              // User message sending state
+    asyncError,           // Error states
+    activeTasks.length,   // Active background tasks
+    scrollToBottom
+  ]);
+
+  // Also scroll when conversation changes (immediate scroll for new conversation)
+  useEffect(() => {
+    if (activeConversation?.id) {
+      // Immediate scroll for new conversation (no delay)
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'end'
+        });
+      }, 100); // Small delay to let messages load
+    }
+  }, [activeConversation?.id]);
 
   // Show error toast when async error occurs
   useEffect(() => {
@@ -150,14 +188,38 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
 
     const userMessage = inputValue.trim();
     
+    // Performance tracking - Start timestamp
+    const sendStartTime = performance.now();
+    console.log('📊 PERFORMANCE: Send button clicked', {
+      timestamp: new Date().toISOString(),
+      startTime: sendStartTime,
+      messageLength: userMessage.length,
+      conversationId: activeConversation.id
+    });
+    
     setInputValue('');
     setSending(true);
 
     try {
+      // Performance tracking - Before API call
+      const apiCallStartTime = performance.now();
+      console.log('📊 PERFORMANCE: Starting API call', {
+        timestamp: new Date().toISOString(),
+        timeFromClick: apiCallStartTime - sendStartTime,
+        action: 'sendAsyncMessage'
+      });
+      
       // Just send the message - let real-time handle UI updates
       await sendAsyncMessage(activeConversation.id, userMessage);
       
+      // Performance tracking - After API call
+      const apiCallEndTime = performance.now();
       console.log('✅ Message sent successfully');
+      console.log('📊 PERFORMANCE: API call completed', {
+        timestamp: new Date().toISOString(),
+        apiCallDuration: apiCallEndTime - apiCallStartTime,
+        totalTimeFromClick: apiCallEndTime - sendStartTime
+      });
       
     } catch (error) {
       console.error('Error sending message:', error);
@@ -174,6 +236,14 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
       });
     } finally {
       setSending(false);
+      
+      // Performance tracking - Total time
+      const totalTime = performance.now() - sendStartTime;
+      console.log('📊 PERFORMANCE: Send flow completed', {
+        timestamp: new Date().toISOString(),
+        totalDuration: totalTime,
+        status: 'complete'
+      });
     }
   }, [inputValue, sending, isProcessing, activeConversation, sendAsyncMessage, toast]);
 
@@ -314,6 +384,15 @@ export const ChatInterface = React.memo(function ChatInterface({ conversation }:
       >
         <VStack spacing={4} align="stretch">
           {messageList}
+          
+          {/* Show processing indicator when AI is working */}
+          {isProcessing && (
+            <AsyncProcessingIndicator
+              isProcessing={isProcessing}
+              statusMessage="Almost there, passing to AI now..."
+            />
+          )}
+          
           <div ref={messagesEndRef} />
         </VStack>
       </Box>

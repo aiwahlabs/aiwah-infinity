@@ -280,7 +280,22 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
 
     setError(null);
     
+    // Performance tracking - Start of sendMessage
+    const sendMessageStartTime = performance.now();
+    console.log('📊 PERFORMANCE: useAsyncChat.sendMessage started', {
+      timestamp: new Date().toISOString(),
+      conversationId,
+      messageLength: message.length
+    });
+    
     try {
+      // Performance tracking - Before fetch
+      const fetchStartTime = performance.now();
+      console.log('📊 PERFORMANCE: Starting fetch to /api/chat/send', {
+        timestamp: new Date().toISOString(),
+        timeSinceSendMessage: fetchStartTime - sendMessageStartTime
+      });
+      
       const response = await fetch('/api/chat/send', {
         method: 'POST',
         headers: {
@@ -292,12 +307,32 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
         }),
       });
 
+      // Performance tracking - After fetch
+      const fetchEndTime = performance.now();
+      console.log('📊 PERFORMANCE: Fetch completed', {
+        timestamp: new Date().toISOString(),
+        fetchDuration: fetchEndTime - fetchStartTime,
+        status: response.status,
+        ok: response.ok
+      });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
       }
 
       const data = await response.json();
+      
+      // Performance tracking - After parsing response
+      const parseEndTime = performance.now();
+      console.log('📊 PERFORMANCE: Response parsed', {
+        timestamp: new Date().toISOString(),
+        parseDuration: parseEndTime - fetchEndTime,
+        totalDuration: parseEndTime - sendMessageStartTime,
+        taskId: data.task_id,
+        userMessageId: data.user_message?.id,
+        aiMessageId: data.ai_message?.id
+      });
       
       // Track the task for processing state
       if (data.task_id) {
@@ -312,6 +347,11 @@ export const useAsyncChat = (conversationId?: number): UseAsyncChatReturn => {
 
     } catch (error) {
       console.error('Error sending message:', error);
+      console.log('📊 PERFORMANCE: Send message failed', {
+        timestamp: new Date().toISOString(),
+        duration: performance.now() - sendMessageStartTime,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       setError(error instanceof Error ? error.message : 'Failed to send message');
       throw error;
     }

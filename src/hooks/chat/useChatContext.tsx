@@ -184,6 +184,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               statusMessage: newMessage.metadata?.status_message
             });
             
+            // Performance tracking - Message appearing in UI
+            console.log('📊 PERFORMANCE: Real-time INSERT - Message appearing in UI', {
+              timestamp: new Date().toISOString(),
+              messageId: newMessage.id,
+              role: newMessage.role,
+              conversationId: newMessage.conversation_id,
+              createdAt: newMessage.created_at,
+              timeFromCreation: newMessage.created_at ? Date.now() - new Date(newMessage.created_at).getTime() : 'unknown'
+            });
+            
             setMessages(prev => {
               // Avoid duplicates
               const existingIndex = prev.findIndex(msg => msg.id === newMessage.id);
@@ -203,6 +213,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
                 previousCount: prev.length,
                 newCount: prev.length + 1
               });
+              
+              // Performance tracking - Message added to state
+              console.log('📊 PERFORMANCE: Message added to UI state', {
+                timestamp: new Date().toISOString(),
+                messageId: newMessage.id,
+                role: newMessage.role,
+                messageCount: prev.length + 1
+              });
+              
               return [...prev, newMessage];
             });
           } else if (payload.eventType === 'UPDATE') {

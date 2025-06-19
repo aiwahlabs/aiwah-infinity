@@ -8,6 +8,7 @@ import { ClientOnly } from "@/components/ClientOnlyProvider";
 import { ResponsiveWarning } from "@/components/ResponsiveWarning";
 import { NavigationLoadingProvider } from "@/components/NavigationLoadingProvider";
 import { ColorModeScript } from "@chakra-ui/react";
+import { PerformanceTracker } from "@/components/PerformanceTracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,6 +47,7 @@ export default function RootLayout({
           <ThemeProvider>
             <NavigationLoadingProvider>
               <AuthProvider>
+                <PerformanceTracker />
                 {children}
                 <ResponsiveWarning />
               </AuthProvider>

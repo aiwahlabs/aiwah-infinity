@@ -71,59 +71,50 @@ export async function POST(request: NextRequest) {
       user_id: user.id
     };
 
-    // Trigger n8n workflow
+    // Trigger n8n workflow (fire-and-forget - don't wait for completion)
     try {
-      const response = await fetch(workflowConfig.webhook_url, {
+      // Start the webhook call but don't wait for it to complete
+      fetch(workflowConfig.webhook_url, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
           'User-Agent': 'Aiwah-App/1.0'
         },
         body: JSON.stringify(webhookPayload)
+      }).catch(webhookError => {
+        // Log error but don't fail the request
+        console.error('Failed to trigger n8n workflow (async):', webhookError);
+        
+        // Update task status to failed in background
+        (async () => {
+          try {
+            await supabase
+              .from('async_tasks')
+              .update({
+                status: 'failed',
+                status_message: `Failed to start workflow: ${webhookError.message}`,
+                error_details: {
+                  error: webhookError.message,
+                  webhook_url: workflowConfig.webhook_url,
+                  timestamp: new Date().toISOString()
+                }
+              })
+              .eq('id', task.id);
+            console.log('Task marked as failed');
+          } catch (updateError) {
+            console.error('Failed to update task status:', updateError);
+          }
+        })();
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
+      console.log('🚀 Webhook triggered asynchronously for task:', task.id);
 
-      // Get n8n response (usually contains execution info)
-      const n8nResponse = await response.json();
-      
-      // Update task with n8n execution info if available
-      if (n8nResponse.executionId || n8nResponse.workflowId) {
-        await supabase
-          .from('async_tasks')
-          .update({
-            n8n_execution_id: n8nResponse.executionId,
-            status_message: 'Workflow started successfully'
-          })
-          .eq('id', task.id);
-      }
-
-    } catch (webhookError) {
-      console.error('Failed to trigger n8n workflow:', webhookError);
-      
-      // Update task status to failed
-      await supabase
-        .from('async_tasks')
-        .update({
-          status: 'failed',
-          status_message: `Failed to start workflow: ${(webhookError as Error).message}`,
-          error_details: {
-            error: (webhookError as Error).message,
-            webhook_url: workflowConfig.webhook_url,
-            timestamp: new Date().toISOString()
-          }
-        })
-        .eq('id', task.id);
-
-      return NextResponse.json(
-        { error: 'Failed to trigger workflow', task_id: task.id },
-        { status: 500 }
-      );
+    } catch (error) {
+      // This shouldn't happen with the async approach, but just in case
+      console.error('Error starting async webhook:', error);
     }
 
-    // Return success response
+    // Return success response immediately (don't wait for n8n)
     return NextResponse.json({
       success: true,
       task_id: task.id,
